@@ -39,7 +39,7 @@
     "browser-image-compression": "^2.0.2",
     "chatbot-interface-ifi": "^1.0.1",
     "dompurify": "^3.1.0",
-    "firebase": "^9.23.0",
+    "firebase": "^11.2.0",
     "firebase-admin": "^12.2.0",
     "firebase-functions": "^5.0.1",
     "jszip": "^3.10.1",
