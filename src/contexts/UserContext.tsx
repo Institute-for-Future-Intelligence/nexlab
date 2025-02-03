@@ -67,7 +67,7 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
           const publicCourseDoc = await getDoc(publicCourseRef);
   
           if (!publicCourseDoc.exists()) {
-            throw new Error("Public course document does not exist in the courses collection.");
+            throw new Error("Public course document does not exist in the courses collection!");
           }
   
           const publicCourseData = publicCourseDoc.data();
