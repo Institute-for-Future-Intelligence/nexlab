@@ -31,7 +31,7 @@ const ChatbotDetails: React.FC<ChatbotDetailsProps> = ({ chatbotId }) => {
                     // Assuming only one document matches the chatbotId
                     setChatbotDetails(querySnapshot.docs[0].data());
                 } else {
-                    setError('Chatbot details not found.');
+                    setError('Chatbot details not found!');
                 }
             } catch (err) {
                 console.error('Error fetching chatbot details:', err);
