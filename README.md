@@ -1,6 +1,6 @@
-# ATE 2.0 MICR Laboratory Notebook
+# NexLAB: Next-Generation Experiments and Learning for Advanced Biotech
 
-This is an ATE 2.0 project web application for managing laboratory notebooks, designed for the MICR course. It features user authentication with Google Sign-In, and allows users to create, edit, and view their design projects in real-time, integrated with Firestore.
+This is an ATE project's web application for managing laboratory notebooks, designed for the MICR course. It features user authentication with Google Sign-In, and allows users to create, edit, and view their design projects in real-time, integrated with Firestore.
 
 ## Features
 
@@ -15,11 +15,11 @@ To run this project locally:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/kashyrskyy/ate-micr.git
+   git clone https://github.com/institute-for-future-intelligence/nexlab.git
    ```
 2. Navigate to the project directory:
     ```bash
-    cd ate-micr
+    cd nexlab
     ```
 3. Install dependencies:
     ```bash
@@ -33,7 +33,7 @@ To run this project locally:
 
 ## Deployment
 
-The application is deployed on GitHub Pages and can be accessed at [https://kashyrskyy.github.io/ate-micr/](https://kashyrskyy.github.io/ate-micr/).
+The application is deployed on GitHub Pages and can be accessed at [https://institute-for-future-intelligence.github.io/nexlab/](https://institute-for-future-intelligence.github.io/nexlab/).
 
 ## Built With
 

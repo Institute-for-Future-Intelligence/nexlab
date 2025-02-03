@@ -75,7 +75,7 @@ const RequestEducatorPermissionsForm: React.FC = () => {
             <p><strong>Request Type:</strong> ${requestType}</p>
             <p><strong>Description:</strong> ${courseDescription}</p>
             <p><strong>Request ID:</strong> ${educatorRequestRef.id}</p>
-            <p><a href="https://kashyrskyy.github.io/ate-micr/#/educator-requests">
+            <p><a href="https://institute-for-future-intelligence.github.io/nexlab/#/educator-requests">
             Click here to review the request.
             </a></p>
           `,

@@ -58,7 +58,7 @@ const RequestNewCourseForm: React.FC = () => {
             <p><strong>Course:</strong> ${courseNumber} - ${courseTitle}</p>
             <p><strong>Description:</strong> ${courseDescription}</p>
             <p><strong>Request ID:</strong> ${courseRequestRef.id}</p>
-            <p><a href="https://kashyrskyy.github.io/ate-micr/#/course-requests">
+            <p><a href="https://institute-for-future-intelligence.github.io/nexlab/#/course-requests">
             Click here to review the request.
             </a></p>
           `,

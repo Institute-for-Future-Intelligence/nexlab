@@ -109,7 +109,7 @@ const CourseRequestsAdminPage: React.FC = () => {
             <p>Your course request has been approved:</p>
             <p><strong>Course:</strong> ${currentRequestData.courseNumber} - ${currentRequestData.courseTitle}</p>
             <p><strong>Passcode:</strong> ${passcode}</p>
-            <p><a href="https://kashyrskyy.github.io/ate-micr/#/supplemental-materials">
+            <p><a href="https://institute-for-future-intelligence.github.io/nexlab/#/supplemental-materials">
             Click here to view your course.
             </a></p>
           `,
