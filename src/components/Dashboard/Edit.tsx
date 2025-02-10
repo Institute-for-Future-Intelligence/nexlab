@@ -877,15 +877,21 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
   
   return (
     <div className="small-container">
-      <button onClick={() => {
-        // Check if any unsaved changes exist
-        const hasUnsavedChanges = Object.values(unsavedChanges).some(value => value);
-        if (hasUnsavedChanges) {
-          promptBeforeLeaving(); // Show confirmation dialog if unsaved changes exist
-        } else {
-          onReturnToDashboard(); // Directly proceed if no unsaved changes
-        }
-      }} className="muted-button margin-top-20">← All Designs</button>
+      <Button
+          variant="text"
+          onClick={() => {
+              // Check if any unsaved changes exist
+              const hasUnsavedChanges = Object.values(unsavedChanges).some(value => value);
+              if (hasUnsavedChanges) {
+                  promptBeforeLeaving(); // Show confirmation dialog if unsaved changes exist
+              } else {
+                  onReturnToDashboard(); // Directly proceed if no unsaved changes
+              }
+          }}
+          className="profile-button"
+      >
+          &larr; All Designs
+      </Button>
       <div className="design-record">
         <form onSubmit={updateDesign}>
           <h1 className="designHeader" style={{ marginBottom: '20px' }}>Design Document</h1>

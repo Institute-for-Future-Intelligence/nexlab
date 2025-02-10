@@ -135,7 +135,13 @@ const Add: React.FC<AddProps> = ({ designs, setDesigns, setIsAdding, getDesigns,
   
   return (
     <div className="small-container">
-      <button onClick={onReturnToDashboard} className="muted-button margin-top-20">← All Designs</button>
+      <Button
+            variant="text"
+            onClick={onReturnToDashboard}
+            className="profile-button"
+        >
+            &larr; All Designs
+      </Button>
       <div className="design-record">
         <form onSubmit={saveDesign}>
           <h1 className="designHeader">New Design</h1>
