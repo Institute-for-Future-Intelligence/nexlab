@@ -1902,6 +1902,7 @@ button.ql-equals {
 
 /* Cancel Button - Reddish */
 .cancel-button {
+  font-family: 'Staatliches', sans-serif !important;
   background-color: #FF6B6B; /* Soft red */
   color: #FFFFFF;
 }
@@ -1912,6 +1913,7 @@ button.ql-equals {
 
 /* Save Button - Yellowish */
 .save-button {
+  font-family: 'Staatliches', sans-serif !important;
   background-color: #F6C90E; /* Bright yellow */
   color: #000000;
 }

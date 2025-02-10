@@ -1,6 +1,6 @@
 // src/components/Messages/AddMessage.tsx
 import React, { useState } from 'react';
-import { Box, Button, TextField, Typography, Container, TextareaAutosize } from '@mui/material';
+import { Box, Button, TextField, Typography, Container, Divider, Paper } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { getFirestore } from 'firebase/firestore';
@@ -23,12 +23,12 @@ const AddMessage: React.FC = () => {
   const db = getFirestore();
 
   const handleAddMessage = async () => {
-    try {
-      if (!selectedCourse) {
-        alert('Please select a course to post the message.');
-        return;
-      }
+    if (!selectedCourse) {
+      alert('Please select a course to post the message.');
+      return;
+    }
 
+    try {
       await addDoc(collection(db, 'messages'), {
         title,
         description,
@@ -54,90 +54,110 @@ const AddMessage: React.FC = () => {
   const addLinkField = () => setLinks([...links, { title: '', url: '' }]);
 
   return (
-    <Container maxWidth="sm">
-      <Box sx={{ mt: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
+    <Container maxWidth="md" sx={{ mt: 6, fontFamily: 'Gabarito, sans-serif' }}>
+      <Paper
+        elevation={3}
+        sx={{
+          p: 4,
+          borderRadius: 2,
+          backgroundColor: '#F7F9FC', // Light email-like background
+        }}
+      >
+        <Typography variant="h4" component="h1" gutterBottom sx={{ fontFamily: 'Staatliches, sans-serif', textAlign: 'center' }}>
           Add New Message
         </Typography>
 
-        <CourseSelector value={selectedCourse} onChange={setSelectedCourse} />
+        <Divider sx={{ mb: 3, backgroundColor: '#DADADA' }} />
 
-        <TextField
-          label="Title"
-          fullWidth
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          sx={{ mb: 2 }}
-        />
-        <TextareaAutosize
-          aria-label="description"
-          minRows={4}
-          placeholder="Description"
-          style={{
-            width: '100%',
-            padding: '16.5px 14px',
-            fontSize: '1rem',
-            borderRadius: '4px',
-            borderColor: 'rgba(0, 0, 0, 0.23)',
-            marginBottom: '16px',
-          }}
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
-        <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
-          Links
-        </Typography>
-        {links.map((link, index) => (
-          <Box key={index} sx={{ mb: 2 }}>
-            <TextField
-              label={`Link Title ${index + 1}`}
-              fullWidth
-              value={link.title}
-              onChange={(e) => handleLinkChange(index, 'title', e.target.value)}
-              sx={{ mb: 1 }}
-            />
-            <TextField
-              label={`Link URL ${index + 1}`}
-              fullWidth
-              value={link.url}
-              onChange={(e) => handleLinkChange(index, 'url', e.target.value)}
-            />
-          </Box>
-        ))}
-        <Button variant="text" onClick={addLinkField} sx={{ mb: 2 }}>
-          + Add another link
-        </Button>
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <Box sx={{ mt: 4 }}>
+          <CourseSelector value={selectedCourse} onChange={setSelectedCourse} />
+
+          <TextField
+            label="Subject"
+            fullWidth
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            sx={{
+              mb: 3,
+              backgroundColor: '#FFFFFF',
+              borderRadius: 1,
+              boxShadow: '0 1px 4px rgba(0, 0, 0, 0.1)',
+            }}
+          />
+          <TextField
+            label="Description"
+            fullWidth
+            multiline
+            rows={4}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            sx={{
+              mb: 3,
+              backgroundColor: '#FFFFFF',
+              borderRadius: 1,
+              boxShadow: '0 1px 4px rgba(0, 0, 0, 0.1)',
+            }}
+          />
+
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            🔗
+          </Typography>
+          {links.map((link, index) => (
+            <Box key={index} sx={{ mb: 2, pl: 2, borderLeft: '4px solid #CDDAFF' }}>
+              <TextField
+                label={`URL Title ${index + 1}`}
+                fullWidth
+                value={link.title}
+                onChange={(e) => handleLinkChange(index, 'title', e.target.value)}
+                sx={{ mb: 1 }}
+              />
+              <TextField
+                label={`URL Link ${index + 1}`}
+                fullWidth
+                value={link.url}
+                onChange={(e) => handleLinkChange(index, 'url', e.target.value)}
+              />
+            </Box>
+          ))}
           <Button
             variant="outlined"
-            onClick={handleCancel}
+            onClick={addLinkField}
+            startIcon={<span style={{ fontSize: '1.2rem', lineHeight: 1 }}>+</span>}
             sx={{
-              marginRight: '8px',
-              borderColor: '#A5D6A7',
-              color: '#424242',
+              fontFamily: 'Staatliches, sans-serif',
+              fontSize: '1rem',
+              color: '#0B53C0',
+              padding: '8px 16px',
+              textTransform: 'none',
               '&:hover': {
-                borderColor: '#81C784',
-                backgroundColor: 'rgba(165, 214, 167, 0.1)',
+                backgroundColor: 'rgba(11, 83, 192, 0.1)',
+                color: '#083B80',
               },
             }}
           >
-            Cancel
+            Add Link
           </Button>
-          <Button
-            variant="contained"
-            onClick={handleAddMessage}
-            sx={{
-              backgroundColor: '#CDDAFF',
-              color: '#424242',
-              '&:hover': {
-                backgroundColor: '#0B53C0',
-              },
-            }}
-          >
-            Save Changes
-          </Button>
+
+          <Divider sx={{ width: '100%', my: 2, backgroundColor: '#DADADA' }} />
+
+          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+            <Button
+              variant="outlined"
+              onClick={handleCancel}
+              className="cancel-button"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={handleAddMessage}
+              className="save-button"
+            >
+              Save
+            </Button>
+          </Box>
         </Box>
-      </Box>
+      </Paper>
     </Container>
   );
 };
