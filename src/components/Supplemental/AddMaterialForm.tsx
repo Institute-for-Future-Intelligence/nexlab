@@ -522,11 +522,24 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData, onSubmi
               </Tooltip>
             </Box>
             <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Button type="button" variant="outlined" color="secondary" onClick={handleCancel}>
+              {/* Cancel Button */}
+              <Button 
+                type="button" 
+                variant="outlined" 
+                onClick={handleCancel} 
+                className="supplemental-button cancel-button"
+              >
                 Cancel
               </Button>
+
+              {/* Save Button with Save Message */}
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Button type="submit" variant="contained" color="primary" onClick={(e) => handleSubmit(e, false)}>
+                <Button 
+                  type="submit" 
+                  variant="outlined" 
+                  onClick={(e) => handleSubmit(e, false)}
+                  className="supplemental-button save-button"
+                >
                   Save
                 </Button>
                 {showSaveMessage && (
@@ -535,9 +548,18 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData, onSubmi
                   </Typography>
                 )}
               </Box>
-              <Button type="button" variant="contained" color="primary" onClick={handlePublish} sx={{ backgroundColor: 'green' }}>
+
+              {/* Publish Button */}
+              <Button 
+                type="button" 
+                variant="outlined" 
+                onClick={handlePublish} 
+                className="supplemental-button publish-button"
+              >
                 Publish
               </Button>
+
+              {/* Schedule Publish Button with Date Picker */}
               <div>
                 {showDatePicker && (
                   <DateTimePickerComponent
@@ -545,7 +567,12 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData, onSubmi
                     onChange={setScheduledTimestamp}
                   />
                 )}
-                <Button type="button" variant="contained" color="primary" onClick={handleSchedulePublish} sx={{ backgroundColor: 'blue' }}>
+                <Button 
+                  type="button" 
+                  variant="outlined" 
+                  onClick={handleSchedulePublish} 
+                  className="supplemental-button schedule-publish-button"
+                >
                   {showDatePicker ? 'Schedule Publish' : 'Schedule Publish'}
                 </Button>
               </div>

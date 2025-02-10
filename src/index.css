@@ -1890,6 +1890,56 @@ button.ql-equals {
   font-size: 16px; /* Adjust as needed */
 }
 
+.supplemental-button {
+  font-family: 'Staatliches', sans-serif !important;
+  font-size: 1.2rem;
+  text-transform: none;
+  min-width: 150px;
+  box-shadow: none;
+  border: 0px solid transparent;
+  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+/* Cancel Button - Reddish */
+.cancel-button {
+  background-color: #FF6B6B; /* Soft red */
+  color: #FFFFFF;
+}
+
+.cancel-button:hover {
+  background-color: #E63946;
+}
+
+/* Save Button - Yellowish */
+.save-button {
+  background-color: #F6C90E; /* Bright yellow */
+  color: #000000;
+}
+
+.save-button:hover {
+  background-color: #D9A30A;
+}
+
+/* Publish Button - Green */
+.publish-button {
+  background-color: #2ECC71; /* Soft green */
+  color: #FFFFFF;
+}
+
+.publish-button:hover {
+  background-color: #27AE60;
+}
+
+/* Schedule Publish Button - Light Blue */
+.schedule-publish-button {
+  background-color: #4A90E2; /* Light blue */
+  color: #FFFFFF;
+}
+
+.schedule-publish-button:hover {
+  background-color: #357ABD;
+}
+
 /* REQUEST FORMS */
 
 /* Apply the Gabarito font to the entire form container */
