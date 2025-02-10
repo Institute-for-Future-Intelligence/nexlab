@@ -24,7 +24,7 @@ const BackToAllMaterialsButton: React.FC<BackToAllMaterialsButtonProps> = ({ ret
 
   return (
     <Button
-      variant="outlined"
+      variant="text"
       color="primary"
       startIcon={<ArrowBackIcon />}
       onClick={handleClick}
