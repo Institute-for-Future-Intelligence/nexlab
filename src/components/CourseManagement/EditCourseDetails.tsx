@@ -86,8 +86,25 @@ const EditCourseDetails: React.FC<EditCourseDetailsProps> = ({ selectedCourse, s
 
   return (
     <Box sx={{ mt: 2 }}>
-      <Button variant="outlined" color="primary" onClick={handleOpen}>
-        Edit Course Number & Title
+      <Button
+        variant="outlined"
+        onClick={handleOpen}
+        sx={{
+          fontFamily: 'Staatliches, sans-serif',
+          fontSize: '1rem',
+          backgroundColor: '#4CAF50',
+          color: '#FFFFFF',
+          borderRadius: 1,
+          textTransform: 'none',
+          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+          transition: 'background-color 0.3s ease, transform 0.3s ease',
+          '&:hover': {
+            backgroundColor: '#388E3C',
+            transform: 'scale(1.03)',
+          },
+        }}
+      >
+        Edit Course Details
       </Button>
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Edit Course Details</DialogTitle>

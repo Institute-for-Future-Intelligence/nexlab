@@ -60,7 +60,24 @@ const DeleteCourse: React.FC<DeleteCourseProps> = ({ selectedCourse, onCourseDel
 
   return (
     <Box sx={{ mt: 2 }}>
-      <Button variant="outlined" color="secondary" onClick={handleOpen}>
+      <Button
+        variant="contained"
+        onClick={handleOpen}
+        sx={{
+          fontFamily: 'Staatliches, sans-serif',
+          fontSize: '1rem',
+          backgroundColor: '#F44336',
+          color: '#FFFFFF',
+          borderRadius: 1,
+          textTransform: 'none',
+          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+          transition: 'background-color 0.3s ease, transform 0.3s ease',
+          '&:hover': {
+            backgroundColor: '#D32F2F',
+            transform: 'scale(1.03)',
+          },
+        }}
+      >
         Delete Course
       </Button>
       <Dialog open={open} onClose={handleClose}>
