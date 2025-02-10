@@ -40,6 +40,8 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData, onSubmi
 
   const [course, setCourse] = useState<string>(materialData?.course || urlCourse || '');
 
+  const [materialId, setMaterialId] = useState<string | null>(materialData?.id || null); // Store material ID
+
   const [title, setTitle] = useState<string>(materialData?.title || '');
   const [header, setHeader] = useState(materialData?.header || { title: 'Header', content: '' });
   const [footer, setFooter] = useState(materialData?.footer || { title: 'Footer', content: '' });
@@ -74,10 +76,11 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData, onSubmi
 
   const handleSubmit = async (e: React.FormEvent, shouldPublish: boolean = false, scheduleTimestamp?: Date | null) => {
     e.preventDefault();
-
+  
     try {
-      if (materialData) {
-        const docRef = doc(db, 'materials', materialData.id);
+      if (materialId) {
+        // Update existing material
+        const docRef = doc(db, 'materials', materialId);
         await updateDoc(docRef, {
           course,
           title,
@@ -89,6 +92,7 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData, onSubmi
         });
         setSnackbarMessage('Material updated successfully');
       } else {
+        // Add new material
         const docRef = await addDoc(collection(db, 'materials'), {
           course,
           title,
@@ -100,8 +104,11 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData, onSubmi
           published: shouldPublish,
           scheduledTimestamp: scheduleTimestamp ? Timestamp.fromDate(scheduleTimestamp) : null,
         });
+  
+        setMaterialId(docRef.id); // Store newly created document ID
         setSnackbarMessage('Material saved successfully');
       }
+  
       setSnackbarSeverity('success');
       setOpenSnackbar(true);
       setShowSaveMessage(true); // Show "Changes Saved" message
