@@ -125,62 +125,40 @@ const CourseManagement: React.FC = () => {
         Course Management
       </Typography>
 
-      <Box sx={{ mt: 4 }}>
-        <FormControlLabel
-          control={
-            <Switch
-              checked={isRequestNewCourseOpen}
-              onChange={() => setIsRequestNewCourseOpen((prev) => !prev)}
-            />
-          }
-          label="Request Creating a New Course"
-        />
-        {isRequestNewCourseOpen && (
-          <Box sx={{ mt: 2 }}>
-            <Button variant="text" onClick={handleNavigateToRequestNewCourse}>
-              Request Creating a New Course
-            </Button>
-          </Box>
-        )}
-
-        <FormControlLabel
-          control={
-            <Switch
-              checked={isRetrievePasscodeOpen}
-              onChange={() => setIsRetrievePasscodeOpen((prev) => !prev)}
-            />
-          }
-          label="Retrieve Course Passcode"
-        />
-        {isRetrievePasscodeOpen && (
-          <Box sx={{ mt: 2 }}>
-            <RetrieveCoursePasscode />
-          </Box>
+      {/* Course Selector */}
+      <Box
+        sx={{
+          mb: 4,
+          p: 3,
+          backgroundColor: '#FFFFFF',
+          borderRadius: 2,
+          boxShadow: '0 1px 4px rgba(0, 0, 0, 0.1)',
+        }}
+      >
+        <Typography
+          variant="h6"
+          sx={{
+            fontFamily: 'Staatliches, sans-serif',
+            mb: 2,
+            color: '#0B53C0',
+          }}
+        >
+          Select a Course
+        </Typography>
+        {Object.keys(adminCourses).length > 0 ? (
+          <CourseSelector
+            userClasses={adminCourses}
+            selectedCourse={selectedCourse}
+            onCourseChange={handleCourseChange}
+          />
+        ) : (
+          <Typography variant="body1" sx={{ color: '#9E9E9E' }}>
+            No courses available for selection.
+          </Typography>
         )}
       </Box>
 
-      {/* Course Selector and Course Management Buttons */}
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          mb: 4,
-          mt: 4,
-        }}
-      >
-        <Box sx={{ flex: 1, maxWidth: '30%' }}>
-          {Object.keys(adminCourses).length > 0 ? (
-            <CourseSelector
-              userClasses={adminCourses}
-              selectedCourse={selectedCourse}
-              onCourseChange={handleCourseChange}
-            />
-          ) : (
-            <Typography variant="body1">No courses available for selection.</Typography>
-          )}
-        </Box>
-
+      <Box>
         {isCourseSelected && (
           <Box
             sx={{
@@ -268,6 +246,72 @@ const CourseManagement: React.FC = () => {
         </Box>
       )}
 
+      {/* Toggles Section */}
+      <Box sx={{ display: 'flex', gap: 4, mb: 4 }}>
+        <Box
+          sx={{
+            p: 3,
+            flex: 1,
+            backgroundColor: '#FFFFFF',
+            borderRadius: 2,
+            boxShadow: '0 1px 4px rgba(0, 0, 0, 0.1)',
+          }}
+        >
+          <FormControlLabel
+            control={
+              <Switch
+                checked={isRequestNewCourseOpen}
+                onChange={() => setIsRequestNewCourseOpen((prev) => !prev)}
+              />
+            }
+            label="Request Creating a New Course"
+          />
+          {isRequestNewCourseOpen && (
+            <Box sx={{ mt: 2 }}>
+              <Button
+                variant="contained"
+                onClick={handleNavigateToRequestNewCourse}
+                sx={{
+                  backgroundColor: '#4CAF50',
+                  color: '#FFFFFF',
+                  fontFamily: 'Staatliches, sans-serif',
+                  textTransform: 'none',
+                  '&:hover': {
+                    backgroundColor: '#388E3C',
+                  },
+                }}
+              >
+                Request New Course
+              </Button>
+            </Box>
+          )}
+        </Box>
+
+        <Box
+          sx={{
+            p: 3,
+            flex: 1,
+            backgroundColor: '#FFFFFF',
+            borderRadius: 2,
+            boxShadow: '0 1px 4px rgba(0, 0, 0, 0.1)',
+          }}
+        >
+          <FormControlLabel
+            control={
+              <Switch
+                checked={isRetrievePasscodeOpen}
+                onChange={() => setIsRetrievePasscodeOpen((prev) => !prev)}
+              />
+            }
+            label="Retrieve Course Passcode"
+          />
+          {isRetrievePasscodeOpen && (
+            <Box sx={{ mt: 2 }}>
+              <RetrieveCoursePasscode />
+            </Box>
+          )}
+        </Box>
+      </Box>
     </Box>
   );
 };
