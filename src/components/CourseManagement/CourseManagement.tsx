@@ -182,14 +182,34 @@ const CourseManagement: React.FC = () => {
       </Box>
 
       {/* Students Table */}
-      {isCourseSelected ? (
-        <>
-          <Typography variant="h6" component="h2" sx={{ fontWeight: 'bold', mb: 2 }}>
-            Students Enrolled in '{selectedCourseDisplay}' Course
+      {isCourseSelected && (
+        <Paper
+          elevation={3}
+          sx={{
+            p: 3,
+            mb: 4,
+            borderRadius: 2,
+            boxShadow: '0 1px 4px rgba(0, 0, 0, 0.1)',
+            backgroundColor: '#F9FAFB',
+          }}
+        >
+          <Typography
+            variant="h6"
+            component="h2"
+            sx={{
+              fontFamily: 'Staatliches, sans-serif',
+              fontWeight: 'bold',
+              mb: 2,
+              color: '#0B53C0',
+            }}
+          >
+            Students Enrolled in a Course
           </Typography>
 
           {students.length === 0 ? (
-            <Typography>No students enrolled in {selectedCourseDisplay}.</Typography>
+            <Typography sx={{ color: '#757575', textAlign: 'center', p: 3 }}>
+              No students are currently enrolled in <strong>{selectedCourseDisplay}</strong>.
+            </Typography>
           ) : (
             <>
               <TableContainer component={Paper}>
@@ -217,37 +237,58 @@ const CourseManagement: React.FC = () => {
               <ExportToCSV students={students} selectedCourse={selectedCourse} />
             </>
           )}
-        </>
-      ) : (
-        <Typography variant="body1" sx={{ mt: 4 }}>
-          Select a course to view details.
-        </Typography>
-      )}
 
-      {/* Remove Students Section */}
-      {isCourseSelected && (
-        <Box sx={{ mt: 4 }}>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={isRemoveStudentsOpen}
-                onChange={() => setIsRemoveStudentsOpen((prev) => !prev)}
+          {/* Remove Students Section */}
+          {students.length > 0 && (
+            <Paper sx={{ mt: 4, p: 3, borderRadius: 2, boxShadow: '0 1px 4px rgba(0, 0, 0, 0.1)' }}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={isRemoveStudentsOpen}
+                    onChange={() => setIsRemoveStudentsOpen((prev) => !prev)}
+                  />
+                }
+                label="Remove Student(s) from the Course"
               />
-            }
-            label="Remove Students from Course"
-          />
-          {isRemoveStudentsOpen && (
-            <CourseStudentManagement
-              selectedCourse={selectedCourse}
-              selectedCourseDetails={selectedCourseDetails}
-              onStudentChange={() => {}}
-            />
+              {isRemoveStudentsOpen && (
+                <CourseStudentManagement
+                  selectedCourse={selectedCourse}
+                  selectedCourseDetails={selectedCourseDetails}
+                  onStudentChange={() => {}}
+                />
+              )}
+            </Paper>
           )}
-        </Box>
+        </Paper>
       )}
 
       {/* Toggles Section */}
       <Box sx={{ display: 'flex', gap: 4, mb: 4 }}>
+        <Box
+          sx={{
+            p: 3,
+            flex: 1,
+            backgroundColor: '#FFFFFF',
+            borderRadius: 2,
+            boxShadow: '0 1px 4px rgba(0, 0, 0, 0.1)',
+          }}
+        >
+          <FormControlLabel
+            control={
+              <Switch
+                checked={isRetrievePasscodeOpen}
+                onChange={() => setIsRetrievePasscodeOpen((prev) => !prev)}
+              />
+            }
+            label="Retrieve Course Passcode"
+          />
+          {isRetrievePasscodeOpen && (
+            <Box sx={{ mt: 2 }}>
+              <RetrieveCoursePasscode />
+            </Box>
+          )}
+        </Box>
+        
         <Box
           sx={{
             p: 3,
@@ -283,31 +324,6 @@ const CourseManagement: React.FC = () => {
               >
                 Request New Course
               </Button>
-            </Box>
-          )}
-        </Box>
-
-        <Box
-          sx={{
-            p: 3,
-            flex: 1,
-            backgroundColor: '#FFFFFF',
-            borderRadius: 2,
-            boxShadow: '0 1px 4px rgba(0, 0, 0, 0.1)',
-          }}
-        >
-          <FormControlLabel
-            control={
-              <Switch
-                checked={isRetrievePasscodeOpen}
-                onChange={() => setIsRetrievePasscodeOpen((prev) => !prev)}
-              />
-            }
-            label="Retrieve Course Passcode"
-          />
-          {isRetrievePasscodeOpen && (
-            <Box sx={{ mt: 2 }}>
-              <RetrieveCoursePasscode />
             </Box>
           )}
         </Box>
