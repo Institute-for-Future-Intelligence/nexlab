@@ -1582,10 +1582,35 @@ button.ql-equals {
 
 /* Card Styling */
 .messages-display-container .messages-card {
-  background-color: #F5F5F5; /* Light cream color */
+  background-color: #F5F5F5 !important; /* Light cream */
   padding: 0px;
   border-radius: 15px;
   margin-bottom: 5px;
+  transition: background-color 0.3s, color 0.3s, box-shadow 0.3s, border 0.3s;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+/* Fix Hover Effect for Accordion */
+.messages-display-container .messages-card:hover {
+  background-color: #E0ECFF !important; /* Light Blue */
+  color: #E0ECFF !important; /* Dark Blue Text for readability */
+  box-shadow: none !important;
+  border: none !important;
+}
+
+/* Fix Accordion Summary Background */
+.messages-card .MuiAccordionSummary-root:hover {
+  background-color: #E0ECFF !important; /* Light Blue */
+  box-shadow: none !important;
+  border: none !important;
+}
+
+/* Fix dark background on expanded accordion */
+.messages-card .Mui-expanded {
+  background-color: #E0ECFF !important; /* Ensure it stays light blue */
+  box-shadow: none !important;
+  border: none !important;
 }
 
 /* Chip Styling */
@@ -1595,7 +1620,7 @@ button.ql-equals {
   font-family: 'Gabarito', sans-serif;
   font-size: 1rem;
   background-color: #6482AD;
-  color: #FFFFFF; /* Light cream text for chip */
+  color: #FFFFFF !important ; /* Light cream text for chip */
 }
 
 /* Typography Styling */
