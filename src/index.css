@@ -1634,21 +1634,31 @@ button.ql-equals {
   color: #0B53C0; /* Dark blue for links */
 }
 
-/* Button Styling */
+/* Default Pagination Button Styling */
 .pagination-container .pagination-button {
   font-family: 'Gabarito', sans-serif;
-  margin-right: 8px; /* Margin between pagination buttons */
-  background-color: #F5F5F5; /* Dark Blue background */
-  color: #f5f5f5; /* Light text */
+  margin-right: 8px; /* Space between pagination buttons */
+  background-color: #E8F0FE; /* Light blue background */
+  color: #0B53C0; /* Dark blue text for contrast */
   border-radius: 15px;
   padding: 8px 16px;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
+  border: none;
 }
 
+/* Hover Effect */
 .pagination-container .pagination-button:hover {
-  background-color: #6482AD; /* Darker blue for hover */
-  border: 0px solid #f5f5f5;
-  color: #FBFADA; /* Light cream text */
+  background-color: #96BFFF; /* Slightly darker blue on hover */
+  color: #FFFFFF; /* White text for better contrast */
+  box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.2); /* Soft shadow effect */
+}
+
+/* Disabled Button Styling - Using Lighter Blues */
+.pagination-container .pagination-button:disabled {
+  background-color: #D9E6FF; /* Very light blue */
+  color: #A0C4FF; /* Muted light blue text */
+  cursor: not-allowed; /* Indicate unclickable state */
+  opacity: 0.7;
 }
 
 /* Pinned Messages Styling */
@@ -1767,6 +1777,12 @@ button.ql-equals {
   color: #0B53C0;
   text-transform: none;
   border: 0px solid #f5f5f5;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.profile-button:hover {
+  background: #0250bc; /* Darker blue background */
+  color: #ffffff; /* White text for contrast */
 }
 
 .profile-container .profile-switch-container {
