@@ -12,6 +12,8 @@ import BackToAllMaterialsButton from './BackToAllMaterialsButton';
 import ImageGallery from './ImageGallery';
 import ViewLinksTable from './ViewLinksTable';
 
+import { handleDownloadPDF } from '../../utils/generatePDF';
+
 const ViewMaterial: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -130,8 +132,26 @@ const ViewMaterial: React.FC = () => {
   return (
     <Box sx={{ display: 'flex', flexGrow: 1, flexDirection: 'column' }}>
       <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-        <Box sx={{ width: '450px', ml: 2, mt: 2 }}>
-          <BackToAllMaterialsButton />
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2, mx: 2 }}>
+          <Box sx={{ width: '450px', ml: 2, mt: 2 }}>
+            <BackToAllMaterialsButton />
+          </Box>
+          <Box sx={{ width: '450px', mr: 2, mt: 2, textAlign: 'right' }}>
+            <button 
+              onClick={() => materialData && handleDownloadPDF(materialData)} 
+              style={{ 
+                padding: '10px 16px', 
+                backgroundColor: '#436850', 
+                color: '#FBFADA', 
+                border: 'none', 
+                borderRadius: '8px', 
+                cursor: 'pointer', 
+                fontFamily: 'Gabarito' 
+              }}
+            >
+              Download PDF
+            </button>
+          </Box>
         </Box>
         <Box sx={{ display: 'flex', flexGrow: 1 }}>
           <Box sx={{ width: '450px', minWidth: '450px', maxWidth: '450px', borderRight: '1px solid #ddd', padding: 2 }}>
