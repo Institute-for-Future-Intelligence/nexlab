@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
-import { Box, Typography, IconButton, Tooltip, CircularProgress, Link as MuiLink } from '@mui/material';
+import { Box, Typography, IconButton, Tooltip, CircularProgress, Button, LinearProgress, Link as MuiLink } from '@mui/material';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { Material } from '../../types/Material';
@@ -22,6 +22,8 @@ const ViewMaterial: React.FC = () => {
   const db = getFirestore();
   const [materialData, setMaterialData] = useState<Material | null>(null);
   const [selectedSection, setSelectedSection] = useState<{ sectionIndex?: number, subsectionIndex?: number, subSubsectionIndex?: number, type?: 'header' | 'footer' }>({ sectionIndex: 0 });
+
+  const [progress, setProgress] = useState<number | null>(null);
 
   useEffect(() => {
     if (id) {
@@ -137,24 +139,36 @@ const ViewMaterial: React.FC = () => {
             <BackToAllMaterialsButton />
           </Box>
           <Box sx={{ width: '450px', mr: 2, mt: 2, textAlign: 'right' }}>
-            <button 
+            <Button
+              variant="contained"
               onClick={async () => {
                 if (materialData) {
-                  await handleDownloadPDF(materialData); // Ensure images load before saving PDF
+                  setProgress(0);
+                  await handleDownloadPDF(materialData, setProgress);
+                  setProgress(null);
                 }
               }}
-              style={{ 
-                padding: '10px 16px', 
-                backgroundColor: '#436850', 
-                color: '#FBFADA', 
-                border: 'none', 
-                borderRadius: '8px', 
-                cursor: 'pointer', 
-                fontFamily: 'Gabarito' 
+              sx={{
+                padding: '10px 16px',
+                backgroundColor: '#436850',
+                color: '#FBFADA',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontFamily: 'Gabarito',
+                '&:hover': { backgroundColor: '#365b40' }, // Slightly darker green on hover
+                '&:disabled': { backgroundColor: '#A8BDA8', cursor: 'not-allowed' } // Muted color when disabled
               }}
+              disabled={progress !== null}
             >
-              Download PDF
-            </button>
+              {progress !== null ? 'Generating...' : 'Download PDF'}
+            </Button>
+
+            {progress !== null && (
+              <Box sx={{ width: '100%', mt: 2 }}>
+                <LinearProgress variant="determinate" value={progress} />
+              </Box>
+            )}
           </Box>
         </Box>
         <Box sx={{ display: 'flex', flexGrow: 1 }}>

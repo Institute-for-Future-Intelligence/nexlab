@@ -6,7 +6,7 @@ import type { ChildNode, Element } from 'domhandler';
 import { isTag } from 'domelementtype';
 import * as DomUtils from 'domutils';
 
-export const handleDownloadPDF = async (materialData: Material | null) => {
+export const handleDownloadPDF = async (materialData: Material | null, setProgress: (progress: number) => void) => {
   if (!materialData) return;
 
   const pdf = new jsPDF('p', 'mm', 'a4', true); // Enable page margins
@@ -18,6 +18,23 @@ export const handleDownloadPDF = async (materialData: Material | null) => {
       pdf.addPage();
       yOffset = 10;
     }
+  };
+
+  const totalSteps = materialData.sections.length +
+    materialData.sections.reduce((acc, section) => acc + section.subsections.length, 0) +
+    materialData.sections.reduce((acc, section) =>
+      acc + section.subsections.reduce((subAcc, sub) => subAcc + sub.subSubsections.length, 0), 0) +
+    materialData.sections.reduce((acc, section) =>
+      acc + (section.images?.length || 0) +
+        section.subsections.reduce((subAcc, sub) =>
+          subAcc + (sub.images?.length || 0) +
+          sub.subSubsections.reduce((subSubAcc, subSub) => subSubAcc + (subSub.images?.length || 0), 0), 0), 0);
+
+  let processedSteps = 0;
+
+  const updateProgress = () => {
+    processedSteps += 1;
+    setProgress(Math.round((processedSteps / totalSteps) * 100));
   };
 
   // ✅ Fix: Ensure images load properly
@@ -59,11 +76,13 @@ export const handleDownloadPDF = async (materialData: Material | null) => {
           yOffset += 6;
         }
 
+        updateProgress();
         resolve();
       };
 
       img.onerror = () => {
         console.warn(`Image failed to load: ${image.url}`);
+        updateProgress(); // Still update progress even if an image fails
         resolve();
       };
     });
@@ -232,6 +251,8 @@ export const handleDownloadPDF = async (materialData: Material | null) => {
       }
     }
 
+    updateProgress();
+
     for (const subsection of section.subsections) {
       addText(subsection.title, 12, 14, true);
       renderHTML(subsection.content, 12);
@@ -242,6 +263,8 @@ export const handleDownloadPDF = async (materialData: Material | null) => {
         }
       }
 
+      updateProgress();
+
       for (const subSubsection of subsection.subSubsections) {
         addText(subSubsection.title, 14, 12, true);
         renderHTML(subSubsection.content, 14);
@@ -251,6 +274,8 @@ export const handleDownloadPDF = async (materialData: Material | null) => {
             await addImageWithTitle(image);
           }
         }
+
+        updateProgress();
 
         if (subSubsection.links?.length) {
           addText('Links:', 14, 12, true);
@@ -279,4 +304,5 @@ export const handleDownloadPDF = async (materialData: Material | null) => {
   }
 
   pdf.save(`${materialData.title || 'Material'}.pdf`);
+  setProgress(100); // ✅ Ensure progress bar reaches 100%
 };
