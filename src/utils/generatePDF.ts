@@ -6,7 +6,7 @@ import type { ChildNode, Element } from 'domhandler';
 import { isTag } from 'domelementtype';
 import * as DomUtils from 'domutils';
 
-export const handleDownloadPDF = (materialData: Material | null) => {
+export const handleDownloadPDF = async (materialData: Material | null) => {
   if (!materialData) return;
 
   const pdf = new jsPDF('p', 'mm', 'a4', true); // Enable page margins
@@ -18,6 +18,55 @@ export const handleDownloadPDF = (materialData: Material | null) => {
       pdf.addPage();
       yOffset = 10;
     }
+  };
+
+  // ✅ Fix: Ensure images load properly
+  const addImageWithTitle = async (image: { url: string; title: string }, width = 150, maxHeight = 150) => {
+    return new Promise<void>((resolve) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous"; // Ensure Firebase images load
+      img.src = image.url;
+
+      img.onload = () => {
+        const aspectRatio = img.width / img.height;
+        let finalWidth = width;
+        let finalHeight = maxHeight;
+
+        if (aspectRatio > 1) {
+          finalHeight = width / aspectRatio; // Maintain aspect ratio
+        } else {
+          finalWidth = maxHeight * aspectRatio;
+        }
+
+        // Ensure image fits within page height
+        addNewPageIfNeeded(finalHeight + 15);
+
+        // Center image horizontally
+        const xPosition = (210 - finalWidth) / 2;
+        pdf.addImage(img, 'JPEG', xPosition, yOffset, finalWidth, finalHeight);
+        yOffset += finalHeight + 5;
+
+        // ✅ Fix: Add title below image, italicized & centered
+        if (image.title) {
+          pdf.setFont('helvetica', 'italic');
+          pdf.setFontSize(10);
+
+          const textWidth = pdf.getTextWidth(image.title);
+          const textXPosition = (210 - textWidth) / 2; // Center text
+          pdf.text(image.title, textXPosition, yOffset);
+
+          pdf.setFont('helvetica', 'normal'); // Reset font
+          yOffset += 6;
+        }
+
+        resolve();
+      };
+
+      img.onerror = () => {
+        console.warn(`Image failed to load: ${image.url}`);
+        resolve();
+      };
+    });
   };
 
   const renderHTML = (html: string, x = 10, fontSize = 12) => {
@@ -58,8 +107,6 @@ export const handleDownloadPDF = (materialData: Material | null) => {
 
                 case 'li':
                     const bullet = indentLevel === 1 ? '-' : '--';
-
-                    // **Fix: Extract only direct text while preserving <strong> and <b>**
                     let listItemText = '';
                     element.children?.forEach((child) => {
                         if (isTag(child)) {
@@ -82,14 +129,13 @@ export const handleDownloadPDF = (materialData: Material | null) => {
                     if (listItemText) {
                         // **Apply larger font size for top-level list headers**
                         if (indentLevel === 0) {
-                            addText(`${bullet} ${listItemText}`, x, fontSize + 2, true); // Make headers stand out
-                        } else {
-                            addText(`${bullet} ${listItemText}`, x + indentLevel * 8, fontSize);
-                        }
-                        yOffset += 6;
-                    }
+                addText(`${bullet} ${listItemText}`, x, fontSize + 2, true);
+              } else {
+                addText(`${bullet} ${listItemText}`, x + indentLevel * 8, fontSize);
+              }
+              yOffset += 6;
+            }
 
-                    // **Fix: Process only `<ul>` and `<ol>` inside `<li>`**
                     element.children?.forEach((child) => {
                         if (isTag(child)) {
                             const childElement = child as Element;
@@ -156,57 +202,13 @@ export const handleDownloadPDF = (materialData: Material | null) => {
     });
   };  
 
-  const addImage = (url: string, width = 50, height = 50) => {
-    const img = new Image();
-    img.src = url;
-    img.onload = () => {
-      addNewPageIfNeeded(height);
-      pdf.addImage(img, 'JPEG', 10, yOffset, width, height);
-      yOffset += height + 5;
-    };
-    img.onerror = () => console.warn(`Image failed to load: ${url}`);
-  };
-
   const addLink = (title: string, url: string) => {
     addNewPageIfNeeded(1);
-    pdf.setTextColor(10, 104, 71);
+    pdf.setTextColor(10, 104, 71); // Change text color to distinguish links
     pdf.textWithLink(title, 10, yOffset, { url });
     yOffset += 6;
-  };
+  };  
 
-  const addImageWithTitle = (image: { url: string; title: string }, x = 10, width = 100, height = 80) => {
-  return new Promise<void>((resolve) => {
-    const img = new Image();
-    img.crossOrigin = "anonymous"; // Ensure images from Firebase Storage are loaded correctly
-    img.src = image.url;
-
-    img.onload = () => {
-      // Ensure image fits within the page height
-      if (yOffset + height > pageHeight - 20) {
-        pdf.addPage();
-        yOffset = 10;
-      }
-
-      pdf.addImage(img, 'JPEG', x, yOffset, width, height);
-      yOffset += height + 5;
-
-      // Add Image Title
-      if (image.title) {
-        addText(image.title, x, 10, false, [0, 0, 0], true);
-        yOffset += 6;
-      }
-
-      resolve();
-    };
-
-    img.onerror = () => {
-      console.warn(`Image failed to load: ${image.url}`);
-      resolve();
-    };
-  });
-};
-
-  // Header
   if (materialData.header?.content) {
     addText('Header:', 10, 12, true);
     renderHTML(materialData.header.content);
@@ -219,36 +221,48 @@ export const handleDownloadPDF = (materialData: Material | null) => {
     yOffset += 5;
   }
 
-  // Sections
-  materialData.sections.forEach((section, sectionIndex) => {
-    addText(`${sectionIndex + 1}. ${section.title}`, 10, 16, true);
+  // ✅ Process Sections, Subsections & Images
+  for (const section of materialData.sections) {
+    addText(section.title, 10, 16, true);
     renderHTML(section.content);
 
-    section.images?.forEach((image) => addImage(image.url));
+    if (section.images?.length) {
+      for (const image of section.images) {
+        await addImageWithTitle(image);
+      }
+    }
 
-    section.subsections.forEach((subsection, subIndex) => {
-      addText(`${sectionIndex + 1}.${subIndex + 1} ${subsection.title}`, 12, 14, true);
+    for (const subsection of section.subsections) {
+      addText(subsection.title, 12, 14, true);
       renderHTML(subsection.content, 12);
 
-      subsection.images?.forEach((image) => addImage(image.url));
+      if (subsection.images?.length) {
+        for (const image of subsection.images) {
+          await addImageWithTitle(image);
+        }
+      }
 
-      subsection.subSubsections.forEach((subSubsection, subSubIndex) => {
-        addText(`${sectionIndex + 1}.${subIndex + 1}.${subSubIndex + 1} ${subSubsection.title}`, 14, 12, true);
+      for (const subSubsection of subsection.subSubsections) {
+        addText(subSubsection.title, 14, 12, true);
         renderHTML(subSubsection.content, 14);
 
-        subSubsection.images?.forEach((image) => addImage(image.url));
+        if (subSubsection.images?.length) {
+          for (const image of subSubsection.images) {
+            await addImageWithTitle(image);
+          }
+        }
 
         if (subSubsection.links?.length) {
           addText('Links:', 14, 12, true);
           subSubsection.links.forEach((link) => addLink(link.title, link.url));
         }
-      });
+      }
 
       if (subsection.links?.length) {
         addText('Links:', 12, 12, true);
         subsection.links.forEach((link) => addLink(link.title, link.url));
       }
-    });
+    }
 
     if (section.links?.length) {
       addText('Links:', 10, 12, true);
@@ -256,7 +270,7 @@ export const handleDownloadPDF = (materialData: Material | null) => {
     }
 
     yOffset += 5;
-  });
+  }
 
   // Footer
   if (materialData.footer?.content) {

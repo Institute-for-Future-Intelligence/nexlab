@@ -138,7 +138,11 @@ const ViewMaterial: React.FC = () => {
           </Box>
           <Box sx={{ width: '450px', mr: 2, mt: 2, textAlign: 'right' }}>
             <button 
-              onClick={() => materialData && handleDownloadPDF(materialData)} 
+              onClick={async () => {
+                if (materialData) {
+                  await handleDownloadPDF(materialData); // Ensure images load before saving PDF
+                }
+              }}
               style={{ 
                 padding: '10px 16px', 
                 backgroundColor: '#436850', 
