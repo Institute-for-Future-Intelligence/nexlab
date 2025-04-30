@@ -42,7 +42,7 @@
     "domhandler": "^5.0.3",
     "dompurify": "^3.1.0",
     "domutils": "^3.2.2",
-    "firebase": "^9.23.0",
+    "firebase": "^11.3.1",
     "firebase-admin": "^12.2.0",
     "firebase-functions": "^5.0.1",
     "html2canvas": "^1.4.1",
