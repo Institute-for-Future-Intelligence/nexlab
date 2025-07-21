@@ -8,7 +8,7 @@ module.exports = {
     'plugin:react-hooks/recommended',
     'plugin:@typescript-eslint/recommended',
   ],
-  ignorePatterns: ['dist', '.eslintrc.cjs', 'functions/**/*'],
+  ignorePatterns: ['dist', '.eslintrc.cjs', 'functions/', 'functions/**/*', 'functions/.eslintrc.js'],
   parser: '@typescript-eslint/parser',
   parserOptions: { 
     ecmaVersion: 'latest', 
