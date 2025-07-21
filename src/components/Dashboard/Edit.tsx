@@ -130,7 +130,7 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
     const activeFiles = files.filter(file => !file.deleted);
 
     // Construct the update object dynamically
-    let updateObject = {
+    const updateObject = {
         title,
         description,
         course, // Include course in update
@@ -606,10 +606,10 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
       }
 
       const querySnapshot = await getDocs(buildsQuery);
-      let fetchedBuilds = [];
-      let tempTestsByBuildId = {};
+      const fetchedBuilds = [];
+      const tempTestsByBuildId = {};
 
-      let initialCollapseState = {};
+      const initialCollapseState = {};
 
       for (const buildDoc of querySnapshot.docs) {
         const buildData = buildDoc.data() as any;
@@ -631,9 +631,9 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
         }
 
         const testsSnapshot = await getDocs(testsQuery);
-        let fetchedTests = [];
-        let buildTestImages = {};
-        let buildTestFiles = {};
+        const fetchedTests = [];
+        const buildTestImages = {};
+        const buildTestFiles = {};
 
         for (const testDoc of testsSnapshot.docs) {
           const testData = testDoc.data() as any;
@@ -647,7 +647,7 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
         tempTestsByBuildId[buildId] = fetchedTests;
         
         setTestImages(prevImages => {
-          let updatedImages = {...prevImages};
+          const updatedImages = {...prevImages};
           for (const testId in buildTestImages) {
             updatedImages[testId] = buildTestImages[testId];
           }
@@ -655,7 +655,7 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
         });
 
         setTestFiles(prevFiles => {
-          let updatedFiles = {...prevFiles};
+          const updatedFiles = {...prevFiles};
           for (const testId in buildTestFiles) {
             updatedFiles[testId] = buildTestFiles[testId];
           }
@@ -711,8 +711,8 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
         [buildId]: fetchedTests
       }));
   
-      let newTestImages = {};
-      let newTestFiles = {};
+      const newTestImages = {};
+      const newTestFiles = {};
     
       fetchedTests.forEach(test => {
         newTestImages[test.id] = test.images;
