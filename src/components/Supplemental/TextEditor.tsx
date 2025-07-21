@@ -36,25 +36,7 @@ const TextEditor: React.FC<TextEditorProps> = ({ content, onChange }) => {
           'blockQuote', 'numberedList', 'bulletedList', '|',
           'insertTable', 'link', '|' // Exclude 'imageUpload' from the array
         ],
-        table: {
-          contentToolbar: [
-            'tableColumn', 'tableRow', 'mergeTableCells'
-          ]
-        },
-        link: {
-          defaultProtocol: 'https://',
-          decorators: {
-            addTargetToExternalLinks: {
-              mode: 'automatic',
-              callback: (url: string | null): boolean => /^(https?:)?\/\//.test(url || ''),
-              attributes: {
-                target: '_blank',
-                rel: 'noopener noreferrer'
-              }
-            }
-          }
-        }
-      }}
+      } as any}
     />
   );
 };

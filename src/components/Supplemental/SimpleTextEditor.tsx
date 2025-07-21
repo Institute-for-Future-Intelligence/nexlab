@@ -24,19 +24,7 @@ const SimpleTextEditor: React.FC<SimpleTextEditorProps> = ({ content, onChange }
           'blockQuote', 'numberedList', 'bulletedList', '|',
           'link'
         ],
-        link: {
-          defaultProtocol: 'https://',
-          decorators: {
-            addTargetToExternalLinks: {
-              mode: 'automatic',
-              callback: (url: string | null): boolean => /^(https?:)?\/\//.test(url || ''),
-              attributes: {
-                target: '_blank',
-                rel: 'noopener noreferrer'
-              }
-            }
-          }
-        }
+
       }}
     />
   );

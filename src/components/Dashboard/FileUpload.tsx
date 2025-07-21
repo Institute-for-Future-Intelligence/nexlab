@@ -225,7 +225,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ path, initialFiles, onFilesChan
             )}
             <List>
                 {files.map((file) => (
-                    <ListItem key={file.id} component="div" disabled={file.deleted}>
+                    <ListItem key={file.id} style={{ opacity: file.deleted ? 0.5 : 1 }}>
                         <ListItemIcon>
                             <InsertDriveFileIcon />
                         </ListItemIcon>
