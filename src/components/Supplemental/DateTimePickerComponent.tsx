@@ -17,6 +17,8 @@ const CustomInput = React.forwardRef<HTMLInputElement, TextFieldProps>((props, r
   <CustomTextField {...props} inputRef={ref} fullWidth />
 ));
 
+CustomInput.displayName = 'CustomInput';
+
 const DateTimePickerComponent: React.FC<DateTimePickerComponentProps> = ({ value, onChange }) => {
   return (
     <Box sx={{ mb: 2 }}>

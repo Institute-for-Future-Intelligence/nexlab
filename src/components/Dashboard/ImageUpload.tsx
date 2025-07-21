@@ -321,4 +321,6 @@ const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>(({ path, ini
   );
 });
 
+ImageUpload.displayName = 'ImageUpload';
+
 export default ImageUpload;
