@@ -16,6 +16,7 @@ const CourseSelector: React.FC<CourseSelectorProps> = ({ value, onChange }) => {
   useEffect(() => {
     if (userDetails?.classes) {
       const filteredCourses = Object.entries(userDetails.classes)
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         .filter(([_, course]) => course.isCourseAdmin || userDetails.isSuperAdmin)
         .map(([id, course]) => ({
           id,

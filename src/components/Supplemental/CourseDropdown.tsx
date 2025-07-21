@@ -19,6 +19,7 @@ const CourseDropdown: React.FC<CourseDropdownProps> = ({ value, onChange }) => {
 
     if (userDetails?.classes) {
       const filteredCourses = Object.entries(userDetails.classes)
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         .filter(([_, course]) => course.isCourseAdmin || userDetails.isSuperAdmin) // Include Super-Admin access
         .map(([id, course]) => ({
           id,

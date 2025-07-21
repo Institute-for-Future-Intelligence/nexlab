@@ -74,6 +74,7 @@ const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>(({ path, ini
       useWebWorker: true
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const uploadPromises = files.map(async (file, _) => {
       let compressedFile = file;
 
