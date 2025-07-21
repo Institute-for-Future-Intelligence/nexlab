@@ -124,7 +124,7 @@ export const handleDownloadPDF = async (materialData: Material | null, setProgre
                     element.children?.forEach((child) => traverse(child, indentLevel + 1, true));
                     break;
 
-                case 'li':
+                case 'li': {
                     const bullet = indentLevel === 1 ? '-' : '--';
                     let listItemText = '';
                     element.children?.forEach((child) => {
@@ -164,6 +164,7 @@ export const handleDownloadPDF = async (materialData: Material | null, setProgre
                         }
                     });
                     break;
+                }
 
                 case 'a':
                     if (element.attribs?.href) {
