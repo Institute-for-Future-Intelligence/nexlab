@@ -139,7 +139,7 @@ const ChatbotRequestPage: React.FC = () => {
       </Typography>
 
       <Typography variant="body1" className="profile-text" sx={{ mb: 3 }}>
-        Fill out the form below to request a chatbot. Please upload all related materials for the chatbot's knowledge base.
+        Fill out the form below to request a chatbot. Please upload all related materials for the chatbot&apos;s knowledge base.
       </Typography>
 
       <TextField

@@ -1,5 +1,5 @@
 // Login/index.tsx
-import React, { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { getAuth, signInWithPopup, GoogleAuthProvider, setPersistence, browserLocalPersistence, browserSessionPersistence } from 'firebase/auth';
 import { Button, Typography, Container, Box, Snackbar, Alert, Checkbox, FormControlLabel, Tooltip, Divider, Grid, Link } from '@mui/material';
 import GoogleIcon from '@mui/icons-material/Google';
