@@ -1,0 +1,76 @@
+name: NexLAB PR Checks
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  basic-checks:
+    name: Basic Quality Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check TypeScript
+        run: npm run type-check
+
+      - name: Run linting
+        run: npm run lint
+
+      - name: Build project
+        run: npm run build
+        env:
+          # Firebase Configuration
+          VITE_API_KEY: ${{ secrets.VITE_API_KEY }}
+          VITE_AUTH_DOMAIN: ${{ secrets.VITE_AUTH_DOMAIN }}
+          VITE_PROJECT_ID: ${{ secrets.VITE_PROJECT_ID }}
+          VITE_STORAGE_BUCKET: ${{ secrets.VITE_STORAGE_BUCKET }}
+          VITE_MESSAGING_SENDER_ID: ${{ secrets.VITE_MESSAGING_SENDER_ID }}
+          VITE_APP_ID: ${{ secrets.VITE_APP_ID }}
+          
+          # Google Analytics
+          VITE_GOOGLE_ANALYTICS_ID: ${{ secrets.VITE_GOOGLE_ANALYTICS_ID }}
+          
+          # Application Configuration
+          VITE_PUBLIC_COURSE_ID: ${{ secrets.VITE_PUBLIC_COURSE_ID }}
+          VITE_CHATBOT_DEFAULT_ID: ${{ secrets.VITE_CHATBOT_DEFAULT_ID }}
+
+  functions-checks:
+    name: Firebase Functions Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'  # Firebase Functions require Node 18
+          cache: 'npm'
+
+      - name: Install functions dependencies
+        run: |
+          cd functions
+          npm ci
+
+      - name: Check TypeScript in functions
+        run: |
+          cd functions
+          npm run build
+
+      - name: Lint functions
+        run: |
+          cd functions
+          npm run lint 
