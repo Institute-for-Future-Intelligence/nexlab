@@ -87,7 +87,7 @@ const Dashboard = () => {
     const querySnapshot = await getDocs(designsQuery);
   
     querySnapshot.forEach(doc => {
-      const data = doc.data();
+      const data = doc.data() as any;
       const design = {
         id: doc.id,
         title: data.title,
@@ -124,7 +124,7 @@ const Dashboard = () => {
     setSuperAdminDesigns(superAdminDesigns);
     setAdminDesigns(adminDesigns);
     setUserDesigns(userDesigns);
-  }, [userDetails, db]);  
+  }, [userDetails]);  
 
   useEffect(() => {
     if (!loading && userDetails) {
