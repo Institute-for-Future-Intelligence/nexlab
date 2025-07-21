@@ -12,7 +12,7 @@ import BackToAllMaterialsButton from './BackToAllMaterialsButton';
 
 const SupplementalMaterials: React.FC = () => {
   const { userDetails } = useUser();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const selectedCourse = searchParams.get('course') || null; // Get selected course ID from URL. Ensure it's either a string or null
 
   // Convert user classes object into an array for course selection, using useMemo() for performance

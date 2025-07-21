@@ -1,6 +1,6 @@
 // src/components/Supplemental/MaterialGrid.tsx
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Grid, CircularProgress, IconButton, Chip, Snackbar, Alert } from '@mui/material';
+import { Box, Typography, Grid, CircularProgress, IconButton, Snackbar, Alert } from '@mui/material';
 import { getFirestore, doc, getDoc, collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../contexts/UserContext';
@@ -112,10 +112,7 @@ const MaterialGrid: React.FC<{ initialCourse?: string | null }> = ({ initialCour
     setConfirmUnpublish({ open: false, materialId: null });
   };  
 
-  const handleCourseChange = (courseId: string) => {
-    setSelectedCourse(courseId);
-    navigate(`/supplemental-materials?course=${courseId}`); // Updates URL when user switches course
-  };  
+  
 
   if (loading) {
     return <CircularProgress />;

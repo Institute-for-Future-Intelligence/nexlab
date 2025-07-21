@@ -1,6 +1,6 @@
 // FileUpload.tsx
 import React, { useState, useRef, useEffect } from 'react';
-import { getStorage, ref as firebaseRef, uploadBytesResumable, getDownloadURL, deleteObject } from "firebase/storage";
+import { getStorage, ref as firebaseRef, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';

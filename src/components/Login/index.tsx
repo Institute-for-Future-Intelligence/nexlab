@@ -16,8 +16,6 @@ const Login = () => {
   const theme = useTheme();
   // Call `useMediaQuery` directly without `useMemo`
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
-  const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
 
   const ERROR_MESSAGES = {
     network: 'Login Failed: Network error, please check your connection.',

@@ -1,5 +1,5 @@
 // src/contexts/UserContext.tsx
-import React, { createContext, useContext, useState, useEffect, ReactNode, Dispatch, SetStateAction } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, Dispatch, SetStateAction } from 'react';
 import { getAuth, onAuthStateChanged, User as FirebaseUser  } from 'firebase/auth';
 import { getFirestore, doc, getDoc, updateDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import '../config/firestore.tsx'; // Ensure Firebase is initialized

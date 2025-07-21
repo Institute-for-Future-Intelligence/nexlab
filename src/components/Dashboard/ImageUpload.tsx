@@ -74,7 +74,7 @@ const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>(({ path, ini
       useWebWorker: true
     };
 
-    const uploadPromises = files.map(async (file, index) => {
+    const uploadPromises = files.map(async (file, _) => {
       let compressedFile = file;
 
       // Check if the file is larger than 1 MB and needs compression

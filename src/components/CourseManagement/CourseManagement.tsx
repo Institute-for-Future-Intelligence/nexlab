@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
 import { useUser, UserDetails } from '../../contexts/UserContext';
 import { 
-  Box, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Stack, 
+  Box, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, 
   FormControlLabel, Switch 
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
