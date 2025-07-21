@@ -1,8 +1,8 @@
 // src/components/Supplemental/ViewMaterial.tsx
 import React, { useState, useEffect } from 'react';
-import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
-import { Box, Typography, IconButton, Tooltip, CircularProgress, Button, LinearProgress, Link as MuiLink } from '@mui/material';
+import { Box, Typography, IconButton, Tooltip, CircularProgress, Button, LinearProgress } from '@mui/material';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { Material } from '../../types/Material';
@@ -17,7 +17,6 @@ import { handleDownloadPDF } from '../../utils/generatePDF';
 const ViewMaterial: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
 
   const db = getFirestore();
   const [materialData, setMaterialData] = useState<Material | null>(null);
@@ -76,26 +75,26 @@ const ViewMaterial: React.FC = () => {
           subSubsectionIndex: prevSection?.subsections.length ? prevSection.subsections[prevSection.subsections.length - 1].subSubsections.length - 1 : undefined,
         });
       } else if (type === 'footer') {
-        setSelectedSection({ sectionIndex: materialData?.sections.length! - 1, type: 'footer' });
+        setSelectedSection({ sectionIndex: (materialData?.sections.length ?? 1) - 1, type: 'footer' });
       } else if (sectionIndex === undefined && type === 'header') {
-        setSelectedSection({ sectionIndex: materialData?.sections.length! - 1 });
+        setSelectedSection({ sectionIndex: (materialData?.sections.length ?? 1) - 1 });
       }
     } else if (direction === 'next') {
-      if (subSubsectionIndex === undefined && subsectionIndex !== undefined && materialData?.sections[sectionIndex!].subsections[subsectionIndex].subSubsections.length) {
+      if (subSubsectionIndex === undefined && subsectionIndex !== undefined && materialData?.sections[sectionIndex ?? 0].subsections[subsectionIndex].subSubsections.length) {
         setSelectedSection({ sectionIndex, subsectionIndex, subSubsectionIndex: 0 });
-      } else if (subSubsectionIndex !== undefined && subSubsectionIndex < materialData?.sections[sectionIndex!].subsections[subsectionIndex!].subSubsections.length! - 1) {
+      } else if (subSubsectionIndex !== undefined && subSubsectionIndex < (materialData?.sections[sectionIndex ?? 0].subsections[subsectionIndex ?? 0].subSubsections.length ?? 1) - 1) {
         setSelectedSection({ sectionIndex, subsectionIndex, subSubsectionIndex: subSubsectionIndex + 1 });
-      } else if (subSubsectionIndex !== undefined && subSubsectionIndex === materialData?.sections[sectionIndex!].subsections[subsectionIndex!].subSubsections.length! - 1 && subsectionIndex! < materialData?.sections[sectionIndex!].subsections.length! - 1) {
-        setSelectedSection({ sectionIndex, subsectionIndex: subsectionIndex! + 1 });
-      } else if (subsectionIndex === undefined && materialData?.sections[sectionIndex!].subsections.length) {
+              } else if (subSubsectionIndex !== undefined && subSubsectionIndex === (materialData?.sections[sectionIndex ?? 0].subsections[subsectionIndex ?? 0].subSubsections.length ?? 1) - 1 && (subsectionIndex ?? 0) < (materialData?.sections[sectionIndex ?? 0].subsections.length ?? 1) - 1) {
+                  setSelectedSection({ sectionIndex, subsectionIndex: (subsectionIndex ?? 0) + 1 });
+              } else if (subsectionIndex === undefined && materialData?.sections[sectionIndex ?? 0].subsections.length) {
         setSelectedSection({ sectionIndex, subsectionIndex: 0 });
-      } else if (subsectionIndex !== undefined && subsectionIndex < materialData?.sections[sectionIndex!].subsections.length! - 1) {
+              } else if (subsectionIndex !== undefined && subsectionIndex < (materialData?.sections[sectionIndex ?? 0].subsections.length ?? 1) - 1) {
         setSelectedSection({ sectionIndex, subsectionIndex: subsectionIndex + 1 });
-      } else if (subsectionIndex !== undefined && subsectionIndex === materialData?.sections[sectionIndex!].subsections.length! - 1 && sectionIndex! < materialData?.sections.length! - 1) {
-        setSelectedSection({ sectionIndex: sectionIndex! + 1 });
-      } else if (sectionIndex! < materialData?.sections.length! - 1) {
-        setSelectedSection({ sectionIndex: sectionIndex! + 1 });
-      } else if (sectionIndex === materialData?.sections.length! - 1 && subsectionIndex === undefined) {
+                              } else if (subsectionIndex !== undefined && subsectionIndex === (materialData?.sections[sectionIndex ?? 0].subsections.length ?? 1) - 1 && (sectionIndex ?? 0) < (materialData?.sections.length ?? 1) - 1) {
+          setSelectedSection({ sectionIndex: (sectionIndex ?? 0) + 1 });
+                              } else if ((sectionIndex ?? 0) < (materialData?.sections.length ?? 1) - 1) {
+          setSelectedSection({ sectionIndex: (sectionIndex ?? 0) + 1 });
+              } else if (sectionIndex === (materialData?.sections.length ?? 1) - 1 && subsectionIndex === undefined) {
         setSelectedSection({ sectionIndex: undefined, type: 'footer' });
       }
     }
