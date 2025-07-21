@@ -1250,8 +1250,8 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
                   buildId={build.id}
                   refreshTests={() => refreshTestsForBuild(build.id)}
                   setAddingTestIdForBuild={setAddingTestIdForBuild}
-                  onImagesUpdated={(images) => handleTestImagesUpdated(build.id, images)}
-                  onFilesChange={(files) => handleTestFilesUpdated(build.id, files)}
+                  onImagesUpdated={(images: any) => handleTestImagesUpdated(build.id, images)}
+                  onFilesChange={(files: any) => handleTestFilesUpdated(build.id, files)}
                 />
               </div>
             )}
@@ -1265,8 +1265,8 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
                 designId={selectedDesign.id}
                 setIsAddingBuild={setIsAddingBuild}
                 refreshBuilds={refreshBuilds}
-                onImagesUpdated={(images) => handleBuildImagesUpdated(build.id, images)}
-                onFilesChange={(files) => handleBuildFilesUpdated(build.id, files)}
+                onImagesUpdated={(images: any) => handleBuildImagesUpdated(build.id, images)}
+                onFilesChange={(files: any) => handleBuildFilesUpdated(build.id, files)}
               />
             </div>
           )}

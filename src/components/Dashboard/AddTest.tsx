@@ -19,6 +19,8 @@ interface AddTestProps {
   buildId: string;
   refreshTests: (buildId: string) => void;
   setAddingTestIdForBuild: (isAdding: boolean) => void;
+  onImagesUpdated?: (images: any) => void;
+  onFilesChange?: (files: any) => void;
 }
 
 const AddTest: React.FC<AddTestProps> = ({ designId, buildId, refreshTests, setAddingTestIdForBuild }) => {
@@ -123,13 +125,15 @@ const AddTest: React.FC<AddTestProps> = ({ designId, buildId, refreshTests, setA
         initialImages={testImages}
         onImagesUpdated={(updatedImages) => {
           setTestImages(updatedImages);
-        }} 
-        // onDelete={(deletedImages) => setTestImages(currentImages => currentImages.filter(image => !deletedImages.includes(image)))}            
+        }}
+        onDelete={(deletedImages) => setTestImages(currentImages => currentImages.filter(image => !deletedImages.includes(image)))}
+        isOwnDesign={true}
       />
       <FileUpload 
         path={`tests/${buildId}/files`} 
         initialFiles={testFiles}
-        onFilesChange={handleTestFilesChange}            
+        onFilesChange={handleTestFilesChange}
+        isOwnDesign={true}
       />
       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
         <button onClick={handleAddTest}>Save</button>

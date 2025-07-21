@@ -170,18 +170,26 @@ const SideBar: React.FC<SidebarProps> = ({
       )}
       <List>
         <ListItem 
-          button 
+          component="div"
           onClick={() => onSelectSection('header')}
-          sx={{ backgroundColor: selected.type === 'header' ? 'lightgray' : 'transparent' }}
+          sx={{ 
+            backgroundColor: selected.type === 'header' ? 'lightgray' : 'transparent',
+            cursor: 'pointer',
+            '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)' }
+          }}
         >
           <ListItemText primary="Header" />
         </ListItem>
         {sections.map((section, sectionIndex) => (
           <Box key={section.id}>
             <ListItem 
-              button 
+              component="div"
               onClick={() => onSelectSection(sectionIndex)}
-              sx={{ backgroundColor: selected.sectionIndex === sectionIndex && selected.subsectionIndex === undefined ? 'lightgray' : 'transparent' }}
+              sx={{ 
+                backgroundColor: selected.sectionIndex === sectionIndex && selected.subsectionIndex === undefined ? 'lightgray' : 'transparent',
+                cursor: 'pointer',
+                '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)' }
+              }}
             >
               {editingSectionIndex === sectionIndex ? (
                 <>
@@ -241,11 +249,15 @@ const SideBar: React.FC<SidebarProps> = ({
               <List sx={{ pl: 4 }}>
                 {section.subsections.map((subsection, subsectionIndex) => (
                   <Box key={subsection.id}>
-                    <ListItem 
-                      button 
-                      onClick={() => onSelectSection(sectionIndex, subsectionIndex)}
-                      sx={{ backgroundColor: selected.sectionIndex === sectionIndex && selected.subsectionIndex === subsectionIndex && selected.subSubsectionIndex === undefined ? 'lightgray' : 'transparent' }}
-                    >
+                                      <ListItem 
+                    component="div"
+                    onClick={() => onSelectSection(sectionIndex, subsectionIndex)}
+                    sx={{ 
+                      backgroundColor: selected.sectionIndex === sectionIndex && selected.subsectionIndex === subsectionIndex && selected.subSubsectionIndex === undefined ? 'lightgray' : 'transparent',
+                      cursor: 'pointer',
+                      '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)' }
+                    }}
+                  >
                       {editingSubsectionIndex &&
                         editingSubsectionIndex.section === sectionIndex &&
                         editingSubsectionIndex.subsection === subsectionIndex ? (
@@ -307,9 +319,13 @@ const SideBar: React.FC<SidebarProps> = ({
                         {subsection.subSubsections.map((subSubsection, subSubsectionIndex) => (
                           <ListItem 
                             key={subSubsection.id} 
-                            button 
+                            component="div"
                             onClick={() => onSelectSection(sectionIndex, subsectionIndex, subSubsectionIndex)}
-                            sx={{ backgroundColor: selected.sectionIndex === sectionIndex && selected.subsectionIndex === subsectionIndex && selected.subSubsectionIndex === subSubsectionIndex ? 'lightgray' : 'transparent' }}
+                            sx={{ 
+                              backgroundColor: selected.sectionIndex === sectionIndex && selected.subsectionIndex === subsectionIndex && selected.subSubsectionIndex === subSubsectionIndex ? 'lightgray' : 'transparent',
+                              cursor: 'pointer',
+                              '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)' }
+                            }}
                           >
                             {editingSubSubsectionIndex &&
                               editingSubSubsectionIndex.section === sectionIndex &&
@@ -356,9 +372,13 @@ const SideBar: React.FC<SidebarProps> = ({
           </Box>
         ))}
         <ListItem 
-          button 
+          component="div"
           onClick={() => onSelectSection('footer')}
-          sx={{ backgroundColor: selected.type === 'footer' ? 'lightgray' : 'transparent' }}
+          sx={{ 
+            backgroundColor: selected.type === 'footer' ? 'lightgray' : 'transparent',
+            cursor: 'pointer',
+            '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)' }
+          }}
         >
           <ListItemText primary="Footer" />
         </ListItem>
