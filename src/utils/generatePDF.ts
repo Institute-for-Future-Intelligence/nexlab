@@ -91,6 +91,7 @@ export const handleDownloadPDF = async (materialData: Material | null, setProgre
   const renderHTML = (html: string, x = 10, fontSize = 12) => {
     const dom = parseDocument(html);
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const traverse = (node: ChildNode, indentLevel = 0, _insideList = false) => {
         if (!node) return;
 

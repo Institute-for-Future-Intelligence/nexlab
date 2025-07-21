@@ -836,6 +836,7 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
   // -- UI NOTIFICATIONS -- //
   const promptBeforeLeaving = () => {
     const unsavedSections = Object.entries(unsavedChanges)
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       .filter(([_, hasUnsaved]) => hasUnsaved)
       .map(([section]) => section)
       .join(", ");
