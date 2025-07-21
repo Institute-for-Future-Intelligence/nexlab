@@ -1,5 +1,5 @@
 // App.tsx
-import React, { Suspense, lazy } from 'react';
+import { Suspense, lazy } from 'react';
 import { HashRouter as Router, Route, Routes, Navigate } from 'react-router-dom'; // Use HashRouter
 import { useUser } from './contexts/UserContext';
 

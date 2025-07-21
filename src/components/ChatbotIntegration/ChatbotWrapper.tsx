@@ -1,6 +1,6 @@
 // src/components/ChatbotIntegration/ChatbotWrapper.tsx
 
-import React, { useImperativeHandle, forwardRef, useRef } from 'react';
+import { useImperativeHandle, forwardRef, useRef } from 'react';
 import { ChatbotInterface } from 'rag-chatbot-interface-ifi';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../../config/firestore';
@@ -59,5 +59,7 @@ const ChatbotWrapper = forwardRef<{ endConversation: () => void }, ChatbotWrappe
     );
   }
 );
+
+ChatbotWrapper.displayName = 'ChatbotWrapper';
 
 export default ChatbotWrapper;
