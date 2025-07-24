@@ -2,7 +2,9 @@
 
 import React, { useEffect, useState } from 'react';
 import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
-import { useUser, UserDetails } from '../../contexts/UserContext';
+import { useUser } from '../../hooks/useUser';
+import { UserDetails } from '../../contexts/UserContext';
+import { formatFirebaseTimestamp } from '../../types/firebase'; // Import utility
 import { 
   Box, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, 
   FormControlLabel, Switch 
@@ -34,7 +36,6 @@ const CourseManagement: React.FC = () => {
   const [isRequestNewCourseOpen, setIsRequestNewCourseOpen] = useState(false);
   const [isRetrievePasscodeOpen, setIsRetrievePasscodeOpen] = useState(false);
   const [isRemoveStudentsOpen, setIsRemoveStudentsOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   const db = getFirestore();
   const navigate = useNavigate();
@@ -67,7 +68,6 @@ const CourseManagement: React.FC = () => {
   useEffect(() => {
     const fetchStudents = async () => {
       if (!selectedCourse) return;
-      setLoading(true);
       try {
         const studentsQuery = query(
           collection(db, 'users'),
@@ -88,8 +88,6 @@ const CourseManagement: React.FC = () => {
         setStudents(filteredStudents);
       } catch (error) {
         console.error('Error fetching students:', error);
-      } finally {
-        setLoading(false);
       }
     };
   
@@ -225,9 +223,7 @@ const CourseManagement: React.FC = () => {
                       <TableRow key={student.uid}>
                         <TableCell>{student.uid}</TableCell>
                         <TableCell>
-                          {student.lastLogin
-                            ? new Date(student.lastLogin.seconds * 1000).toLocaleString()
-                            : 'No data available'}
+                          {formatFirebaseTimestamp(student.lastLogin)}
                         </TableCell>
                       </TableRow>
                     ))}

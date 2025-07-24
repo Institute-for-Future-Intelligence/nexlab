@@ -12,14 +12,15 @@ import {
   CircularProgress,
   Paper,
 } from '@mui/material';
-import { useUser } from '../../contexts/UserContext';
+import { useUser } from '../../hooks/useUser';
 import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
+import { ChatbotRequest } from '../../types/chatbot'; // Import proper type
 
 import FileDownload from './FileDownload'; // Import the new component
 
 const ChatbotRequestsDisplay: React.FC = () => {
   const { userDetails } = useUser();
-  const [requests, setRequests] = useState<any[]>([]);
+  const [requests, setRequests] = useState<ChatbotRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -31,7 +32,10 @@ const ChatbotRequestsDisplay: React.FC = () => {
 
       try {
         const querySnapshot = await getDocs(q);
-        const requestsData = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        const requestsData = querySnapshot.docs.map((doc) => ({ 
+          id: doc.id, 
+          ...doc.data() 
+        } as ChatbotRequest));
         setRequests(requestsData);
       } catch (error) {
         console.error('Error fetching chatbot requests:', error);

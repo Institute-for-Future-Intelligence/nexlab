@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { getFirestore, collection, getDocs, updateDoc, doc, deleteDoc, writeBatch } from 'firebase/firestore';
-import { useUser } from '../../contexts/UserContext';
+import { useUser } from '../../hooks/useUser';
 import { useNavigate } from 'react-router-dom';
 import {
   Box, Typography, IconButton,

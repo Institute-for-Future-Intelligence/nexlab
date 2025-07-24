@@ -33,8 +33,8 @@ const Login = () => {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
       showSnackbar('Successfully logged in with Google!', 'success');
-    } catch (error: any) {
-      const code = (error.code as ErrorCode) || 'unknown';
+    } catch (error: unknown) {
+      const code = ((error as Error & { code?: string })?.code as ErrorCode) || 'unknown';
       const errorMessage = ERROR_MESSAGES[code] || ERROR_MESSAGES.unknown;
       showSnackbar(errorMessage, 'error');
     }

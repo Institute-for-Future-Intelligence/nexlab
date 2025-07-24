@@ -1,14 +1,13 @@
 // src/components/UserTable.tsx
 import React from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Chip } from '@mui/material';
+import { FirebaseTimestamp, formatFirebaseTimestamp } from '../../types/firebase'; // Import utilities
 
 interface User {
   id: string;
   isAdmin: boolean;
   isSuperAdmin?: boolean;
-  lastLogin?: {
-    toDate: () => Date;
-  };
+  lastLogin?: FirebaseTimestamp; // Now properly typed
   classes?: Record<string, { number: string; title: string; isCourseAdmin?: boolean }>; // Update type for classes
 }
 
@@ -102,7 +101,7 @@ const UserTable: React.FC<UserTableProps> = ({ users }) => {
 
               {/* Last Login */}
               <TableCell>
-                {user.lastLogin?.toDate().toLocaleString() ?? 'No data available'}
+                {formatFirebaseTimestamp(user.lastLogin)}
               </TableCell>
 
               {/* Courses */}

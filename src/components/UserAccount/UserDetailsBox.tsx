@@ -2,11 +2,12 @@
 import React from 'react';
 import { Box, Typography, Chip, Divider, Avatar, Paper } from '@mui/material';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import { FirebaseTimestamp, formatFirebaseTimestamp } from '../../types/firebase'; // Import proper types and utilities
 
 interface UserDetailsBoxProps {
   userDetails: {
     uid: string;
-    lastLogin?: any; // Firestore Timestamp or undefined
+    lastLogin?: FirebaseTimestamp; // Now properly typed
     classes?: Record<string, { number: string; title: string; isCourseAdmin?: boolean }>;
   };
   getAccountStatus: () => string;
@@ -68,11 +69,7 @@ const UserDetailsBox: React.FC<UserDetailsBoxProps> = ({ userDetails, getAccount
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Typography sx={{ fontWeight: 'bold' }}>Last Login:</Typography>
           <Chip
-            label={
-                userDetails.lastLogin?.toDate
-                ? userDetails.lastLogin.toDate().toLocaleString()
-                : 'No data available'
-            }
+            label={formatFirebaseTimestamp(userDetails.lastLogin)}
             variant="outlined"
             sx={{
               fontSize: '14px',

@@ -1,7 +1,7 @@
 // AddBuild.tsx
 import React, { useState } from 'react';
 
-import { useUser } from '../../contexts/UserContext';
+import { useUser } from '../../hooks/useUser';
 
 import { collection, addDoc, serverTimestamp } from "firebase/firestore"; 
 import { db } from '../../config/firestore';
@@ -18,8 +18,8 @@ interface AddBuildProps {
   designId: string;
   setIsAddingBuild: (isAdding: boolean) => void;
   refreshBuilds: () => void;
-  onImagesUpdated?: (images: any) => void;
-  onFilesChange?: (files: any) => void;
+  onImagesUpdated?: (images: Image[]) => void;
+  onFilesChange?: (files: FileDetails[]) => void;
 }
 
 const AddBuild: React.FC<AddBuildProps> = ({ designId, setIsAddingBuild, refreshBuilds }) => {

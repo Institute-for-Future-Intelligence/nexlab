@@ -1,9 +1,9 @@
 // src/components/Supplemental/MaterialGrid.tsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Box, Typography, Grid, CircularProgress, IconButton, Snackbar, Alert } from '@mui/material';
 import { getFirestore, doc, getDoc, collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
-import { useUser } from '../../contexts/UserContext';
+import { useUser } from '../../hooks/useUser';
 import { Material } from '../../types/Material';
 import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -28,7 +28,7 @@ const MaterialGrid: React.FC<{ initialCourse?: string | null }> = ({ initialCour
   
   const navigate = useNavigate();
 
-  const fetchCourseAdminStatus = async () => {
+  const fetchCourseAdminStatus = useCallback(async () => {
     if (!selectedCourse) return;
     const courseDocRef = doc(db, 'courses', selectedCourse);
     const courseDoc = await getDoc(courseDocRef);
@@ -40,18 +40,18 @@ const MaterialGrid: React.FC<{ initialCourse?: string | null }> = ({ initialCour
     } else {
       setIsCourseAdmin(false);
     }
-  };
+  }, [selectedCourse, db, userDetails]);
 
   useEffect(() => {
     if (!selectedCourse) return; // Prevents unnecessary calls
     fetchCourseAdminStatus();
-  }, [selectedCourse]); // Only runs when `selectedCourse` actually changes
+  }, [selectedCourse, fetchCourseAdminStatus]); // Only runs when `selectedCourse` actually changes
   
   useEffect(() => {
     if (initialCourse && selectedCourse !== initialCourse) {
       setSelectedCourse(initialCourse);
     }
-  }, [initialCourse]); // Only re-runs when `initialCourse` changes  
+  }, [initialCourse, selectedCourse]); // Only re-runs when `initialCourse` or `selectedCourse` changes  
 
   useEffect(() => {
     if (!selectedCourse) {
@@ -252,7 +252,7 @@ const MaterialGrid: React.FC<{ initialCourse?: string | null }> = ({ initialCour
 const MaterialItem: React.FC<{ 
   material: Material,
   isCourseAdmin: boolean,
-  navigate: any,
+  navigate: (url: string) => void,
   selectedCourse: string,
   onDeleteClick: (id: string) => void,
   onUnpublishClick: (id: string) => void

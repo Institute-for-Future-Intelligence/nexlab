@@ -5,7 +5,7 @@ import Header from './Header';
 import AddMaterialButton from './AddMaterialButton';
 import MaterialGrid from './MaterialGrid';
 import CourseSelector from './CourseSelector';
-import { useUser } from '../../contexts/UserContext';
+import { useUser } from '../../hooks/useUser';
 import { useSearchParams } from 'react-router-dom';
 
 import BackToAllMaterialsButton from './BackToAllMaterialsButton';

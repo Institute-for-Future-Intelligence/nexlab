@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import DOMPurify from 'dompurify';
-import { EventInfo } from '@ckeditor/ckeditor5-utils';
 
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
@@ -10,19 +9,14 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Box from '@mui/material/Box';
 
-// Define the type for the props
-interface TextEditorProps {
-  onChange: (data: string) => void;
-  initialValue?: string;  // This allows for undefined implicitly
-}
-
-// Define the type for CKEditor instance
-type EditorType = ClassicEditor & { model: any };
+import { 
+  TextEditorProps
+} from '../../types/ckeditor'; // Import proper types
 
 const TextEditor: React.FC<TextEditorProps> = ({ onChange, initialValue }) => {
   const [editorData, setEditorData] = useState<string>(DOMPurify.sanitize(initialValue || ''));
   const isMounted = useRef(false); // ref to track component mounting
-  const editorRef = useRef<EditorType | null>(null);
+  const editorRef = useRef<any>(null);
 
   const [selectedSymbol, setSelectedSymbol] = useState<string>("");
   
@@ -36,7 +30,7 @@ const TextEditor: React.FC<TextEditorProps> = ({ onChange, initialValue }) => {
     }
   }, [initialValue]);
 
-  const handleEditorChange = (event: EventInfo<any>, editor: ClassicEditor) => {
+  const handleEditorChange = (event: any, editor: any) => {
     const data = editor.getData();
     const cleanData = DOMPurify.sanitize(data); // Sanitize the data from CKEditor
     setEditorData(cleanData); // Update internal state with sanitized data
@@ -54,7 +48,7 @@ const TextEditor: React.FC<TextEditorProps> = ({ onChange, initialValue }) => {
     const editor = editorRef.current;
 
     // Insert the symbol at the current cursor position
-    editor.model.change((writer: any) => {
+    editor.model.change((writer) => {
       const position = editor.model.document.selection.getFirstPosition();
       writer.insertText(symbol, position);
     });
@@ -116,8 +110,8 @@ const TextEditor: React.FC<TextEditorProps> = ({ onChange, initialValue }) => {
       <CKEditor
         editor={ClassicEditor as any}
         data={editorData}
-        onReady={(editor: any) => {
-          editorRef.current = editor; // Use ref to manage the editor instance
+        onReady={(editor) => {
+          editorRef.current = editor as any; // Use ref to manage the editor instance
         }}
         config={{
           toolbar: [
@@ -126,7 +120,7 @@ const TextEditor: React.FC<TextEditorProps> = ({ onChange, initialValue }) => {
             'bulletedList', 'numberedList', 'blockQuote', 'indent', 'outdent', '|',
             'link', 'insertTable', '|' // Exclude 'imageUpload' from the array
           ],
-        } as any}
+        }}
         // onReady={editor => {
         //   console.log('Editor is ready to use!', editor);
   

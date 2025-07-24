@@ -1,18 +1,19 @@
 // src/contexts/UserContext.tsx
-import { createContext, useContext, useState, useEffect, ReactNode, Dispatch, SetStateAction } from 'react';
+import { createContext, useState, useEffect, ReactNode, Dispatch, SetStateAction } from 'react';
 import { getAuth, onAuthStateChanged, User as FirebaseUser  } from 'firebase/auth';
 import { getFirestore, doc, getDoc, updateDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import '../config/firestore.tsx'; // Ensure Firebase is initialized
+import { FirebaseTimestamp } from '../types/firebase'; // Import proper type
 
 export interface UserDetails {
   uid: string;
   isAdmin?: boolean;
   isSuperAdmin?: boolean;
-  lastLogin?: any; // You can further specify the type for date/time if needed
+  lastLogin?: FirebaseTimestamp; // Now properly typed for all timestamp formats
   classes?: Record<string, { number: string; title: string; isCourseAdmin: boolean }>; // Use Record to define the map structure, include isCourseAdmin
 }
 
-interface UserContextType {
+export interface UserContextType {
   user: FirebaseUser | null;
   userDetails: UserDetails | null;
   setUserDetails: Dispatch<SetStateAction<UserDetails | null>>;
@@ -22,15 +23,7 @@ interface UserContextType {
   isSuperAdmin: boolean;
 }
 
-const UserContext = createContext<UserContextType | undefined>(undefined);
-
-export const useUser = (): UserContextType => {
-  const context = useContext(UserContext);
-  if (context === undefined) {
-      throw new Error('useUser must be used within a UserProvider');
-  }
-  return context;
-};
+export const UserContext = createContext<UserContextType | undefined>(undefined);
 
 const UserProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<FirebaseUser | null>(null);

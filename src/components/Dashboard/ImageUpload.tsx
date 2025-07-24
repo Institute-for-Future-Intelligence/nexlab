@@ -201,6 +201,7 @@ const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>(({ path, ini
     setSnackbarOpen(false);
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedUpdateTitle = useCallback(debounce((index: number, newTitle: string) => {
     setTimeout(() => {
       setImages(prev => {
@@ -211,7 +212,7 @@ const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>(({ path, ini
         return updatedImages;
       });
     }, 0);
-  }, 30), [onImagesUpdated]);
+  }, 30), [onImagesUpdated]); // debounce creates closure, dependencies handled internally
 
   useImperativeHandle(ref, () => ({
     commitDeletions,
