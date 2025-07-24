@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Typography, Chip, Tooltip } from '@mui/material';
-import { useUser } from '../contexts/UserContext';
+import { useUser } from '../hooks/useUser';
 import Logout from './Logout';
 
 const Header: React.FC = React.memo(() => {

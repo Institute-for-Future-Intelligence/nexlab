@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { MenuItem, Select, InputLabel, FormControl, FormHelperText } from '@mui/material';
-import { useUser } from '../../contexts/UserContext';
+import { useUser } from '../../hooks/useUser';
 
 interface CourseSelectorProps {
   value: string;

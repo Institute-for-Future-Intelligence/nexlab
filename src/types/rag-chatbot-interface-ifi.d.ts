@@ -1,5 +1,5 @@
 declare module 'rag-chatbot-interface-ifi' {
-  import { ComponentType, ForwardRefExoticComponent, RefAttributes } from 'react';
+  import { ForwardRefExoticComponent, RefAttributes } from 'react';
 
   export const ChatbotInterface: ForwardRefExoticComponent<
     {

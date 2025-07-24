@@ -1,6 +1,6 @@
 // Dashboard/index.tsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { useUser } from '../../contexts/UserContext';
+import { useUser } from '../../hooks/useUser';
 
 import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, Snackbar, Alert, TextField, Box } from '@mui/material';
 
@@ -13,6 +13,7 @@ import Add from './Add';
 import Edit from './Edit';
 
 import { Design } from '../../types/types';
+import { DesignDocumentData, getDocumentField } from '../../types/events';
 
 const Dashboard = () => {
   const { userDetails, loading } = useUser();
@@ -87,17 +88,17 @@ const Dashboard = () => {
     const querySnapshot = await getDocs(designsQuery);
   
     querySnapshot.forEach(doc => {
-      const data = doc.data() as any;
+      const data = doc.data() as DesignDocumentData;
       const design = {
         id: doc.id,
-        title: data.title,
-        description: data.description,
-        course: data.course,
+        title: getDocumentField(data, 'title', ''),
+        description: getDocumentField(data, 'description', ''),
+        course: getDocumentField(data, 'course', ''),
         dateCreated: data.dateCreated,
         dateModified: data.dateModified,
-        userId: data.userId,
-        images: data.images || [],
-        files: data.files || []
+        userId: getDocumentField(data, 'userId', ''),
+        images: getDocumentField(data, 'images', []),
+        files: getDocumentField(data, 'files', [])
       } as Design;
   
       if (userDetails.isSuperAdmin) {

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Box, Button, TextField, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import { getFirestore, doc, updateDoc, getDoc } from 'firebase/firestore';
 
-import { useUser } from '../../contexts/UserContext';
+import { useUser } from '../../hooks/useUser';
 
 interface EditCourseDetailsProps {
   selectedCourse: string;

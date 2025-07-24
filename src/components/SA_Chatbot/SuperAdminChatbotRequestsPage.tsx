@@ -19,11 +19,12 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { getFirestore, collection, addDoc, getDoc, getDocs, updateDoc, doc } from 'firebase/firestore';
+import { ChatbotRequest } from '../../types/chatbot'; // Import proper type
 
 import FileDownload from '../Chatbot/FileDownload'; // Import FileDownload component
 
 const SuperAdminChatbotRequestsPage: React.FC = () => {
-  const [requests, setRequests] = useState<any[]>([]);
+  const [requests, setRequests] = useState<ChatbotRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [chatbotIdMap, setChatbotIdMap] = useState<{ [key: string]: string }>({});
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -41,7 +42,7 @@ const SuperAdminChatbotRequestsPage: React.FC = () => {
         const requestsData = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
-        }));
+        } as ChatbotRequest));
         setRequests(requestsData);
       } catch (error) {
         console.error('Error fetching chatbot requests:', error);

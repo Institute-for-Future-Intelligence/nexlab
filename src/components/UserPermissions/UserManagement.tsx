@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Box, Typography, TextField, Button, Snackbar, Alert, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Paper, FormControl, InputLabel, Select, MenuItem, SelectChangeEvent, Chip } from '@mui/material';
 import { getFirestore, doc, updateDoc, getDoc, collection, getDocs } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
+import { FirebaseTimestamp } from '../../types/firebase'; // Import proper type
 
 import UserTable from './UserTable'; // Import the UserTable component
 import DeleteUser from './DeleteUser'; // Import the DeleteUser component
@@ -10,9 +11,7 @@ interface User {
   id: string;
   isAdmin: boolean;
   isSuperAdmin?: boolean;
-  lastLogin?: {
-    toDate: () => Date;
-  };
+  lastLogin?: FirebaseTimestamp; // Now properly typed
   classes?: Record<string, { number: string; title: string, isCourseAdmin?: boolean }>; // Updated to reflect the new structure
 }
 
@@ -224,7 +223,7 @@ const UserManagement: React.FC = () => {
     setLoading(false);
   };
 
-  const fetchAllUsers = async () => {
+  const fetchAllUsers = useCallback(async () => {
     setLoading(true);
     try {
       const usersCollection = collection(db, 'users');
@@ -240,11 +239,11 @@ const UserManagement: React.FC = () => {
       setOpenSnackbar(true);
     }
     setLoading(false);
-  };
+  }, [db]);
 
   useEffect(() => {
     fetchAllUsers();
-  }, []);
+  }, [fetchAllUsers]);
 
   const handleConfirm = async () => {
     try {

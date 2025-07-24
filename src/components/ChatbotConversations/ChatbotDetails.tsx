@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { Box, Typography, CircularProgress, Divider, Link } from '@mui/material';
 import { getFirestore } from 'firebase/firestore';
+import { ChatbotDetails as ChatbotDetailsType } from '../../types/chatbot'; // Import proper type
 
 interface ChatbotDetailsProps {
     chatbotId: string;
@@ -10,7 +11,7 @@ interface ChatbotDetailsProps {
 
 const ChatbotDetails: React.FC<ChatbotDetailsProps> = ({ chatbotId }) => {
     const db = getFirestore();
-    const [chatbotDetails, setChatbotDetails] = useState<any | null>(null);
+    const [chatbotDetails, setChatbotDetails] = useState<ChatbotDetailsType | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -29,7 +30,7 @@ const ChatbotDetails: React.FC<ChatbotDetailsProps> = ({ chatbotId }) => {
 
                 if (!querySnapshot.empty) {
                     // Assuming only one document matches the chatbotId
-                    setChatbotDetails(querySnapshot.docs[0].data());
+                    setChatbotDetails(querySnapshot.docs[0].data() as ChatbotDetailsType);
                 } else {
                     setError('Chatbot details not found!');
                 }
@@ -68,14 +69,14 @@ const ChatbotDetails: React.FC<ChatbotDetailsProps> = ({ chatbotId }) => {
 
     const {
         title = 'N/A',
-        courseId = {},
+        courseId,
         createdBy = 'Unknown',
         timestamp,
-        material = {},
+        material,
     } = chatbotDetails;
 
     const courseTitle = courseId?.title || 'N/A';
-    const materialTitle = material?.title || 'N/A';
+    const materialTitle = material?.title || 'N/A';  
     const materialId = material?.id || 'N/A';
 
     // Generate the GitHub link for the material

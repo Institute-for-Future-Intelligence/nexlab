@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Box, TextField, Button, Snackbar, Alert, Typography, IconButton, Tooltip } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { getFirestore, collection, addDoc, updateDoc, doc, serverTimestamp, Timestamp } from 'firebase/firestore';
-import { useUser } from '../../contexts/UserContext';
+import { useUser } from '../../hooks/useUser';
 import { v4 as uuidv4 } from 'uuid';
 
 import { useSearchParams } from 'react-router-dom'; // Import this at the top
@@ -30,7 +30,7 @@ interface AddMaterialFormProps {
   onSubmit?: (data: Material) => void;
 }
 
-const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData, onSubmit }) => {
+const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData }) => {
   const navigate = useNavigate();
   const { userDetails } = useUser();
   const db = getFirestore();
@@ -72,7 +72,8 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData, onSubmi
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [selectedSection, sections]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSection, sections]); // handleNavigate is defined later, dependency would cause ordering issues
 
   const handleSubmit = async (e: React.FormEvent, shouldPublish: boolean = false, scheduleTimestamp?: Date | null) => {
     e.preventDefault();
@@ -100,7 +101,7 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData, onSubmi
           footer,
           sections,
           author: userDetails?.uid || '',
-          timestamp: serverTimestamp() as any,
+          timestamp: serverTimestamp(),
           published: shouldPublish,
           scheduledTimestamp: scheduleTimestamp ? Timestamp.fromDate(scheduleTimestamp) : null,
         });

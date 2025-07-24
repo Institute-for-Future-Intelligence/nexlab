@@ -7,8 +7,8 @@ import MailOutlineIcon from '@mui/icons-material/MailOutline'; // Import the mai
 import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { getFirestore } from 'firebase/firestore';
 
-import MessagesDisplay from './Messages/MessagesDisplay';
-import { useUser } from '../contexts/UserContext';
+import MessagesDisplay, { Message } from './Messages/MessagesDisplay';
+import { useUser } from '../hooks/useUser';
 
 import { CircularProgress } from '@mui/material';
 
@@ -16,7 +16,7 @@ const SelectionPage: React.FC = () => {
   const navigate = useNavigate();
   const { userDetails, isSuperAdmin } = useUser();
   const [openSnackbar, setOpenSnackbar] = useState(false);
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const db = getFirestore();
 
   const [loading, setLoading] = useState(true); // New state for loading
@@ -36,7 +36,7 @@ const SelectionPage: React.FC = () => {
       const messagesList = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
-      }));
+      } as Message));
       
       setMessages(messagesList);
       sessionStorage.setItem('messages', JSON.stringify(messagesList)); // Cache messages
@@ -48,6 +48,7 @@ const SelectionPage: React.FC = () => {
     });
   
     return () => unsubscribe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Remove 'db' dependency to avoid unnecessary re-fetching
 
   const handleCloseSnackbar = (event: React.SyntheticEvent | Event, reason?: SnackbarCloseReason) => {

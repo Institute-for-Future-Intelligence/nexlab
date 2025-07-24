@@ -32,7 +32,7 @@ interface NotebookTableProps {
   showUserIdColumn: boolean; // Add showUserIdColumn prop
 }
 
-const NotebookTable: React.FC<NotebookTableProps> = ({ designs, handleEdit, handleDelete, isAdmin, userDetails, showUserIdColumn }) => {
+const NotebookTable: React.FC<NotebookTableProps> = ({ designs, handleEdit, handleDelete, userDetails, showUserIdColumn }) => {
   // Function to format Firestore timestamp to a readable format
   const formatDate = (value: Timestamp | Date | FieldValue | null): string => {
     if (!value) return 'N/A';

@@ -22,7 +22,7 @@ interface EducatorRequest {
 
 const EducatorRequestsAdminPage: React.FC = () => {
   const [requests, setRequests] = useState<EducatorRequest[]>([]);
-  const [courses, setCourses] = useState<any[]>([]); // Assuming each course has id, title, and number
+  const [courses, setCourses] = useState<Array<{id: string; number?: string; title?: string}>>([]);
   const [selectedCourseId, setSelectedCourseId] = useState<string>(''); // State for selected course when approving co-instructor
 
   const [openSnackbar, setOpenSnackbar] = useState(false);
