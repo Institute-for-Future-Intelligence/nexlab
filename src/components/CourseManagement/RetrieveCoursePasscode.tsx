@@ -1,6 +1,6 @@
 // src/components/UserAccount/RetrieveCoursePasscode.tsx
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, TextField, Button, MenuItem, Snackbar, Alert, Grid } from '@mui/material';
+import { Box, Typography, TextField, MenuItem, Snackbar, Alert, Grid } from '@mui/material';
 import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
 import { useUser } from '../../contexts/UserContext';
 

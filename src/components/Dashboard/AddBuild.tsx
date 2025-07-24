@@ -1,5 +1,5 @@
 // AddBuild.tsx
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 
 import { useUser } from '../../contexts/UserContext';
 
@@ -18,6 +18,8 @@ interface AddBuildProps {
   designId: string;
   setIsAddingBuild: (isAdding: boolean) => void;
   refreshBuilds: () => void;
+  onImagesUpdated?: (images: any) => void;
+  onFilesChange?: (files: any) => void;
 }
 
 const AddBuild: React.FC<AddBuildProps> = ({ designId, setIsAddingBuild, refreshBuilds }) => {
@@ -149,12 +151,14 @@ const AddBuild: React.FC<AddBuildProps> = ({ designId, setIsAddingBuild, refresh
           path={`builds/${designId}/images`} // Ensure the path is unique for each build
           initialImages={buildImages}
           onImagesUpdated={handleImagesChange}
-          // onDelete={(deletedImages) => setBuildImages(currentImages => currentImages.filter(image => !deletedImages.includes(image)))}
+          onDelete={(deletedImages) => setBuildImages(currentImages => currentImages.filter(image => !deletedImages.includes(image)))}
+          isOwnDesign={true}
         />
         <FileUpload 
           path={`builds/${designId}/files`} // Adjust the path to organize files separately
           initialFiles={buildFiles}
           onFilesChange={handleFilesChange} // Directly set files from FileUpload
+          isOwnDesign={true}
         />
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <input type="submit" value="Save"/>

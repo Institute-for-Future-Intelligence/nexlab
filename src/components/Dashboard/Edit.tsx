@@ -86,7 +86,7 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
   // State for handling Dialog
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogContent, setDialogContent] = useState('');
-  const [dialogConfirmAction, setDialogConfirmAction] = useState(() => {});
+  const [dialogConfirmAction, setDialogConfirmAction] = useState<() => void>(() => () => {});
   // State for Snackbar notifications
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -130,7 +130,7 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
     const activeFiles = files.filter(file => !file.deleted);
 
     // Construct the update object dynamically
-    let updateObject = {
+    const updateObject = {
         title,
         description,
         course, // Include course in update
@@ -269,7 +269,7 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
     })) || [];
 
     // Prepare the update data object and include only defined fields
-    const updatedData = {};
+    const updatedData: any = {};
 
     if (filteredBuildImages.length > 0) {
       updatedData.images = filteredBuildImages;
@@ -364,7 +364,7 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
     
       const newBuilds = buildsSnapshot.docs.map(doc => {
         console.log("Build doc path: ", doc.ref.path); // Log each build document path for tracking
-        return { id: doc.id, ...doc.data() };
+        return { id: doc.id, ...(doc.data() as any) };
       });
     
       setBuilds(newBuilds);
@@ -510,7 +510,7 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
     }
 
     // Prepare the update data object and include only defined fields.
-    const updateData = {};
+    const updateData: any = {};
 
     // Filter out deleted images before sending update to Firestore
     const filteredTestImages = testImages[testId].filter(img => !img.deleted).map(({ url, path, title }) => ({ url, path, title }));
@@ -606,13 +606,13 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
       }
 
       const querySnapshot = await getDocs(buildsQuery);
-      let fetchedBuilds = [];
-      let tempTestsByBuildId = {};
+      const fetchedBuilds = [];
+      const tempTestsByBuildId = {};
 
-      let initialCollapseState = {};
+      const initialCollapseState = {};
 
       for (const buildDoc of querySnapshot.docs) {
-        const buildData = buildDoc.data();
+        const buildData = buildDoc.data() as any;
         const buildId = buildDoc.id;
         fetchedBuilds.push({
           id: buildId,
@@ -631,12 +631,12 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
         }
 
         const testsSnapshot = await getDocs(testsQuery);
-        let fetchedTests = [];
-        let buildTestImages = {};
-        let buildTestFiles = {};
+        const fetchedTests = [];
+        const buildTestImages = {};
+        const buildTestFiles = {};
 
         for (const testDoc of testsSnapshot.docs) {
-          const testData = testDoc.data();
+          const testData = testDoc.data() as any;
           fetchedTests.push({
             id: testDoc.id,
             ...testData,
@@ -647,7 +647,7 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
         tempTestsByBuildId[buildId] = fetchedTests;
         
         setTestImages(prevImages => {
-          let updatedImages = {...prevImages};
+          const updatedImages = {...prevImages};
           for (const testId in buildTestImages) {
             updatedImages[testId] = buildTestImages[testId];
           }
@@ -655,7 +655,7 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
         });
 
         setTestFiles(prevFiles => {
-          let updatedFiles = {...prevFiles};
+          const updatedFiles = {...prevFiles};
           for (const testId in buildTestFiles) {
             updatedFiles[testId] = buildTestFiles[testId];
           }
@@ -700,9 +700,9 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
       const testsSnapshot = await getDocs(testsQuery);
       const fetchedTests = testsSnapshot.docs.map(doc => ({
         id: doc.id,
-        ...doc.data(),
-        images: doc.data().images || [], // Ensure images is an array
-        files: doc.data().files || [] // Ensure files is an array
+        ...(doc.data() as any),
+        images: (doc.data() as any).images || [], // Ensure images is an array
+        files: (doc.data() as any).files || [] // Ensure files is an array
       }));
     
       // Update tests for the specific build in state
@@ -711,8 +711,8 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
         [buildId]: fetchedTests
       }));
   
-      let newTestImages = {};
-      let newTestFiles = {};
+      const newTestImages = {};
+      const newTestFiles = {};
     
       fetchedTests.forEach(test => {
         newTestImages[test.id] = test.images;
@@ -836,6 +836,7 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
   // -- UI NOTIFICATIONS -- //
   const promptBeforeLeaving = () => {
     const unsavedSections = Object.entries(unsavedChanges)
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       .filter(([_, hasUnsaved]) => hasUnsaved)
       .map(([section]) => section)
       .join(", ");
@@ -1250,8 +1251,8 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
                   buildId={build.id}
                   refreshTests={() => refreshTestsForBuild(build.id)}
                   setAddingTestIdForBuild={setAddingTestIdForBuild}
-                  onImagesUpdated={(images) => handleTestImagesUpdated(build.id, images)}
-                  onFilesChange={(files) => handleTestFilesUpdated(build.id, files)}
+                  onImagesUpdated={(images: any) => handleTestImagesUpdated(build.id, images)}
+                  onFilesChange={(files: any) => handleTestFilesUpdated(build.id, files)}
                 />
               </div>
             )}
@@ -1265,8 +1266,8 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
                 designId={selectedDesign.id}
                 setIsAddingBuild={setIsAddingBuild}
                 refreshBuilds={refreshBuilds}
-                onImagesUpdated={(images) => handleBuildImagesUpdated(build.id, images)}
-                onFilesChange={(files) => handleBuildFilesUpdated(build.id, files)}
+                onImagesUpdated={(images: any) => handleBuildImagesUpdated('temp-build-id', images)}
+                onFilesChange={(files: any) => handleBuildFilesUpdated('temp-build-id', files)}
               />
             </div>
           )}
@@ -1291,7 +1292,7 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
 
       {/* Snackbar for Notifications */}
       <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={() => setSnackbarOpen(false)}>
-        <Alert onClose={() => setSnackbarOpen(false)} severity={snackbarSeverity} sx={{ width: '100%' }}>
+        <Alert onClose={() => setSnackbarOpen(false)} severity={snackbarSeverity as any} sx={{ width: '100%' }}>
           {snackbarMessage}
         </Alert>
       </Snackbar>

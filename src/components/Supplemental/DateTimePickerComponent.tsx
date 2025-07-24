@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, TextField, TextFieldProps, Typography } from '@mui/material';
+import { Box, TextField, TextFieldProps } from '@mui/material';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { styled } from '@mui/material/styles';
@@ -16,6 +16,8 @@ const CustomTextField = styled(TextField)({
 const CustomInput = React.forwardRef<HTMLInputElement, TextFieldProps>((props, ref) => (
   <CustomTextField {...props} inputRef={ref} fullWidth />
 ));
+
+CustomInput.displayName = 'CustomInput';
 
 const DateTimePickerComponent: React.FC<DateTimePickerComponentProps> = ({ value, onChange }) => {
   return (

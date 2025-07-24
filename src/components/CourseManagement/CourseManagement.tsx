@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
 import { useUser, UserDetails } from '../../contexts/UserContext';
 import { 
-  Box, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Stack, 
+  Box, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, 
   FormControlLabel, Switch 
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
@@ -34,7 +34,6 @@ const CourseManagement: React.FC = () => {
   const [isRequestNewCourseOpen, setIsRequestNewCourseOpen] = useState(false);
   const [isRetrievePasscodeOpen, setIsRetrievePasscodeOpen] = useState(false);
   const [isRemoveStudentsOpen, setIsRemoveStudentsOpen] = useState(false);
-
   const [loading, setLoading] = useState(false);
 
   const db = getFirestore();
@@ -44,6 +43,7 @@ const CourseManagement: React.FC = () => {
   const getAdminCourses = (): CourseMap => {
     if (!userDetails?.classes) return {};
     return Object.entries(userDetails.classes)
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       .filter(([_, course]) => course.isCourseAdmin)
       .reduce(
         (acc, [id, course]) => ({

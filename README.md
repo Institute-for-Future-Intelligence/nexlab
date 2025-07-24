@@ -1,5 +1,7 @@
 # NexLAB: Next-Generation Experiments and Learning for Advanced Biotech
 
+> 🧪 **Educational Laboratory Management System** - A comprehensive web application for managing laboratory notebooks, designed for the MICR course with real-time collaboration features.
+
 This is an ATE project's web application for managing laboratory notebooks, designed for the MICR course. It features user authentication with Google Sign-In, and allows users to create, edit, and view their design projects in real-time, integrated with Firestore.
 
 ## Features
@@ -8,6 +10,10 @@ This is an ATE project's web application for managing laboratory notebooks, desi
 - Create, read, update, and delete operations for designs
 - Image uploads associated with specific designs
 - Real-time updates from Firestore
+- Course management and student tracking
+- Supplemental materials management
+- Chatbot integration for enhanced learning
+- Message board for course communications
 
 ## Local Development
 

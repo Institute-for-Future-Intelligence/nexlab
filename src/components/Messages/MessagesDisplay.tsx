@@ -25,7 +25,7 @@ export interface Message {
 interface Props {
   messages: Message[];
   userDetails: any;
-  navigate: Function;
+  navigate: (path: string) => void;
   handleDeleteMessage: (id: string) => void;
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
 }

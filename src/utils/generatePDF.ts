@@ -91,7 +91,8 @@ export const handleDownloadPDF = async (materialData: Material | null, setProgre
   const renderHTML = (html: string, x = 10, fontSize = 12) => {
     const dom = parseDocument(html);
 
-    const traverse = (node: ChildNode, indentLevel = 0, insideList = false) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const traverse = (node: ChildNode, indentLevel = 0, _insideList = false) => {
         if (!node) return;
 
         if (isTag(node)) {
@@ -124,7 +125,7 @@ export const handleDownloadPDF = async (materialData: Material | null, setProgre
                     element.children?.forEach((child) => traverse(child, indentLevel + 1, true));
                     break;
 
-                case 'li':
+                case 'li': {
                     const bullet = indentLevel === 1 ? '-' : '--';
                     let listItemText = '';
                     element.children?.forEach((child) => {
@@ -164,6 +165,7 @@ export const handleDownloadPDF = async (materialData: Material | null, setProgre
                         }
                     });
                     break;
+                }
 
                 case 'a':
                     if (element.attribs?.href) {

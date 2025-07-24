@@ -1,6 +1,6 @@
 // FileUpload.tsx
 import React, { useState, useRef, useEffect } from 'react';
-import { getStorage, ref as firebaseRef, uploadBytesResumable, getDownloadURL, deleteObject } from "firebase/storage";
+import { getStorage, ref as firebaseRef, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -225,7 +225,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ path, initialFiles, onFilesChan
             )}
             <List>
                 {files.map((file) => (
-                    <ListItem key={file.id} component="div" disabled={file.deleted}>
+                    <ListItem key={file.id} style={{ opacity: file.deleted ? 0.5 : 1 }}>
                         <ListItemIcon>
                             <InsertDriveFileIcon />
                         </ListItemIcon>

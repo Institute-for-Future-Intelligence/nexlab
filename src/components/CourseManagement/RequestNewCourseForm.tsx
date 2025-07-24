@@ -14,7 +14,7 @@ const RequestNewCourseForm: React.FC = () => {
   const [courseDescription, setCourseDescription] = useState('');
 
   const [loading, setLoading] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
+    const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogTitle, setDialogTitle] = useState('');
   const [dialogContent, setDialogContent] = useState('');
   const db = getFirestore();

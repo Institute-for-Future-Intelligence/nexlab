@@ -6,14 +6,14 @@ module.exports = {
     'plugin:react/recommended',
     'plugin:react/jsx-runtime',
     'plugin:react-hooks/recommended',
-    '@typescript-eslint/recommended',
+    'plugin:@typescript-eslint/recommended',
   ],
-  ignorePatterns: ['dist', '.eslintrc.cjs'],
-  parser: '@typescript-eslint/parser',  // Specify TypeScript parser
+  ignorePatterns: ['dist', '.eslintrc.cjs', 'functions/', 'functions/**/*', 'functions/.eslintrc.js'],
+  parser: '@typescript-eslint/parser',
   parserOptions: { 
     ecmaVersion: 'latest', 
     sourceType: 'module',
-    project: ['./tsconfig.json']  // Point to your tsconfig if using rules that require type information
+    project: './tsconfig.json'
   },
   settings: { react: { version: '18.2' } },
   plugins: [
@@ -28,5 +28,7 @@ module.exports = {
     ],
     "react/jsx-uses-react": "off",
     "react/react-in-jsx-scope": "off",
+    '@typescript-eslint/no-explicit-any': 'warn',
+    '@typescript-eslint/no-unused-vars': 'warn',
   },
 }

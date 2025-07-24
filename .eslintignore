@@ -1,0 +1,17 @@
+# ESLint ignore file
+
+# Build outputs
+dist/
+build/
+lib/
+
+# Functions directory with separate ESLint config
+functions/
+
+# Node modules
+node_modules/
+
+# Config files
+.eslintrc.cjs
+*.config.js
+*.config.ts 

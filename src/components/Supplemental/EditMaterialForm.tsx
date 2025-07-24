@@ -16,6 +16,7 @@ const EditMaterialForm: React.FC = () => {
   const validCourses = useMemo(() => {
     return userDetails?.classes
       ? Object.entries(userDetails.classes)
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           .filter(([_, course]) => course.isCourseAdmin)
           .map(([id]) => id)
       : [];

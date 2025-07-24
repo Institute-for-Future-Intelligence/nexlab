@@ -189,11 +189,13 @@ const Add: React.FC<AddProps> = ({ designs, setDesigns, setIsAdding, getDesigns,
             initialImages={initialImagesMemo}
             onImagesUpdated={setImages}
             onDelete={(deletedImages) => setImages(images.filter(img => !deletedImages.includes(img)))}
+            isOwnDesign={true}
           />
           <FileUpload  // Include the FileUpload component in the form
             path="designs/files" 
             initialFiles={files}
             onFilesChange={setFiles} // Ensure this is correctly passed and used
+            isOwnDesign={true}
           />
           <div style={{ marginTop: '30px', display: 'flex', justifyContent: 'flex-end' }}>
             <Button 

@@ -296,7 +296,7 @@ const UserManagement: React.FC = () => {
 
   // Filters users based on selected course
   const courseFilter = (user: User) =>
-  selectedCourse ? user.classes && user.classes.hasOwnProperty(selectedCourse) : true;
+  selectedCourse ? user.classes && (selectedCourse in user.classes) : true;
 
   // Filters users based on their status
   const statusFilter = (user: User) => {

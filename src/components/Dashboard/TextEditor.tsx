@@ -114,9 +114,9 @@ const TextEditor: React.FC<TextEditorProps> = ({ onChange, initialValue }) => {
       </Box>
       {/* CKEditor instance */}
       <CKEditor
-        editor={ClassicEditor}
+        editor={ClassicEditor as any}
         data={editorData}
-        onReady={(editor: EditorType) => {
+        onReady={(editor: any) => {
           editorRef.current = editor; // Use ref to manage the editor instance
         }}
         config={{
@@ -126,12 +126,7 @@ const TextEditor: React.FC<TextEditorProps> = ({ onChange, initialValue }) => {
             'bulletedList', 'numberedList', 'blockQuote', 'indent', 'outdent', '|',
             'link', 'insertTable', '|' // Exclude 'imageUpload' from the array
           ],
-          table: {
-            contentToolbar: [
-              'tableColumn', 'tableRow', 'mergeTableCells'
-            ]
-          },
-        }}
+        } as any}
         // onReady={editor => {
         //   console.log('Editor is ready to use!', editor);
   

@@ -1,7 +1,7 @@
 // src/components/CourseManagement/CourseSelector.tsx
 
 import React from 'react';
-import { Box, FormControl, InputLabel, MenuItem, Select, Typography } from '@mui/material';
+import { Box, FormControl, InputLabel, MenuItem, Select } from '@mui/material';
 
 interface CourseSelectorProps {
   userClasses: Record<string, { number: string; title: string, isCourseAdmin?: boolean }>;

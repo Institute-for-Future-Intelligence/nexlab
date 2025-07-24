@@ -1,6 +1,6 @@
 // src/components/PrivateRoute.tsx
 import React from 'react';
-import { Route, Navigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useUser } from '../contexts/UserContext';
 
 interface PrivateRouteProps {
