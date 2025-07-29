@@ -1,5 +1,12 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
+import { 
+  extractTextFromFile, 
+  validateFileForExtraction, 
+  getFileTypeDescription,
+  estimateProcessingTime,
+  type TextExtractionError 
+} from '../utils/textExtraction';
 
 export interface WeeklyTopic {
   week: number;
@@ -52,6 +59,7 @@ interface SyllabusState {
   
   // Text extraction
   extractedText: string;
+  extractionMetadata: any;
   
   // Parsing results
   parsedCourseInfo: ParsedCourseInfo | null;
@@ -110,6 +118,7 @@ export const useSyllabusStore = create<SyllabusState>()(
         uploadedFile: null,
         uploadProgress: 0,
         extractedText: '',
+        extractionMetadata: null,
         parsedCourseInfo: null,
         generatedMaterials: [],
         currentStep: 'upload',
@@ -128,7 +137,24 @@ export const useSyllabusStore = create<SyllabusState>()(
         
         // Complex actions
         uploadSyllabus: async (file: File) => {
-          set({ uploadedFile: file, uploadProgress: 0, error: null });
+          // Validate file before processing
+          const validation = validateFileForExtraction(file);
+          if (!validation.isValid) {
+            set({ error: validation.error, currentStep: 'upload' });
+            return;
+          }
+
+          set({ 
+            uploadedFile: file, 
+            uploadProgress: 0, 
+            error: null,
+            extractionMetadata: {
+              fileName: file.name,
+              fileSize: file.size,
+              fileType: getFileTypeDescription(file),
+              estimatedProcessingTime: estimateProcessingTime(file)
+            }
+          });
           
           try {
             // Simulate upload progress
@@ -157,31 +183,22 @@ export const useSyllabusStore = create<SyllabusState>()(
           set({ isProcessing: true, error: null });
           
           try {
-            let extractedText = '';
-            const fileType = uploadedFile.type;
+            const result = await extractTextFromFile(uploadedFile);
             
-            if (fileType === 'text/plain') {
-              extractedText = await uploadedFile.text();
-            } else if (fileType === 'application/pdf') {
-              // For now, we'll implement a basic PDF text extraction
-              // In a real implementation, you'd use pdf-parse
-              extractedText = await uploadedFile.text(); // Fallback
-              set({ error: 'PDF parsing not yet implemented. Please use a text file for now.' });
-              return;
-            } else if (fileType.includes('wordprocessingml')) {
-              // For now, we'll implement a basic DOCX text extraction
-              // In a real implementation, you'd use mammoth
-              set({ error: 'DOCX parsing not yet implemented. Please use a text file for now.' });
-              return;
-            } else {
-              throw new Error(`Unsupported file format: ${fileType}`);
-            }
+            set({ 
+              extractedText: result.text,
+              extractionMetadata: {
+                ...get().extractionMetadata,
+                ...result.metadata
+              },
+              isProcessing: false 
+            });
             
-            set({ extractedText, isProcessing: false });
             await get().parseSyllabus();
           } catch (error) {
+            const extractionError = error as TextExtractionError;
             set({ 
-              error: error instanceof Error ? error.message : 'Failed to extract text from file',
+              error: extractionError.message || 'Failed to extract text from file',
               isProcessing: false
             });
           }
@@ -197,52 +214,101 @@ export const useSyllabusStore = create<SyllabusState>()(
           set({ isProcessing: true, error: null });
           
           try {
-            // Basic pattern-based parsing (will be enhanced with AI later)
+            // Enhanced pattern-based parsing
             const lines = extractedText.split('\n').filter(line => line.trim());
             
-            // Extract course info
-            const titleMatch = lines.find(line => 
-              line.toLowerCase().includes('course') && 
-              (line.toLowerCase().includes('title') || line.includes(':'))
-            );
+            // Extract course info with better patterns
+            const titleMatch = lines.find(line => {
+              const lower = line.toLowerCase();
+              return (lower.includes('course') || lower.includes('class')) && 
+                     (lower.includes('title') || lower.includes('name') || line.includes(':'));
+            });
             
-            const descriptionMatch = lines.find(line => 
-              line.toLowerCase().includes('description') ||
-              line.toLowerCase().includes('overview')
-            );
+            const descriptionMatch = lines.find(line => {
+              const lower = line.toLowerCase();
+              return lower.includes('description') || 
+                     lower.includes('overview') || 
+                     lower.includes('about this course');
+            });
             
-            // Extract objectives
-            const objectivesStartIndex = lines.findIndex(line => 
-              line.toLowerCase().includes('objective') ||
-              line.toLowerCase().includes('learning outcome') ||
-              line.toLowerCase().includes('goals')
-            );
+            // Extract course number with better patterns
+            const courseNumberMatch = lines.find(line => {
+              return /[A-Z]{2,4}\s*\d{3,4}/.test(line) || 
+                     line.toLowerCase().includes('course number');
+            });
+            
+            // Extract objectives with improved detection
+            const objectivesStartIndex = lines.findIndex(line => {
+              const lower = line.toLowerCase();
+              return lower.includes('objective') ||
+                     lower.includes('learning outcome') ||
+                     lower.includes('goals') ||
+                     lower.includes('by the end of this course');
+            });
             
             const objectives: string[] = [];
             if (objectivesStartIndex !== -1) {
-              for (let i = objectivesStartIndex + 1; i < lines.length && i < objectivesStartIndex + 10; i++) {
+              for (let i = objectivesStartIndex + 1; i < lines.length && i < objectivesStartIndex + 15; i++) {
                 const line = lines[i].trim();
-                if (line && (line.startsWith('-') || line.startsWith('•') || line.match(/^\d+\./))) {
-                  objectives.push(line.replace(/^[-•\d\.]\s*/, ''));
+                if (line && (line.startsWith('-') || line.startsWith('•') || line.match(/^\d+\./) || line.startsWith('*'))) {
+                  objectives.push(line.replace(/^[-•\d\.\*]\s*/, ''));
+                } else if (line && objectives.length === 0) {
+                  // If no bullets found, take the next few lines as objectives
+                  objectives.push(line);
                 }
               }
             }
             
-            // Create basic schedule (will be enhanced)
-            const schedule: WeeklyTopic[] = Array.from({ length: 15 }, (_, i) => ({
-              week: i + 1,
-              topic: `Week ${i + 1} Topic`,
-              description: `Content for week ${i + 1}`,
-              readings: [],
-              assignments: []
-            }));
+            // Enhanced schedule detection
+            const schedule: WeeklyTopic[] = [];
+            for (let i = 1; i <= 16; i++) {
+              const weekPattern = new RegExp(`week\\s*${i}|${i}\\s*week`, 'i');
+              const weekLine = lines.find(line => weekPattern.test(line));
+              
+              if (weekLine) {
+                const topic = weekLine.replace(/week\s*\d+:?\s*/i, '').trim() || `Week ${i} Topic`;
+                schedule.push({
+                  week: i,
+                  topic,
+                  description: `Content and activities for week ${i}`,
+                  readings: [],
+                  assignments: []
+                });
+              } else {
+                // Create placeholder weeks
+                schedule.push({
+                  week: i,
+                  topic: `Week ${i} Topic`,
+                  description: `Content for week ${i}`,
+                  readings: [],
+                  assignments: []
+                });
+              }
+            }
+            
+            // Extract course number from text
+            let extractedCourseNumber = 'COURSE 101';
+            if (courseNumberMatch) {
+              const numberMatch = courseNumberMatch.match(/[A-Z]{2,4}\s*\d{3,4}/);
+              if (numberMatch) {
+                extractedCourseNumber = numberMatch[0];
+              }
+            }
             
             const parsedInfo: ParsedCourseInfo = {
-              suggestedTitle: titleMatch ? titleMatch.split(':')[1]?.trim() || 'Course Title' : 'Course Title',
-              suggestedNumber: 'COURSE 101',
-              suggestedDescription: descriptionMatch ? descriptionMatch.split(':')[1]?.trim() || extractedText.substring(0, 200) + '...' : 'Course description extracted from syllabus.',
-              objectives: objectives.length > 0 ? objectives : ['Course objective 1', 'Course objective 2'],
-              schedule,
+              suggestedTitle: titleMatch ? 
+                titleMatch.split(':').slice(-1)[0]?.trim() || 'Course Title' : 
+                'Course Title',
+              suggestedNumber: extractedCourseNumber,
+              suggestedDescription: descriptionMatch ? 
+                descriptionMatch.split(':').slice(-1)[0]?.trim() || extractedText.substring(0, 300) + '...' : 
+                extractedText.substring(0, 300) + '...',
+              objectives: objectives.length > 0 ? objectives : [
+                'Students will understand key concepts',
+                'Students will develop practical skills',
+                'Students will apply knowledge to real-world scenarios'
+              ],
+              schedule: schedule.slice(0, 15), // Limit to 15 weeks
               prerequisites: [],
               textbook: '',
               grading: ''
@@ -303,8 +369,8 @@ export const useSyllabusStore = create<SyllabusState>()(
               published: false
             });
             
-            // 2. Weekly Topic Materials (first 5 weeks as example)
-            parsedCourseInfo.schedule.slice(0, 5).forEach((week, index) => {
+            // 2. Weekly Topic Materials (first 6 weeks as example)
+            parsedCourseInfo.schedule.slice(0, 6).forEach((week, index) => {
               materials.push({
                 id: generateId(),
                 title: `Week ${week.week}: ${week.topic}`,
@@ -369,6 +435,7 @@ export const useSyllabusStore = create<SyllabusState>()(
           uploadedFile: null,
           uploadProgress: 0,
           extractedText: '',
+          extractionMetadata: null,
           parsedCourseInfo: null,
           generatedMaterials: [],
           currentStep: 'upload',
@@ -381,6 +448,7 @@ export const useSyllabusStore = create<SyllabusState>()(
         partialize: (state) => ({
           // Only persist non-file data for performance
           extractedText: state.extractedText,
+          extractionMetadata: state.extractionMetadata,
           parsedCourseInfo: state.parsedCourseInfo,
           generatedMaterials: state.generatedMaterials,
           currentStep: state.currentStep
