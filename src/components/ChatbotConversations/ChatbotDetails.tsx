@@ -80,7 +80,7 @@ const ChatbotDetails: React.FC<ChatbotDetailsProps> = ({ chatbotId }) => {
     const materialId = material?.id || 'N/A';
 
     // Generate the GitHub link for the material
-    const materialLink = `https://institute-for-future-intelligence.github.io/nexlab/#/view-material/${materialId}`;
+    const materialLink = `https://institute-for-future-intelligence.github.io/nexlab/view-material/${materialId}`;
 
     return (
         <Box sx={{ mt: 3, p: 2, border: '1px solid #ddd', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
