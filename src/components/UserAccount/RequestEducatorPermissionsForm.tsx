@@ -253,17 +253,26 @@ const RequestEducatorPermissionsForm: React.FC = () => {
   const isSyllabusInProgress = requestType === 'primary' && courseCreationMode === 'syllabus' && currentStep !== 'upload' && !parsedCourseInfo;
   
   // Check if syllabus import is complete and ready for submission
-  const isSyllabusComplete = requestType === 'primary' && courseCreationMode === 'syllabus' && currentStep === 'review' && parsedCourseInfo;
+  // Materials preview shows when currentStep is 'editing' or 'complete'
+  const isSyllabusComplete = requestType === 'primary' && courseCreationMode === 'syllabus' && 
+    (currentStep === 'review' || currentStep === 'editing' || currentStep === 'complete') && 
+    parsedCourseInfo;
 
   return (
-    <Box className="request-form-container" sx={{ padding: 3 }}>
+    <Box className="request-form-container" sx={{ padding: 3, maxWidth: '1400px', mx: 'auto' }}>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
         <Button variant="text" onClick={handleNavigateBack} className="back-home-button">
           &larr; My Account
         </Button>
       </Box>
 
-      <Box className="request-form-outline">
+      <Box className="request-form-outline" sx={{ 
+        backgroundColor: '#f8f9fa', 
+        borderRadius: 2, 
+        p: 4,
+        border: '1px solid #e3f2fd',
+        minWidth: '100%'
+      }}>
         <Typography variant="h5" component="h1" className="request-form-title" sx={{ mb: 3 }}>
           Request Educator Permissions
         </Typography>
