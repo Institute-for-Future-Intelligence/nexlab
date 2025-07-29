@@ -42,6 +42,11 @@ const cleanDataForFirebase = (obj: any): any => {
     return null;
   }
   
+  // Don't process Date objects - Firebase expects them as-is
+  if (obj instanceof Date) {
+    return obj;
+  }
+  
   if (Array.isArray(obj)) {
     return obj.map(cleanDataForFirebase).filter(item => item !== null && item !== undefined);
   }

@@ -38,6 +38,11 @@ const cleanDataForFirebase = (obj: any): any => {
     return null;
   }
   
+  // Don't process Date objects - Firebase expects them as-is
+  if (obj instanceof Date) {
+    return obj;
+  }
+  
   if (Array.isArray(obj)) {
     return obj.map(cleanDataForFirebase).filter(item => item !== null && item !== undefined);
   }
@@ -157,7 +162,7 @@ const RequestNewCourseForm: React.FC = () => {
         courseTitle: courseTitle || '',
         courseDescription: courseDescription || '',
         status: 'pending',
-        timestamp: new Date(),
+        timestamp: new Date(), // Keep Date object as-is for Firebase
         syllabusImported: false
       };
 
@@ -175,7 +180,7 @@ const RequestNewCourseForm: React.FC = () => {
         (baseRequestDoc as any).syllabusData = cleanedSyllabusData;
       }
 
-      // Clean the entire document to ensure no undefined values
+      // Clean the entire document to ensure no undefined values (but preserve Date objects)
       const requestDoc = cleanDataForFirebase(baseRequestDoc);
       
       console.log('Submitting clean request document:', requestDoc);
