@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import { getFirestore, doc, getDocs, collection, writeBatch } from 'firebase/firestore';
 
-import { useUser } from '../../contexts/UserContext';
+import { useUser } from '../../hooks/useUser';
 
 interface DeleteCourseProps {
   selectedCourse: string;

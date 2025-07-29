@@ -1,7 +1,7 @@
 // App.tsx
 import { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom'; // Use BrowserRouter for clean URLs
-import { useUser } from './contexts/UserContext';
+import { useUser } from './hooks/useUser';
 
 // Importing MUI components
 import { ThemeProvider, CssBaseline, CircularProgress, createTheme } from '@mui/material';
@@ -31,6 +31,7 @@ import ChatbotRequestPage from './components/Chatbot/ChatbotRequestPage';
 import ChatbotConversationsPage from './components/ChatbotConversations/ChatbotConversationsPage';
 
 import ChatbotManager from './components/ChatbotIntegration/ChatbotManager';
+import GlobalNotifications from './components/common/GlobalNotifications';
 
 import SuperAdminChatbotRequestsPage from './components/SA_Chatbot/SuperAdminChatbotRequestsPage';
 
@@ -102,6 +103,8 @@ const App = () => {
         <DeviceVersion />
         {/* Chatbot Manager */}
         {userDetails && <ChatbotManager />}
+        {/* Global Notifications */}
+        <GlobalNotifications />
       </Router>
     </ThemeProvider>
   );

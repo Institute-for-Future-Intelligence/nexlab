@@ -1,6 +1,6 @@
 // Edit.tsx
 import React, { useState, useEffect, useRef } from 'react';
-import { useUser } from '../../contexts/UserContext';
+import { useUser } from '../../hooks/useUser';
 
 import { collection, query, where, getDocs, doc, setDoc, serverTimestamp, orderBy, getDoc, deleteDoc, updateDoc, Timestamp } from "firebase/firestore";
 
@@ -26,6 +26,19 @@ import TextField from '@mui/material/TextField';
 import SaveIcon from '@mui/icons-material/Save';
 
 import { Design, timestampToString } from '../../types/types'; // Import the Design type and the utility function
+import { 
+  Build, 
+  Test, 
+  BuildUpdateData, 
+  TestUpdateData, 
+  SnackbarSeverity,
+  EditableContentState,
+  VisibilityState,
+  TestsByBuildState,
+  ImagesByTestState,
+  FilesByTestState,
+  CollapsedState
+} from '../../types/dashboard'; // Import Dashboard types
 
 interface EditProps {
   designs: Design[];
@@ -36,7 +49,7 @@ interface EditProps {
   onReturnToDashboard: () => void;
 }
 
-const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, onReturnToDashboard }) => {
+const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, onReturnToDashboard }) => {
   
   // -- GENERAL CHECKS -- //
   const { userDetails, loading } = useUser();
@@ -59,28 +72,28 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
 
   // -- BUILD SECTION STATES -- //
   const [isAddingBuild, setIsAddingBuild] = useState(false);
-  const [builds, setBuilds] = useState([]);
-  const [editableBuildDescriptions, setEditableBuildDescriptions] = useState({});
-  const [buildImages, setBuildImages] = useState({});
-  const [buildFiles, setBuildFiles] = useState({});
+  const [builds, setBuilds] = useState<Build[]>([]);
+  const [editableBuildDescriptions, setEditableBuildDescriptions] = useState<EditableContentState>({});
+  const [buildImages, setBuildImages] = useState<ImagesByTestState>({});
+  const [buildFiles, setBuildFiles] = useState<FilesByTestState>({});
   const addBuildFormRef = useRef(null);
-  const [visibleBuildDetails, setVisibleBuildDetails] = useState({});
+  const [visibleBuildDetails, setVisibleBuildDetails] = useState<VisibilityState>({});
   // States for editing titles of Builds
-  const [editableBuildTitles, setEditableBuildTitles] = useState({});
+  const [editableBuildTitles, setEditableBuildTitles] = useState<EditableContentState>({});
 
   // -- TEST SECTION STATES -- //
-  const [testsByBuildId, setTestsByBuildId] = useState({});
-  const [addingTestIdForBuild, setAddingTestIdForBuild] = useState(false);
-  const [editableTestDescriptions, setEditableTestDescriptions] = useState({});
-  const [editableTestResults, setEditableTestResults] = useState({});
-  const [editableTestConclusions, setEditableTestConclusions] = useState({});
-  const [testImages, setTestImages] = useState({});
-  const [testFiles, setTestFiles] = useState({});
+  const [testsByBuildId, setTestsByBuildId] = useState<TestsByBuildState>({});
+  const [addingTestIdForBuild, setAddingTestIdForBuild] = useState<string | false>(false);
+  const [editableTestDescriptions, setEditableTestDescriptions] = useState<EditableContentState>({});
+  const [editableTestResults, setEditableTestResults] = useState<EditableContentState>({});
+  const [editableTestConclusions, setEditableTestConclusions] = useState<EditableContentState>({});
+  const [testImages, setTestImages] = useState<ImagesByTestState>({});
+  const [testFiles, setTestFiles] = useState<FilesByTestState>({});
   const addTestFormRef = useRef(null);
-  const [visibleTestDetails, setVisibleTestDetails] = useState({});
+  const [visibleTestDetails, setVisibleTestDetails] = useState<VisibilityState>({});
   // States for editing titles of Tests
-  const [editableTestTitles, setEditableTestTitles] = useState({});
-  const [collapsedTestsByBuild, setCollapsedTestsByBuild] = useState({});
+  const [editableTestTitles, setEditableTestTitles] = useState<EditableContentState>({});
+  const [collapsedTestsByBuild, setCollapsedTestsByBuild] = useState<CollapsedState>({});
 
   // -- UI NOTIFICATION STATES -- //
   // State for handling Dialog
@@ -90,7 +103,7 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
   // State for Snackbar notifications
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState('info'); // 'success', 'error', etc.
+  const [snackbarSeverity, setSnackbarSeverity] = useState<SnackbarSeverity>('info');
   // State for tracking unsaved changes
   const [unsavedChanges, setUnsavedChanges] = useState({
     design: false, // You can add more sections as needed
@@ -101,7 +114,7 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
 
   // -- DESIGN SECTION -- //
   // --
-  const updateDesign = async (e) => {
+  const updateDesign = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!description) {
@@ -269,7 +282,7 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
     })) || [];
 
     // Prepare the update data object and include only defined fields
-    const updatedData: any = {};
+    const updatedData: BuildUpdateData = {};
 
     if (filteredBuildImages.length > 0) {
       updatedData.images = filteredBuildImages;
@@ -364,7 +377,7 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
     
       const newBuilds = buildsSnapshot.docs.map(doc => {
         console.log("Build doc path: ", doc.ref.path); // Log each build document path for tracking
-        return { id: doc.id, ...(doc.data() as any) };
+        return { id: doc.id, ...(doc.data() as Omit<Build, 'id'>) } as Build;
       });
     
       setBuilds(newBuilds);
@@ -510,7 +523,7 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
     }
 
     // Prepare the update data object and include only defined fields.
-    const updateData: any = {};
+    const updateData: TestUpdateData = {};
 
     // Filter out deleted images before sending update to Firestore
     const filteredTestImages = testImages[testId].filter(img => !img.deleted).map(({ url, path, title }) => ({ url, path, title }));
@@ -612,14 +625,14 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
       const initialCollapseState = {};
 
       for (const buildDoc of querySnapshot.docs) {
-        const buildData = buildDoc.data() as any;
+        const buildData = buildDoc.data() as Omit<Build, 'id'>;
         const buildId = buildDoc.id;
         fetchedBuilds.push({
           id: buildId,
           ...buildData,
           images: buildData.images || [], // Make sure images is an array
           files: buildData.files || [] // Make sure files is an array
-        });
+        } as Build);
 
         initialCollapseState[buildId] = true;  // Initialize collapse state as true for each build
         
@@ -636,11 +649,11 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
         const buildTestFiles = {};
 
         for (const testDoc of testsSnapshot.docs) {
-          const testData = testDoc.data() as any;
+          const testData = testDoc.data() as Omit<Test, 'id'>;
           fetchedTests.push({
             id: testDoc.id,
             ...testData,
-          });
+          } as Test);
           buildTestImages[testDoc.id] = testData.images || [];
           buildTestFiles[testDoc.id] = testData.files || [];
         }
@@ -698,12 +711,15 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
       }
 
       const testsSnapshot = await getDocs(testsQuery);
-      const fetchedTests = testsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...(doc.data() as any),
-        images: (doc.data() as any).images || [], // Ensure images is an array
-        files: (doc.data() as any).files || [] // Ensure files is an array
-      }));
+      const fetchedTests = testsSnapshot.docs.map(doc => {
+        const data = doc.data() as Omit<Test, 'id'>;
+        return {
+          id: doc.id,
+          ...data,
+          images: data.images || [], // Ensure images is an array
+          files: data.files || [] // Ensure files is an array
+        } as Test;
+      });
     
       // Update tests for the specific build in state
       setTestsByBuildId(prev => ({
@@ -1251,8 +1267,8 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
                   buildId={build.id}
                   refreshTests={() => refreshTestsForBuild(build.id)}
                   setAddingTestIdForBuild={setAddingTestIdForBuild}
-                  onImagesUpdated={(images: any) => handleTestImagesUpdated(build.id, images)}
-                  onFilesChange={(files: any) => handleTestFilesUpdated(build.id, files)}
+                  onImagesUpdated={(images) => handleTestImagesUpdated(build.id, images)}
+                  onFilesChange={(files) => handleTestFilesUpdated(build.id, files)}
                 />
               </div>
             )}
@@ -1266,8 +1282,8 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
                 designId={selectedDesign.id}
                 setIsAddingBuild={setIsAddingBuild}
                 refreshBuilds={refreshBuilds}
-                onImagesUpdated={(images: any) => handleBuildImagesUpdated('temp-build-id', images)}
-                onFilesChange={(files: any) => handleBuildFilesUpdated('temp-build-id', files)}
+                onImagesUpdated={(images) => handleBuildImagesUpdated('temp-build-id', images)}
+                onFilesChange={(files) => handleBuildFilesUpdated('temp-build-id', files)}
               />
             </div>
           )}
@@ -1292,7 +1308,7 @@ const Edit: React.FC<EditProps> = ({ selectedDesign, setIsEditing, getDesigns, o
 
       {/* Snackbar for Notifications */}
       <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={() => setSnackbarOpen(false)}>
-        <Alert onClose={() => setSnackbarOpen(false)} severity={snackbarSeverity as any} sx={{ width: '100%' }}>
+        <Alert onClose={() => setSnackbarOpen(false)} severity={snackbarSeverity} sx={{ width: '100%' }}>
           {snackbarMessage}
         </Alert>
       </Snackbar>

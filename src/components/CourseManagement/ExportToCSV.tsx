@@ -1,9 +1,17 @@
 // src/components/ExportToCSV.tsx
 import React from 'react';
 import { Button, Box } from '@mui/material';
+import { FirebaseTimestamp, formatFirebaseTimestamp } from '../../types/firebase'; // Import proper types
+
+interface StudentData {
+  uid?: string; // Use uid instead of id to match UserDetails
+  id?: string; // Keep id as optional for compatibility  
+  classes?: Record<string, { number: string; title: string; isCourseAdmin?: boolean }>;
+  lastLogin?: FirebaseTimestamp; // Now properly typed
+}
 
 interface ExportToCSVProps {
-  students: any[];
+  students: StudentData[];
   selectedCourse: string;
 }
 
@@ -15,9 +23,9 @@ const ExportToCSV: React.FC<ExportToCSVProps> = ({ students, selectedCourse }) =
 
       // Map student data to CSV format with proper handling of date and time
       const csvRows = students.map((student) => [
-        `"${student.id}"`, // Enclosing ID in quotes to handle special characters
-        `"${student.classes ? Object.values(student.classes).map((c: any) => `${c.number} - ${c.title}`).join(', ') : 'None'}"`, // Handle new structure for classes with type casting
-        `"${student.lastLogin ? new Date(student.lastLogin.seconds * 1000).toLocaleString() : 'N/A'}"`, // Proper date formatting
+        `"${student.id || student.uid}"`, // Use id or uid, handle both for compatibility
+        `"${student.classes ? Object.values(student.classes).map((c) => `${c.number} - ${c.title}`).join(', ') : 'None'}"`, // Handle new structure for classes
+        `"${formatFirebaseTimestamp(student.lastLogin)}"`, // Type-safe date formatting
       ]);
 
       // Combine headers and rows with comma separation and line breaks

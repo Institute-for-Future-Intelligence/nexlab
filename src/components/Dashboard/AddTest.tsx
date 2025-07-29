@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { collection, addDoc, serverTimestamp } from "firebase/firestore"; 
 import { db } from '../../config/firestore';
 
-import { useUser } from '../../contexts/UserContext';
+import { useUser } from '../../hooks/useUser';
 
 import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, Snackbar, Alert } from '@mui/material';
 
@@ -18,9 +18,9 @@ interface AddTestProps {
   designId: string;
   buildId: string;
   refreshTests: (buildId: string) => void;
-  setAddingTestIdForBuild: (isAdding: boolean) => void;
-  onImagesUpdated?: (images: any) => void;
-  onFilesChange?: (files: any) => void;
+  setAddingTestIdForBuild: (isAdding: string | false) => void;
+  onImagesUpdated?: (images: Image[]) => void;
+  onFilesChange?: (files: FileDetails[]) => void;
 }
 
 const AddTest: React.FC<AddTestProps> = ({ designId, buildId, refreshTests, setAddingTestIdForBuild }) => {

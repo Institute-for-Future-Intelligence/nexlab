@@ -5,7 +5,7 @@ import { getFirestore, doc, getDoc, updateDoc } from 'firebase/firestore';
 import AddMaterialForm from './AddMaterialForm';
 import { Material } from '../../types/Material';
 import { Box, CircularProgress } from '@mui/material';
-import { useUser } from '../../contexts/UserContext';
+import { useUser } from '../../hooks/useUser';
 
 const EditMaterialForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -60,7 +60,7 @@ const EditMaterialForm: React.FC = () => {
 
       fetchMaterial();
     }
-  }, [id, db, userDetails]);
+  }, [id, db, userDetails, validCourses]);
 
   const handleUpdateMaterial = async (updatedData: Material) => {
     try {

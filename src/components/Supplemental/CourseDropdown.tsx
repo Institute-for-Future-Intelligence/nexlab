@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { TextField, MenuItem, CircularProgress, Box } from '@mui/material';
-import { useUser } from '../../contexts/UserContext';
+import { useUser } from '../../hooks/useUser';
 
 interface CourseDropdownProps {
   value: string;

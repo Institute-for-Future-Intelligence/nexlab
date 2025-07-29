@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { Box, Typography, Button, Switch, FormControlLabel, Snackbar, Alert, Chip } from '@mui/material';
 
-import { UserDetails, useUser } from '../../contexts/UserContext';
+import { useUser } from '../../hooks/useUser';
+import { UserDetails } from '../../contexts/UserContext';
 import { useNavigate } from 'react-router-dom';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
 

@@ -5,7 +5,7 @@ import { ChatbotInterface } from 'rag-chatbot-interface-ifi';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../../config/firestore';
 import ErrorBoundary from './ErrorBoundary';
-import { useUser } from '../../contexts/UserContext';
+import { useUser } from '../../hooks/useUser';
 
 interface ChatbotWrapperProps {
   chatbotId: string;

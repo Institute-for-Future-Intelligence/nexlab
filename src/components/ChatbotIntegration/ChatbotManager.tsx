@@ -47,7 +47,7 @@ const ChatbotManager: React.FC = () => {
     };
 
     fetchChatbotForMaterial();
-  }, [searchParams]);
+  }, [searchParams, selectedChatbotId]);
 
   return (
     <Box sx={{ position: 'fixed', bottom: 16, right: 16, zIndex: 1100 }}>

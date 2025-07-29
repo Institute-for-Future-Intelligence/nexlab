@@ -4,7 +4,7 @@ import { Box, Typography, Grid, OutlinedInput, FormLabel, Button, Dialog, Dialog
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 import { getFirestore, collection, addDoc } from 'firebase/firestore';
-import { useUser } from '../../contexts/UserContext'; // Import your UserContext
+import { useUser } from '../../hooks/useUser'; // Import your UserContext
 import { useNavigate } from 'react-router-dom';
 
 const RequestEducatorPermissionsForm: React.FC = () => {
@@ -21,7 +21,6 @@ const RequestEducatorPermissionsForm: React.FC = () => {
 
   const [loading, setLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogTitle, setDialogTitle] = useState('');
   const [dialogContent, setDialogContent] = useState('');
 
   const db = getFirestore();
@@ -37,7 +36,6 @@ const RequestEducatorPermissionsForm: React.FC = () => {
 
   const handleRequestPermissions = async () => {
     if (!firstName || !lastName || !institution || !email || !courseNumber || !courseTitle || (requestType === 'primary' && !courseDescription)) {
-      setDialogTitle('Error');
       setDialogContent('Please fill in all required fields.');
       setDialogOpen(true);
       return;
@@ -83,7 +81,6 @@ const RequestEducatorPermissionsForm: React.FC = () => {
       };
       await addDoc(collection(db, 'mail'), emailDoc);
   
-      setDialogTitle('Success');
       setDialogContent('Your request has been submitted for review.');
 
       // Clear form fields
@@ -104,7 +101,6 @@ const RequestEducatorPermissionsForm: React.FC = () => {
 
     } catch (error) {
       console.error('Error submitting request: ', error);
-      setDialogTitle('Error');
       setDialogContent('Error submitting your request. Please try again.');
       setDialogOpen(true);
     } finally {

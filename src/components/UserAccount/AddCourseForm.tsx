@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { TextField, Button, Grid } from '@mui/material';
 import { getFirestore, collection, getDocs, doc, updateDoc, getDoc } from 'firebase/firestore';
-import { useUser, UserDetails } from '../../contexts/UserContext';
+import { useUser } from '../../hooks/useUser';
+import { UserDetails } from '../../contexts/UserContext';
 
 interface AddCourseFormProps {
   onCourseAdded: (message: string, severity: 'success' | 'error' | 'info') => void; // Callback to trigger when a course is successfully added or when an error occurs

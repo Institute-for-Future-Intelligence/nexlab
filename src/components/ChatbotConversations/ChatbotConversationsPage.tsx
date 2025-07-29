@@ -4,6 +4,11 @@ import { collection, getDocs, doc, deleteDoc } from 'firebase/firestore';
 import { getFirestore } from 'firebase/firestore';
 import { Box, Typography, CircularProgress, Button, Select, MenuItem, FormControl, InputLabel, Snackbar } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { 
+  Conversation, 
+  ConversationMessage, 
+  ExtendedChatbotDetails 
+} from '../../types/chatbot'; // Import proper types
 
 import ConversationsTable from './ConversationsTable';
 import axios from 'axios';
@@ -13,13 +18,6 @@ import Pagination from './Pagination';
 import ChatbotDetails from './ChatbotDetails';
 
 import DeleteConfirmationDialog from './DeleteConfirmationDialog';
-
-interface Conversation {
-    id: string;
-    userId: string;
-    chatbotId: string;
-    startedAt: string;
-}
 
 const ChatbotConversationsPage: React.FC = () => {
     const db = getFirestore();
@@ -32,7 +30,7 @@ const ChatbotConversationsPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const [conversationHistory, setConversationHistory] = useState<any[]>([]);
+    const [conversationHistory, setConversationHistory] = useState<ConversationMessage[]>([]);
     const [apiError, setApiError] = useState<string | null>(null);
     const [openModal, setOpenModal] = useState(false);
     const [selectedConversation, setSelectedConversation] = useState<{
@@ -48,17 +46,7 @@ const ChatbotConversationsPage: React.FC = () => {
     const [selectedChatbotId, setSelectedChatbotId] = useState<string>('All');
     const [selectedUserId, setSelectedUserId] = useState<string>('All');
 
-    const [chatbotDetails, setChatbotDetails] = useState<{
-        chatbotId: string;
-        chatbotTitle: string;
-        courseTitle: string;
-        courseId: string;
-        materialTitle: string;
-        materialId: string;
-        materialLink: string;
-        chatbotCreatedBy: string;
-        chatbotCreatedAt: string;
-    } | null>(null);
+    const [chatbotDetails, setChatbotDetails] = useState<ExtendedChatbotDetails | null>(null);
     
     const [selectedMetadata, setSelectedMetadata] = useState<{
         userId: string;

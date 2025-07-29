@@ -3,31 +3,23 @@ import React from 'react';
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 
+
 interface TextEditorProps {
   content: string;
   onChange: (content: string) => void;
 }
 
 const TextEditor: React.FC<TextEditorProps> = ({ content, onChange }) => {
-    // const handleOnReady = (editor: any) => {
-    //     // Log available toolbar items
-    //     const toolbarItems = editor.ui.componentFactory.names();
-    //     console.log('Available toolbar items:', toolbarItems);
-
-    //     // Log loaded plugins
-    //     const loadedPlugins = editor.plugins._availablePlugins.keys();
-    //     console.log('Loaded plugins:', Array.from(loadedPlugins));
-    //     };
+  const handleChange = (event: any, editor: any) => {
+    const data = editor.getData();
+    onChange(data);
+  };
 
   return (
     <CKEditor
-      editor={ClassicEditor}
+      editor={ClassicEditor as any}
       data={content}
-      onChange={(event: any, editor: any) => {
-        const data = editor.getData();
-        onChange(data);
-      }}
-      // onReady={handleOnReady}
+      onChange={handleChange}
       config={{
         toolbar: [
           'undo', 'redo', '|',
@@ -36,7 +28,7 @@ const TextEditor: React.FC<TextEditorProps> = ({ content, onChange }) => {
           'blockQuote', 'numberedList', 'bulletedList', '|',
           'insertTable', 'link', '|' // Exclude 'imageUpload' from the array
         ],
-      } as any}
+      }}
     />
   );
 };

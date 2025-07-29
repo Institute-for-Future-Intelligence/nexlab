@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, TextField, MenuItem, Snackbar, Alert, Grid } from '@mui/material';
 import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
-import { useUser } from '../../contexts/UserContext';
+import { useUser } from '../../hooks/useUser';
 
 import CopyToClipboard from './CopyToClipboard'; // Adjust the path as necessary
 

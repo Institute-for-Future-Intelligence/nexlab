@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Box, Typography, Grid, OutlinedInput, FormLabel, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, CircularProgress } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { getFirestore, collection, addDoc } from 'firebase/firestore';
-import { useUser } from '../../contexts/UserContext';
+import { useUser } from '../../hooks/useUser';
 import { useNavigate } from 'react-router-dom';
 
 const RequestNewCourseForm: React.FC = () => {
@@ -15,7 +15,6 @@ const RequestNewCourseForm: React.FC = () => {
 
   const [loading, setLoading] = useState(false);
     const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogTitle, setDialogTitle] = useState('');
   const [dialogContent, setDialogContent] = useState('');
   const db = getFirestore();
   const navigate = useNavigate();
@@ -26,9 +25,8 @@ const RequestNewCourseForm: React.FC = () => {
 
   const handleRequestNewCourse = async () => {
     if (!courseNumber || !courseTitle || !courseDescription) {
-      setDialogTitle('Error');
-      setDialogContent('Please fill in all required fields.');
-      setDialogOpen(true);
+              setDialogContent('Please fill in all required fields.');
+        setDialogOpen(true);
       return;
     }
   
@@ -66,7 +64,6 @@ const RequestNewCourseForm: React.FC = () => {
       };
       await addDoc(collection(db, 'mail'), emailDoc);
   
-      setDialogTitle('Success');
       setDialogContent('Your course request has been submitted for review.');
   
       // Clear form fields
@@ -81,7 +78,6 @@ const RequestNewCourseForm: React.FC = () => {
       }, 2000);
     } catch (error) {
       console.error('Error submitting course request: ', error);
-      setDialogTitle('Error');
       setDialogContent('Error submitting your course request. Please try again.');
       setDialogOpen(true);
     } finally {
