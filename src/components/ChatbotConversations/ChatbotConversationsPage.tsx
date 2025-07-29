@@ -170,7 +170,7 @@ const ChatbotConversationsPage: React.FC = () => {
                     courseId: chatbotData.courseId?.id || 'N/A',
                     materialTitle: chatbotData.material?.title || 'N/A',
                     materialId: chatbotData.material?.id || 'N/A',
-                    materialLink: `https://institute-for-future-intelligence.github.io/nexlab/#/view-material/${chatbotData.material?.id || ''}`,
+                    materialLink: `https://institute-for-future-intelligence.github.io/nexlab/view-material/${chatbotData.material?.id || ''}`,
                     chatbotCreatedBy: chatbotData.createdBy || 'Unknown',
                     chatbotCreatedAt: chatbotData.timestamp || 'N/A',
                 });

@@ -1,6 +1,6 @@
 // App.tsx
 import { Suspense, lazy } from 'react';
-import { HashRouter as Router, Route, Routes, Navigate } from 'react-router-dom'; // Use HashRouter
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom'; // Use BrowserRouter for clean URLs
 import { useUser } from './contexts/UserContext';
 
 // Importing MUI components
