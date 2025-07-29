@@ -36,6 +36,33 @@ import { useSyllabusStore } from '../../stores/syllabusStore';
 
 type CourseCreationMode = 'manual' | 'syllabus';
 
+// Utility function to recursively remove undefined values from objects
+const cleanDataForFirebase = (obj: any): any => {
+  if (obj === null || obj === undefined) {
+    return null;
+  }
+  
+  if (Array.isArray(obj)) {
+    return obj.map(cleanDataForFirebase).filter(item => item !== null && item !== undefined);
+  }
+  
+  if (typeof obj === 'object') {
+    const cleaned: any = {};
+    Object.keys(obj).forEach(key => {
+      const value = obj[key];
+      if (value !== undefined) {
+        const cleanedValue = cleanDataForFirebase(value);
+        if (cleanedValue !== undefined && cleanedValue !== null) {
+          cleaned[key] = cleanedValue;
+        }
+      }
+    });
+    return cleaned;
+  }
+  
+  return obj;
+};
+
 const RequestEducatorPermissionsForm: React.FC = () => {
   const { userDetails } = useUser();
   const navigate = useNavigate();
@@ -154,7 +181,7 @@ const RequestEducatorPermissionsForm: React.FC = () => {
 
     try {
       // Base request document with safe defaults
-      const requestDoc: any = {
+      const baseRequestDoc = {
         uid: userDetails?.uid || '',
         firstName: firstName || '',
         lastName: lastName || '',
@@ -171,12 +198,22 @@ const RequestEducatorPermissionsForm: React.FC = () => {
 
       // Add syllabus data if imported and primary instructor
       if (requestType === 'primary' && courseCreationMode === 'syllabus' && parsedCourseInfo && generatedMaterials.length > 0) {
-        requestDoc.syllabusImported = true;
-        requestDoc.syllabusData = {
+        const syllabusData = {
           parsedCourseInfo: parsedCourseInfo,
           generatedMaterials: generatedMaterials.filter(m => m.published)
         };
+        
+        // Clean the syllabus data to remove any undefined values
+        const cleanedSyllabusData = cleanDataForFirebase(syllabusData);
+        
+        baseRequestDoc.syllabusImported = true;
+        (baseRequestDoc as any).syllabusData = cleanedSyllabusData;
       }
+
+      // Clean the entire document to ensure no undefined values
+      const requestDoc = cleanDataForFirebase(baseRequestDoc);
+      
+      console.log('Submitting clean educator request document:', requestDoc);
 
       const educatorRequestRef = await addDoc(collection(db, 'educatorRequests'), requestDoc);
   
@@ -234,6 +271,16 @@ const RequestEducatorPermissionsForm: React.FC = () => {
 
     } catch (error) {
       console.error('Error submitting request: ', error);
+      
+      // Enhanced error logging
+      if (error instanceof Error) {
+        console.error('Error details:', {
+          message: error.message,
+          name: error.name,
+          stack: error.stack
+        });
+      }
+      
       setDialogContent('Error submitting your request. Please try again.');
       setDialogOpen(true);
     } finally {
