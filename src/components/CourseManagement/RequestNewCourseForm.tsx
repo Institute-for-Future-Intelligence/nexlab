@@ -65,12 +65,12 @@ const RequestNewCourseForm: React.FC = () => {
     }
   }, [creationMode, resetSyllabus]);
 
-  // Auto-populate manual fields when syllabus data is available
+  // Auto-populate manual fields when syllabus data is available (only for final submission)
   useEffect(() => {
     if (creationMode === 'syllabus' && parsedCourseInfo) {
-      setCourseNumber(parsedCourseInfo.suggestedNumber);
-      setCourseTitle(parsedCourseInfo.suggestedTitle);
-      setCourseDescription(parsedCourseInfo.suggestedDescription);
+      setCourseNumber(parsedCourseInfo.suggestedNumber || '');
+      setCourseTitle(parsedCourseInfo.suggestedTitle || '');
+      setCourseDescription(parsedCourseInfo.suggestedDescription || '');
     }
   }, [creationMode, parsedCourseInfo]);
 
@@ -123,25 +123,24 @@ const RequestNewCourseForm: React.FC = () => {
     setLoading(true);
   
     try {
-      // Base request document
+      // Base request document with safe defaults
       const requestDoc: any = {
-        uid: userDetails?.uid,
-        courseNumber,
-        courseTitle,
-        courseDescription,
+        uid: userDetails?.uid || '',
+        courseNumber: courseNumber || '',
+        courseTitle: courseTitle || '',
+        courseDescription: courseDescription || '',
         status: 'pending',
         timestamp: new Date(),
+        syllabusImported: false
       };
 
       // Add syllabus data if imported
       if (creationMode === 'syllabus' && parsedCourseInfo && generatedMaterials.length > 0) {
         requestDoc.syllabusImported = true;
         requestDoc.syllabusData = {
-          parsedCourseInfo,
+          parsedCourseInfo: parsedCourseInfo,
           generatedMaterials: generatedMaterials.filter(m => m.published)
         };
-      } else {
-        requestDoc.syllabusImported = false;
       }
   
       // Add the course request document
@@ -154,7 +153,7 @@ const RequestNewCourseForm: React.FC = () => {
           subject: `New Course Request Submitted${creationMode === 'syllabus' ? ' (With Syllabus Import)' : ''}`,
           html: `
             <p>A new course request has been submitted:</p>
-            <p><strong>Educator ID:</strong> ${userDetails?.uid}</p>
+            <p><strong>Educator ID:</strong> ${userDetails?.uid || 'Unknown'}</p>
             <p><strong>Course:</strong> ${courseNumber} - ${courseTitle}</p>
             <p><strong>Description:</strong> ${courseDescription}</p>
             <p><strong>Creation Method:</strong> ${creationMode === 'syllabus' ? 'Imported from Syllabus' : 'Manual Entry'}</p>
@@ -208,6 +207,9 @@ const RequestNewCourseForm: React.FC = () => {
 
   // Check if we're in the middle of syllabus import process
   const isSyllabusInProgress = creationMode === 'syllabus' && currentStep !== 'upload' && !parsedCourseInfo;
+  
+  // Check if syllabus import is complete and ready for submission
+  const isSyllabusComplete = creationMode === 'syllabus' && currentStep === 'review' && parsedCourseInfo;
 
   return (
     <Box className="request-form-container" sx={{ padding: 3 }}>
@@ -261,29 +263,11 @@ const RequestNewCourseForm: React.FC = () => {
               onComplete={handleSyllabusComplete}
               onCancel={() => setCreationMode('manual')}
             />
-            
-            {/* Show manual override fields after syllabus import */}
-            {parsedCourseInfo && (
-              <>
-                <Divider sx={{ my: 4 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    Review and modify course details if needed
-                  </Typography>
-                </Divider>
-                
-                <Alert severity="info" sx={{ mb: 3 }}>
-                  <Typography variant="body2">
-                    Course information has been extracted from your syllabus. 
-                    You can review and modify the details below before submitting your request.
-                  </Typography>
-                </Alert>
-              </>
-            )}
           </Box>
         )}
 
-        {/* Manual Form Fields - Show when manual mode OR after syllabus completion */}
-        {(creationMode === 'manual' || (creationMode === 'syllabus' && parsedCourseInfo)) && (
+        {/* Manual Form Fields - Only show in manual mode */}
+        {creationMode === 'manual' && (
           <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
               <FormLabel htmlFor="course-number" required>Course Number</FormLabel>
@@ -295,7 +279,7 @@ const RequestNewCourseForm: React.FC = () => {
                 placeholder="e.g., BIOL301"
                 fullWidth
                 required
-                disabled={loading || isSyllabusInProgress}
+                disabled={loading}
               />
             </Grid>
 
@@ -309,7 +293,7 @@ const RequestNewCourseForm: React.FC = () => {
                 placeholder="e.g., Biotech Research Methods"
                 fullWidth
                 required
-                disabled={loading || isSyllabusInProgress}
+                disabled={loading}
               />
             </Grid>
 
@@ -325,40 +309,43 @@ const RequestNewCourseForm: React.FC = () => {
                 multiline
                 rows={4}
                 required
-                disabled={loading || isSyllabusInProgress}
+                disabled={loading}
               />
             </Grid>
-
-            <Grid item xs={12}>
-              <Button 
-                variant="contained" 
-                color="primary" 
-                onClick={handleRequestNewCourse} 
-                fullWidth
-                className="submit-button"
-                disabled={loading || isSyllabusInProgress}
-                sx={{ 
-                  mt: 3, 
-                  py: 1.5, 
-                  fontWeight: 'bold', 
-                  fontSize: '16px', 
-                  textTransform: 'uppercase' 
-                }}
-              >
-                {loading ? (
-                  <CircularProgress size={24} color="inherit" />
-                ) : (
-                  `Submit Request${creationMode === 'syllabus' && generatedMaterials.length > 0 ? ` with ${generatedMaterials.filter(m => m.published).length} Materials` : ''}`
-                )}
-              </Button>
-            </Grid>
-
-            <Grid item xs={12}>
-              <Typography variant="body2" sx={{ mt: 2, textAlign: 'center' }}>
-                For any questions, please contact <a href="mailto:andriy@intofuture.org">andriy@intofuture.org</a>.
-              </Typography>
-            </Grid>
           </Grid>
+        )}
+
+        {/* Submit Button - Show for both modes with different conditions */}
+        {(creationMode === 'manual' || isSyllabusComplete) && (
+          <Box sx={{ mt: 4 }}>
+            <Button 
+              variant="contained" 
+              color="primary" 
+              onClick={handleRequestNewCourse} 
+              fullWidth
+              className="submit-button"
+              disabled={loading || isSyllabusInProgress}
+              sx={{ 
+                py: 1.5, 
+                fontWeight: 'bold', 
+                fontSize: '16px', 
+                textTransform: 'uppercase' 
+              }}
+            >
+              {loading ? (
+                <>
+                  <CircularProgress size={24} color="inherit" sx={{ mr: 1 }} />
+                  Submitting Request...
+                </>
+              ) : (
+                `Submit Request${creationMode === 'syllabus' && generatedMaterials.length > 0 ? ` with ${generatedMaterials.filter(m => m.published).length} Materials` : ''}`
+              )}
+            </Button>
+
+            <Typography variant="body2" sx={{ mt: 2, textAlign: 'center' }}>
+              For any questions, please contact <a href="mailto:andriy@intofuture.org">andriy@intofuture.org</a>.
+            </Typography>
+          </Box>
         )}
 
         {/* Success/Error Dialog */}

@@ -76,12 +76,12 @@ const RequestEducatorPermissionsForm: React.FC = () => {
     }
   }, [courseCreationMode, requestType, resetSyllabus]);
 
-  // Auto-populate course fields when syllabus data is available
+  // Auto-populate course fields when syllabus data is available (only for final submission)
   useEffect(() => {
     if (requestType === 'primary' && courseCreationMode === 'syllabus' && parsedCourseInfo) {
-      setCourseNumber(parsedCourseInfo.suggestedNumber);
-      setCourseTitle(parsedCourseInfo.suggestedTitle);
-      setCourseDescription(parsedCourseInfo.suggestedDescription);
+      setCourseNumber(parsedCourseInfo.suggestedNumber || '');
+      setCourseTitle(parsedCourseInfo.suggestedTitle || '');
+      setCourseDescription(parsedCourseInfo.suggestedDescription || '');
     }
   }, [requestType, courseCreationMode, parsedCourseInfo]);
 
@@ -153,30 +153,29 @@ const RequestEducatorPermissionsForm: React.FC = () => {
     setLoading(true);
 
     try {
-      // Base request document
+      // Base request document with safe defaults
       const requestDoc: any = {
-        uid: userDetails?.uid,
-        firstName,
-        lastName,
-        institution,
-        email,
-        courseNumber,
-        courseTitle,
-        courseDescription: requestType === 'primary' ? courseDescription : 'CO-INSTRUCTOR REQUEST',
-        requestType,
+        uid: userDetails?.uid || '',
+        firstName: firstName || '',
+        lastName: lastName || '',
+        institution: institution || '',
+        email: email || '',
+        courseNumber: courseNumber || '',
+        courseTitle: courseTitle || '',
+        courseDescription: requestType === 'primary' ? (courseDescription || '') : 'CO-INSTRUCTOR REQUEST',
+        requestType: requestType || 'primary',
         status: 'pending',
         timestamp: new Date(),
+        syllabusImported: false
       };
 
       // Add syllabus data if imported and primary instructor
       if (requestType === 'primary' && courseCreationMode === 'syllabus' && parsedCourseInfo && generatedMaterials.length > 0) {
         requestDoc.syllabusImported = true;
         requestDoc.syllabusData = {
-          parsedCourseInfo,
+          parsedCourseInfo: parsedCourseInfo,
           generatedMaterials: generatedMaterials.filter(m => m.published)
         };
-      } else {
-        requestDoc.syllabusImported = false;
       }
 
       const educatorRequestRef = await addDoc(collection(db, 'educatorRequests'), requestDoc);
@@ -252,6 +251,9 @@ const RequestEducatorPermissionsForm: React.FC = () => {
 
   // Check if we're in the middle of syllabus import process
   const isSyllabusInProgress = requestType === 'primary' && courseCreationMode === 'syllabus' && currentStep !== 'upload' && !parsedCourseInfo;
+  
+  // Check if syllabus import is complete and ready for submission
+  const isSyllabusComplete = requestType === 'primary' && courseCreationMode === 'syllabus' && currentStep === 'review' && parsedCourseInfo;
 
   return (
     <Box className="request-form-container" sx={{ padding: 3 }}>
@@ -393,76 +395,65 @@ const RequestEducatorPermissionsForm: React.FC = () => {
               onComplete={handleSyllabusComplete}
               onCancel={() => setCourseCreationMode('manual')}
             />
-            
-            {/* Show manual override fields after syllabus import */}
-            {parsedCourseInfo && (
-              <>
-                <Divider sx={{ my: 4 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    Review and modify course details if needed
-                  </Typography>
-                </Divider>
-                
-                <Alert severity="info" sx={{ mb: 3 }}>
-                  <Typography variant="body2">
-                    Course information has been extracted from your syllabus. 
-                    You can review and modify the details below before submitting your request.
-                  </Typography>
-                </Alert>
-              </>
-            )}
           </Box>
         )}
 
-        {/* Course Information Form Fields */}
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
-            <FormLabel htmlFor="course-number" required>Course Number</FormLabel>
-            <OutlinedInput
-              id="course-number"
-              name="course-number"
-              value={courseNumber}
-              onChange={handleInputChange(setCourseNumber)}
-              placeholder="e.g., BIOL301"
-              fullWidth
-              required
-              disabled={loading || isSyllabusInProgress}
-            />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <FormLabel htmlFor="course-title" required>Course Title</FormLabel>
-            <OutlinedInput
-              id="course-title"
-              name="course-title"
-              value={courseTitle}
-              onChange={handleInputChange(setCourseTitle)}
-              placeholder="e.g., Biotech Research Methods"
-              fullWidth
-              required
-              disabled={loading || isSyllabusInProgress}
-            />
-          </Grid>
-          
-          {/* Course Description - Only for Primary Instructors */}
-          {requestType === 'primary' && (
-            <Grid item xs={12}>
-              <FormLabel htmlFor="course-description" required>Course Description</FormLabel>
+        {/* Course Information Form Fields - Show for manual mode OR co-instructor */}
+        {(requestType === 'co-instructor' || (requestType === 'primary' && courseCreationMode === 'manual')) && (
+          <Grid container spacing={3} sx={{ mb: 4 }}>
+            <Grid item xs={12} md={6}>
+              <FormLabel htmlFor="course-number" required>Course Number</FormLabel>
               <OutlinedInput
-                id="course-description"
-                name="course-description"
-                value={courseDescription}
-                onChange={handleInputChange(setCourseDescription)}
-                placeholder="e.g., A comprehensive course covering advanced methods and tools in modern biotech labs, focusing on CRISPR, NGS, and bioinformatics."
+                id="course-number"
+                name="course-number"
+                value={courseNumber}
+                onChange={handleInputChange(setCourseNumber)}
+                placeholder="e.g., BIOL301"
                 fullWidth
-                multiline
-                rows={4}
                 required
-                disabled={loading || isSyllabusInProgress}
+                disabled={loading}
               />
             </Grid>
-          )}
-          
-          <Grid item xs={12}>
+            <Grid item xs={12} md={6}>
+              <FormLabel htmlFor="course-title" required>Course Title</FormLabel>
+              <OutlinedInput
+                id="course-title"
+                name="course-title"
+                value={courseTitle}
+                onChange={handleInputChange(setCourseTitle)}
+                placeholder="e.g., Biotech Research Methods"
+                fullWidth
+                required
+                disabled={loading}
+              />
+            </Grid>
+            
+            {/* Course Description - Only for Primary Instructors */}
+            {requestType === 'primary' && (
+              <Grid item xs={12}>
+                <FormLabel htmlFor="course-description" required>Course Description</FormLabel>
+                <OutlinedInput
+                  id="course-description"
+                  name="course-description"
+                  value={courseDescription}
+                  onChange={handleInputChange(setCourseDescription)}
+                  placeholder="e.g., A comprehensive course covering advanced methods and tools in modern biotech labs, focusing on CRISPR, NGS, and bioinformatics."
+                  fullWidth
+                  multiline
+                  rows={4}
+                  required
+                  disabled={loading}
+                />
+              </Grid>
+            )}
+          </Grid>
+        )}
+
+        {/* Submit Button - Show when ready */}
+        {(requestType === 'co-instructor' || 
+          (requestType === 'primary' && courseCreationMode === 'manual') || 
+          isSyllabusComplete) && (
+          <Box sx={{ mt: 4 }}>
             <Button 
               variant="contained" 
               color="primary" 
@@ -470,7 +461,6 @@ const RequestEducatorPermissionsForm: React.FC = () => {
               fullWidth
               className="submit-button"
               sx={{ 
-                mt: 3, 
                 py: 1.5, 
                 fontWeight: 'bold', 
                 fontSize: '16px', 
@@ -479,19 +469,20 @@ const RequestEducatorPermissionsForm: React.FC = () => {
               disabled={loading || isSyllabusInProgress}
             >
               {loading ? (
-                <CircularProgress size={24} color="inherit" />
+                <>
+                  <CircularProgress size={24} color="inherit" sx={{ mr: 1 }} />
+                  Submitting Request...
+                </>
               ) : (
                 `Submit Request${requestType === 'primary' && courseCreationMode === 'syllabus' && generatedMaterials.length > 0 ? ` with ${generatedMaterials.filter(m => m.published).length} Materials` : ''}`
               )}
             </Button>
-          </Grid>
-          
-          <Grid item xs={12}>
+            
             <Typography variant="body2" sx={{ mt: 2, textAlign: 'center' }}>
               For any questions, please contact <a href="mailto:andriy@intofuture.org">andriy@intofuture.org</a>.
             </Typography>
-          </Grid>
-        </Grid>
+          </Box>
+        )}
 
         {/* Success/Error Dialog */}
         <Dialog open={dialogOpen} onClose={handleCloseDialog}>
