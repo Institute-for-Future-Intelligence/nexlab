@@ -64,12 +64,15 @@ const App = () => {
     },
   });
 
+  // Set basename conditionally: /nexlab/ for production, undefined for development
+  const basename = import.meta.env.PROD ? '/nexlab' : undefined;
+
   console.log("App loaded")
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Router>
+      <Router basename={basename}>
         {/* Conditionally render the Header based on whether the user is logged in */}
         {userDetails && <Header />}
         <div className="content">
