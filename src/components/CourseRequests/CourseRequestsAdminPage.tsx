@@ -117,8 +117,9 @@ const CourseRequestsAdminPage: React.FC = () => {
             footer: material.footer || { title: '', content: '' },
             sections: material.sections || [],
             published: true, // Materials from syllabus are published by default
-            courseId: courseDocRef.id,
-            createdBy: currentRequestData.uid,
+            course: courseDocRef.id, // Changed from courseId to course
+            author: currentRequestData.uid, // Changed from createdBy to author
+            timestamp: new Date(), // Added timestamp field for ordering
             createdAt: new Date(),
             updatedAt: new Date()
           };
