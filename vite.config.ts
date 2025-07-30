@@ -22,5 +22,6 @@ export default defineConfig({
         }
       }
     }
-  }
+  },
+  publicDir: 'public' // This ensures files from public/ (including 404.html) are copied to dist/
 })
