@@ -1,8 +1,10 @@
 // src/components/CourseRequests/CourseRequestsAdminPage.tsx
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Button, Snackbar, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
-import { getFirestore, collection, getDocs, getDoc, doc, updateDoc, addDoc, writeBatch } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, getDoc, doc, updateDoc, addDoc, writeBatch, Timestamp } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
+import { ParsedCourseInfo, GeneratedMaterial } from '../../stores/syllabusStore';
+import type { Material } from '../../types/Material';
 
 interface CourseRequest {
   id: string;
@@ -14,8 +16,8 @@ interface CourseRequest {
   status: 'pending' | 'approved' | 'denied';
   syllabusImported?: boolean;
   syllabusData?: {
-    parsedCourseInfo: any;
-    generatedMaterials: any[];
+    parsedCourseInfo: ParsedCourseInfo;
+    generatedMaterials: GeneratedMaterial[];
   };
 }
 
@@ -107,7 +109,10 @@ const CourseRequestsAdminPage: React.FC = () => {
         
         currentRequestData.syllabusData.generatedMaterials.forEach((material) => {
           const materialRef = doc(collection(db, 'materials')); // Let Firestore auto-generate ID
-          const materialData: any = {
+          const materialData: Omit<Material, 'id'> & { 
+            createdAt: Date; 
+            updatedAt: Date; 
+          } = {
             // No id field needed - document ID will be used
             title: material.title || 'Untitled Material',
             header: material.header || { title: '', content: '' },
@@ -116,13 +121,13 @@ const CourseRequestsAdminPage: React.FC = () => {
             published: true, // Materials from syllabus are published by default
             course: courseDocRef.id, // Changed from courseId to course
             author: currentRequestData.uid, // Changed from createdBy to author
-            timestamp: new Date(), // Added timestamp field for ordering
+            timestamp: Timestamp.now(), // Added timestamp field for ordering
             createdAt: new Date(),
             updatedAt: new Date()
           };
           
           if (material.scheduledTimestamp) {
-            materialData.scheduledTimestamp = material.scheduledTimestamp;
+            materialData.scheduledTimestamp = Timestamp.fromDate(material.scheduledTimestamp);
           }
           
           batch.set(materialRef, materialData);

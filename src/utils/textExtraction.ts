@@ -39,8 +39,10 @@ export const extractTextFromPDF = async (file: File): Promise<TextExtractionResu
       const textContent = await page.getTextContent();
       
       // Combine text items into readable text
+      // Safe type assertion for PDF.js text items
       const pageText = textContent.items
-        .map((item: any) => item.str)
+        .filter((item) => item && typeof (item as { str?: string }).str === 'string')
+        .map((item) => (item as { str: string }).str)
         .join(' ')
         .trim();
       

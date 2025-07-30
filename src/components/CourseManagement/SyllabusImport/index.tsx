@@ -6,24 +6,25 @@ import {
   Step,
   StepLabel,
   Typography,
-  Alert
+  Alert,
+  Button
 } from '@mui/material';
-import { useSyllabusStore } from '../../../stores/syllabusStore';
+import { useSyllabusStore, ParsedCourseInfo, GeneratedMaterial } from '../../../stores/syllabusStore';
 import SyllabusUploadZone from './SyllabusUploadZone';
 import CourseInfoPreview from './CourseInfoPreview';
 import MaterialsPreview from './MaterialsPreview';
 
 interface SyllabusImportProps {
   onComplete?: (data: {
-    courseInfo: any;
-    materials: any[];
+    courseInfo: ParsedCourseInfo;
+    materials: GeneratedMaterial[];
   }) => void;
   onCancel?: () => void;
 }
 
 const SyllabusImport: React.FC<SyllabusImportProps> = ({
   onComplete,
-  onCancel: _onCancel
+  onCancel
 }) => {
   const {
     currentStep,
@@ -32,7 +33,7 @@ const SyllabusImport: React.FC<SyllabusImportProps> = ({
     generatedMaterials,
     isProcessing,
     error,
-    reset: _reset
+    reset
   } = useSyllabusStore();
 
   const steps = [
@@ -82,6 +83,11 @@ const SyllabusImport: React.FC<SyllabusImportProps> = ({
         materials: publishedMaterials
       });
     }
+  };
+
+  const handleCancel = () => {
+    reset(); // Clear the syllabus store state
+    onCancel?.(); // Call the parent cancel handler
   };
 
   const renderCurrentStep = () => {
@@ -137,7 +143,7 @@ const SyllabusImport: React.FC<SyllabusImportProps> = ({
 
         {/* Progress Stepper */}
         <Stepper activeStep={getActiveStep()} alternativeLabel>
-          {steps.map((step, _index) => (
+          {steps.map((step) => (
             <Step key={step.label}>
               <StepLabel>
                 <Typography variant="body2" sx={{ fontWeight: 500 }}>
@@ -178,6 +184,20 @@ const SyllabusImport: React.FC<SyllabusImportProps> = ({
       <Box sx={{ minHeight: 400 }}>
         {renderCurrentStep()}
       </Box>
+
+      {/* Cancel Button - Show after upload starts */}
+      {currentStep !== 'upload' && onCancel && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+          <Button 
+            variant="outlined" 
+            color="secondary" 
+            onClick={handleCancel}
+            size="small"
+          >
+            Cancel & Return to Manual Entry
+          </Button>
+        </Box>
+      )}
 
       {/* Development Debug Info */}
       {process.env.NODE_ENV === 'development' && (

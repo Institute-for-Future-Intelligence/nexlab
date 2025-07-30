@@ -7,6 +7,31 @@ import {
   estimateProcessingTime,
   type TextExtractionError 
 } from '../utils/textExtraction';
+import type { SubSubsection } from '../types/Material';
+
+// Type for extraction metadata
+interface ExtractionMetadata {
+  fileName?: string;
+  fileSize?: number;
+  fileType?: string;
+  estimatedProcessingTime?: number;
+  wordCount?: number;
+  pageCount?: number;
+  processingTime?: number;
+  confidence?: number;
+}
+
+// Type definitions for material components
+interface ImageItem {
+  url: string;
+  title: string;
+}
+
+interface LinkItem {
+  title: string;
+  url: string;
+  description: string;
+}
 
 export interface WeeklyTopic {
   week: number;
@@ -41,12 +66,12 @@ export interface GeneratedMaterial {
       id: string;
       title: string;
       content: string;
-      subSubsections: any[];
-      images: any[];
-      links: any[];
+      subSubsections: SubSubsection[];
+      images: ImageItem[];
+      links: LinkItem[];
     }[];
-    images: any[];
-    links: any[];
+    images: ImageItem[];
+    links: LinkItem[];
   }[];
   published: boolean;
   scheduledTimestamp?: Date;
@@ -59,7 +84,7 @@ interface SyllabusState {
   
   // Text extraction
   extractedText: string;
-  extractionMetadata: any;
+  extractionMetadata: ExtractionMetadata | null;
   
   // Parsing results
   parsedCourseInfo: ParsedCourseInfo | null;
@@ -370,7 +395,7 @@ export const useSyllabusStore = create<SyllabusState>()(
             });
             
             // 2. Weekly Topic Materials (first 6 weeks as example)
-            parsedCourseInfo.schedule.slice(0, 6).forEach((week, _index) => {
+            parsedCourseInfo.schedule.slice(0, 6).forEach((week) => {
               materials.push({
                 id: generateId(),
                 title: `Week ${week.week}: ${week.topic}`,
