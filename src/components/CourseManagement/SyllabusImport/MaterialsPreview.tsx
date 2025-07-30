@@ -9,7 +9,7 @@ import {
   CardContent,
   CardActions,
   Chip,
-  IconButton,
+
   Alert,
   Dialog,
   DialogTitle,
@@ -24,13 +24,12 @@ import {
 } from '@mui/material';
 import {
   Edit as EditIcon,
-  Delete as DeleteIcon,
-  Add as AddIcon,
+
   ExpandMore as ExpandMoreIcon,
   School as SchoolIcon,
   Schedule as ScheduleIcon,
   Visibility as VisibilityIcon,
-  VisibilityOff as VisibilityOffIcon
+
 } from '@mui/icons-material';
 import { useSyllabusStore, GeneratedMaterial } from '../../../stores/syllabusStore';
 

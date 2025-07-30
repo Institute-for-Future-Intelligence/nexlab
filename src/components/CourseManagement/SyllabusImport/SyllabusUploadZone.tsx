@@ -71,7 +71,7 @@ const SyllabusUploadZone: React.FC<SyllabusUploadZoneProps> = ({
     } catch (error) {
       console.error('Upload error:', error);
     }
-  }, [uploadSyllabus, onUploadComplete, setError]);
+  }, [uploadSyllabus, onUploadComplete, setError, validateFile]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -115,8 +115,8 @@ const SyllabusUploadZone: React.FC<SyllabusUploadZoneProps> = ({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const getFileIcon = (fileName: string) => {
-    const extension = fileName.split('.').pop()?.toLowerCase();
+  const getFileIcon = (_fileName: string) => {
+    // TODO: Could show different icons based on file extension
     return <FileIcon color="primary" />;
   };
 

@@ -23,7 +23,7 @@ interface SyllabusImportProps {
 
 const SyllabusImport: React.FC<SyllabusImportProps> = ({
   onComplete,
-  onCancel
+  onCancel: _onCancel
 }) => {
   const {
     currentStep,
@@ -32,7 +32,7 @@ const SyllabusImport: React.FC<SyllabusImportProps> = ({
     generatedMaterials,
     isProcessing,
     error,
-    reset
+    reset: _reset
   } = useSyllabusStore();
 
   const steps = [
@@ -131,13 +131,13 @@ const SyllabusImport: React.FC<SyllabusImportProps> = ({
           Import Course from Syllabus
         </Typography>
         <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-          Upload your syllabus document and we'll automatically create a course structure 
+          Upload your syllabus document and we&apos;ll automatically create a course structure 
           with organized materials based on your content.
         </Typography>
 
         {/* Progress Stepper */}
         <Stepper activeStep={getActiveStep()} alternativeLabel>
-          {steps.map((step, index) => (
+          {steps.map((step, _index) => (
             <Step key={step.label}>
               <StepLabel>
                 <Typography variant="body2" sx={{ fontWeight: 500 }}>

@@ -251,7 +251,7 @@ export const useSyllabusStore = create<SyllabusState>()(
               for (let i = objectivesStartIndex + 1; i < lines.length && i < objectivesStartIndex + 15; i++) {
                 const line = lines[i].trim();
                 if (line && (line.startsWith('-') || line.startsWith('•') || line.match(/^\d+\./) || line.startsWith('*'))) {
-                  objectives.push(line.replace(/^[-•\d\.\*]\s*/, ''));
+                  objectives.push(line.replace(/^[-•\d.*]\s*/, ''));
                 } else if (line && objectives.length === 0) {
                   // If no bullets found, take the next few lines as objectives
                   objectives.push(line);
@@ -370,7 +370,7 @@ export const useSyllabusStore = create<SyllabusState>()(
             });
             
             // 2. Weekly Topic Materials (first 6 weeks as example)
-            parsedCourseInfo.schedule.slice(0, 6).forEach((week, index) => {
+            parsedCourseInfo.schedule.slice(0, 6).forEach((week, _index) => {
               materials.push({
                 id: generateId(),
                 title: `Week ${week.week}: ${week.topic}`,
