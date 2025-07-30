@@ -1,0 +1,117 @@
+CS 350: Introduction to Artificial Intelligence and Machine Learning
+
+Course Title: Introduction to Artificial Intelligence and Machine Learning
+Course Number: CS 350
+Instructor: Dr. Sarah Chen
+Institution: Tech State University
+Department: Computer Science
+
+Course Description:
+This course provides a comprehensive introduction to artificial intelligence and machine learning concepts, algorithms, and applications. Students will explore fundamental AI techniques including search algorithms, knowledge representation, neural networks, and deep learning. The course emphasizes both theoretical foundations and practical implementation of AI systems using Python and popular machine learning frameworks.
+
+Learning Objectives:
+By the end of this course, students will be able to:
+1. Understand fundamental concepts and history of artificial intelligence
+2. Implement classic AI search algorithms and optimization techniques
+3. Design and train neural networks for classification and regression tasks
+4. Apply machine learning algorithms to real-world datasets
+5. Evaluate and compare different AI and ML approaches for problem-solving
+6. Understand ethical implications and bias considerations in AI systems
+7. Develop practical AI applications using modern frameworks and tools
+
+Course Prerequisites: 
+CS 201 (Data Structures and Algorithms), MATH 220 (Statistics), MATH 150 (Calculus I)
+
+Required Textbook: 
+"Artificial Intelligence: A Modern Approach" by Russell and Norvig, 4th Edition
+
+Course Schedule:
+
+Week 1: Introduction to Artificial Intelligence
+Overview of AI history, applications, and current state of the field. Introduction to intelligent agents and problem-solving paradigms.
+
+Week 2: Search Algorithms and Problem Solving
+Uninformed search strategies including breadth-first search, depth-first search, and iterative deepening. Problem formulation and state space representation.
+
+Week 3: Informed Search and Heuristics
+Heuristic search algorithms including A*, greedy best-first search, and hill climbing. Design and evaluation of heuristic functions.
+
+Week 4: Constraint Satisfaction Problems
+Backtracking search, arc consistency, and constraint propagation. Applications to scheduling and planning problems.
+
+Week 5: Game Playing and Adversarial Search
+Minimax algorithm, alpha-beta pruning, and evaluation functions. Implementation of game-playing agents for classic games.
+
+Week 6: Knowledge Representation and Reasoning
+Propositional and first-order logic, inference algorithms, and knowledge-based agents. Expert systems and rule-based reasoning.
+
+Week 7: Uncertainty and Probabilistic Reasoning
+Bayesian networks, probability theory in AI, and reasoning under uncertainty. Introduction to probabilistic inference.
+
+Week 8: Midterm Examination and Project Proposals
+Comprehensive midterm covering weeks 1-7. Students present their final project proposals and receive feedback.
+
+Week 9: Introduction to Machine Learning
+Supervised, unsupervised, and reinforcement learning paradigms. Training and testing methodologies, cross-validation, and performance metrics.
+
+Week 10: Linear Models and Regression
+Linear regression, logistic regression, and regularization techniques. Gradient descent optimization and feature engineering.
+
+Week 11: Decision Trees and Ensemble Methods
+Decision tree algorithms, random forests, and boosting methods. Handling overfitting and model selection techniques.
+
+Week 12: Neural Networks and Deep Learning
+Perceptrons, multi-layer networks, and backpropagation algorithm. Introduction to convolutional and recurrent neural networks.
+
+Week 13: Unsupervised Learning and Clustering
+K-means clustering, hierarchical clustering, and dimensionality reduction techniques including PCA and t-SNE.
+
+Week 14: Ethics in AI and Future Directions
+Bias in machine learning, fairness, interpretability, and social implications of AI systems. Current research trends and future challenges.
+
+Week 15: Final Project Presentations
+Student presentations of their final AI/ML projects. Peer evaluation and discussion of project outcomes and lessons learned.
+
+Week 16: Final Examinations
+Comprehensive final examination covering all course material with emphasis on machine learning concepts and applications.
+
+Grading Policy:
+- Programming Assignments (40%)
+- Midterm Examination (20%)
+- Final Examination (25%)
+- Final Project (10%)
+- Class Participation and Quizzes (5%)
+
+Programming Assignments:
+Students will complete 6 programming assignments using Python and machine learning libraries such as scikit-learn, TensorFlow, and PyTorch. Assignments focus on implementing AI algorithms and applying them to real datasets.
+
+Final Project:
+Students will work individually or in pairs to develop an AI application addressing a real-world problem. Projects must demonstrate the application of course concepts and include a comprehensive report and presentation.
+
+Attendance Policy:
+Regular attendance is expected. More than 3 unexcused absences may result in a reduction of the final grade.
+
+Late Work Policy:
+Programming assignments may be submitted up to 3 days late with a 10% penalty per day. No late submissions accepted for examinations without prior arrangement.
+
+Academic Integrity:
+All work must be original. Collaboration on assignments is encouraged for learning but final submissions must be individual work. Plagiarism will result in course failure.
+
+Software Requirements:
+- Python 3.8 or higher
+- Jupyter Notebook or Google Colab
+- Required libraries: NumPy, Pandas, Matplotlib, Scikit-learn, TensorFlow
+
+Contact Information:
+Office: Computer Science Building, Room 405
+Office Hours: Mondays and Wednesdays, 2:00-4:00 PM, or by appointment
+Email: sarah.chen@techstate.edu
+Phone: (555) 123-4567
+
+Course Website: https://cs.techstate.edu/cs350
+Discussion Forum: Available through university learning management system
+
+Additional Resources:
+- Online tutorials for Python and machine learning libraries
+- Access to GPU computing resources for deep learning projects  
+- Career counseling for AI and data science opportunities 

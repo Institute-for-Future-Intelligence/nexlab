@@ -1,0 +1,84 @@
+BIOL 301: Advanced Molecular Biology and Biotechnology
+
+Course Title: Advanced Molecular Biology and Biotechnology
+Course Number: BIOL 301
+Instructor: Dr. Jane Smith
+Institution: State University
+
+Course Description:
+This comprehensive course covers advanced methods and tools in modern molecular biology and biotechnology labs, focusing on CRISPR gene editing, next-generation sequencing (NGS), protein engineering, and bioinformatics applications. Students will gain hands-on experience with cutting-edge techniques used in research and industry.
+
+Learning Objectives:
+By the end of this course, students will be able to:
+1. Design and execute CRISPR-Cas9 gene editing experiments
+2. Analyze next-generation sequencing data using bioinformatics tools
+3. Apply protein engineering principles to modify enzyme function
+4. Evaluate the ethical implications of biotechnology applications
+5. Communicate scientific findings through written reports and presentations
+6. Work collaboratively in laboratory settings following safety protocols
+
+Course Schedule:
+
+Week 1: Course Introduction and Laboratory Safety
+Introduction to modern molecular biology techniques, laboratory safety protocols, and an overview of biotechnology applications in medicine, agriculture, and industry.
+
+Week 2: DNA Extraction and Purification Methods
+Hands-on laboratory work focusing on various DNA extraction techniques from different sample types, quality assessment, and purification methods.
+
+Week 3: PCR Techniques and Applications
+Polymerase chain reaction fundamentals, primer design, optimization strategies, and applications in cloning, diagnostics, and forensics.
+
+Week 4: Cloning and Vector Construction
+Traditional cloning methods, vector selection, transformation techniques, and screening for successful clones.
+
+Week 5: CRISPR-Cas9 System Overview
+Introduction to the CRISPR-Cas9 system, guide RNA design, delivery methods, and applications in gene editing.
+
+Week 6: CRISPR Laboratory Applications
+Hands-on CRISPR experiments including guide RNA preparation, transfection, and analysis of editing efficiency.
+
+Week 7: Protein Expression Systems
+Comparison of bacterial, yeast, and mammalian expression systems, optimization strategies, and purification techniques.
+
+Week 8: Protein Engineering Principles
+Rational design approaches, directed evolution, and computational tools for protein modification.
+
+Week 9: Next-Generation Sequencing Technologies
+Overview of sequencing platforms, library preparation, and quality control measures.
+
+Week 10: NGS Data Analysis
+Bioinformatics workflows, sequence alignment, variant calling, and interpretation of results.
+
+Week 11: Synthetic Biology Applications
+Design principles in synthetic biology, standardized biological parts, and circuit design.
+
+Week 12: Bioethics and Regulatory Considerations
+Ethical implications of genetic engineering, regulatory frameworks, and public policy considerations.
+
+Week 13: Research Project Presentations
+Student presentations of independent research projects incorporating course techniques.
+
+Week 14: Advanced Topics in Biotechnology
+Current trends and emerging technologies in biotechnology and their potential applications.
+
+Week 15: Final Examinations and Course Wrap-up
+Comprehensive final examination and discussion of future directions in molecular biology.
+
+Prerequisites: BIOL 201 (General Biology II), CHEM 301 (Organic Chemistry I)
+
+Required Textbook: "Molecular Biology: Principles and Practice" by Cox, Doudna, and O'Donnell, 2nd Edition
+
+Grading Policy:
+- Laboratory Reports (40%)
+- Midterm Examination (20%)
+- Final Examination (25%)
+- Research Project (10%)
+- Class Participation (5%)
+
+Laboratory Safety:
+All students must complete laboratory safety training before participating in hands-on activities. Personal protective equipment is required at all times in the laboratory.
+
+Contact Information:
+Office Hours: Tuesdays and Thursdays, 2:00-4:00 PM
+Email: jane.smith@university.edu
+Office: Biology Building, Room 302 
