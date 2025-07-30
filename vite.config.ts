@@ -2,8 +2,9 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  base: '/nexlab/',
+export default defineConfig(({ command }) => ({
+  // Use base path only for production build, not for local development
+  base: command === 'build' ? '/nexlab/' : '/',
   plugins: [react()],
   server: {
     open: true,
@@ -24,4 +25,4 @@ export default defineConfig({
     }
   },
   publicDir: 'public' // This ensures files from public/ (including 404.html) are copied to dist/
-})
+}))
