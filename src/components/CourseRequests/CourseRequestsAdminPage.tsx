@@ -65,10 +65,7 @@ const CourseRequestsAdminPage: React.FC = () => {
     return passcode;
   }
 
-  // Function to generate a unique material ID
-  const generateMaterialId = (): string => {
-    return Math.random().toString(36).substr(2, 9);
-  };
+
 
   const handleApprove = async () => {
     if (!currentRequestId || !currentRequestData) return;
@@ -109,9 +106,9 @@ const CourseRequestsAdminPage: React.FC = () => {
         const batch = writeBatch(db);
         
         currentRequestData.syllabusData.generatedMaterials.forEach((material) => {
-          const materialRef = doc(collection(db, 'materials'));
+          const materialRef = doc(collection(db, 'materials')); // Let Firestore auto-generate ID
           const materialData: any = {
-            id: generateMaterialId(),
+            // No id field needed - document ID will be used
             title: material.title || 'Untitled Material',
             header: material.header || { title: '', content: '' },
             footer: material.footer || { title: '', content: '' },
