@@ -43,22 +43,23 @@ const SyllabusUploadZone: React.FC<SyllabusUploadZoneProps> = ({
 
   const acceptedExtensions = ['.txt', '.pdf', '.docx'];
 
-  const validateFile = (file: File): string | null => {
-    // Check file type
-    if (!acceptedTypes.includes(file.type)) {
-      return `Unsupported file type. Please upload ${acceptedExtensions.join(', ')} files.`;
-    }
-
-    // Check file size (10MB limit)
-    const maxSize = 10 * 1024 * 1024; // 10MB
-    if (file.size > maxSize) {
-      return 'File size too large. Please upload files smaller than 10MB.';
-    }
-
-    return null;
-  };
-
   const handleFileUpload = useCallback(async (file: File) => {
+    // Move validateFile inside useCallback to avoid dependency issues
+    const validateFile = (file: File): string | null => {
+      // Check file type
+      if (!acceptedTypes.includes(file.type)) {
+        return `Unsupported file type. Please upload ${acceptedExtensions.join(', ')} files.`;
+      }
+
+      // Check file size (10MB limit)
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (file.size > maxSize) {
+        return 'File size too large. Please upload files smaller than 10MB.';
+      }
+
+      return null;
+    };
+
     const validationError = validateFile(file);
     if (validationError) {
       setError(validationError);
@@ -71,7 +72,7 @@ const SyllabusUploadZone: React.FC<SyllabusUploadZoneProps> = ({
     } catch (error) {
       console.error('Upload error:', error);
     }
-  }, [uploadSyllabus, onUploadComplete, setError, validateFile]);
+  }, [uploadSyllabus, onUploadComplete, setError, acceptedTypes, acceptedExtensions]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -115,7 +116,7 @@ const SyllabusUploadZone: React.FC<SyllabusUploadZoneProps> = ({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const getFileIcon = (_fileName: string) => {
+  const getFileIcon = () => {
     // TODO: Could show different icons based on file extension
     return <FileIcon color="primary" />;
   };
@@ -189,7 +190,7 @@ const SyllabusUploadZone: React.FC<SyllabusUploadZoneProps> = ({
       {uploadedFile && (
         <Paper sx={{ p: 3, mb: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            {getFileIcon(uploadedFile.name)}
+            {getFileIcon()}
             
             <Box sx={{ flexGrow: 1 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
