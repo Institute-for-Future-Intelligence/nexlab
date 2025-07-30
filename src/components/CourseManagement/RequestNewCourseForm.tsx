@@ -27,11 +27,12 @@ import { getFirestore, collection, addDoc } from 'firebase/firestore';
 import { useUser } from '../../hooks/useUser';
 import { useNavigate } from 'react-router-dom';
 import SyllabusImport from './SyllabusImport';
-import { useSyllabusStore } from '../../stores/syllabusStore';
+import { useSyllabusStore, ParsedCourseInfo, GeneratedMaterial } from '../../stores/syllabusStore';
 
 type CourseCreationMode = 'manual' | 'syllabus';
 
 // Utility function to recursively remove undefined values from objects
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const cleanDataForFirebase = (obj: any): any => {
   if (obj === null || obj === undefined) {
     return null;
@@ -47,6 +48,7 @@ const cleanDataForFirebase = (obj: any): any => {
   }
   
   if (typeof obj === 'object') {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cleaned: any = {};
     Object.keys(obj).forEach(key => {
       const value = obj[key];
@@ -137,7 +139,7 @@ const RequestNewCourseForm: React.FC = () => {
     return null;
   };
 
-  const handleSyllabusComplete = (data: { courseInfo: any; materials: any[] }) => {
+  const handleSyllabusComplete = (data: { courseInfo: ParsedCourseInfo; materials: GeneratedMaterial[] }) => {
     // The course info is already populated via useEffect
     // Just show a success message or continue with the flow
     console.log('Syllabus import completed:', data);
@@ -176,6 +178,7 @@ const RequestNewCourseForm: React.FC = () => {
         const cleanedSyllabusData = cleanDataForFirebase(syllabusData);
         
         baseRequestDoc.syllabusImported = true;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (baseRequestDoc as any).syllabusData = cleanedSyllabusData;
       }
 

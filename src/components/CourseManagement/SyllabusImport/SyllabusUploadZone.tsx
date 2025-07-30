@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
 import {
   Box,
   Paper,
@@ -35,13 +35,13 @@ const SyllabusUploadZone: React.FC<SyllabusUploadZoneProps> = ({
   const [isDragOver, setIsDragOver] = useState(false);
 
   // Accepted file types
-  const acceptedTypes = [
+  const acceptedTypes = useMemo(() => [
     'text/plain',
     'application/pdf',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-  ];
+  ], []);
 
-  const acceptedExtensions = ['.txt', '.pdf', '.docx'];
+  const acceptedExtensions = useMemo(() => ['.txt', '.pdf', '.docx'], []);
 
   const handleFileUpload = useCallback(async (file: File) => {
     // Move validateFile inside useCallback to avoid dependency issues
