@@ -1,7 +1,7 @@
 // src/components/CourseRequests/CourseRequestsAdminPage.tsx
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Button, Snackbar, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
-import { getFirestore, collection, getDocs, getDoc, doc, updateDoc, addDoc } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, getDoc, doc, updateDoc, addDoc, writeBatch } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 
 interface CourseRequest {
@@ -12,6 +12,11 @@ interface CourseRequest {
   courseDescription: string;
   timestamp: { seconds: number; nanoseconds: number };
   status: 'pending' | 'approved' | 'denied';
+  syllabusImported?: boolean;
+  syllabusData?: {
+    parsedCourseInfo: any;
+    generatedMaterials: any[];
+  };
 }
 
 const CourseRequestsAdminPage: React.FC = () => {
@@ -60,6 +65,8 @@ const CourseRequestsAdminPage: React.FC = () => {
     return passcode;
   }
 
+
+
   const handleApprove = async () => {
     if (!currentRequestId || !currentRequestData) return;
   
@@ -92,6 +99,40 @@ const CourseRequestsAdminPage: React.FC = () => {
           },
         },
       });
+
+      // Create materials if syllabus was imported
+      let createdMaterialsCount = 0;
+      if (currentRequestData.syllabusImported && currentRequestData.syllabusData?.generatedMaterials) {
+        const batch = writeBatch(db);
+        
+        currentRequestData.syllabusData.generatedMaterials.forEach((material) => {
+          const materialRef = doc(collection(db, 'materials')); // Let Firestore auto-generate ID
+          const materialData: any = {
+            // No id field needed - document ID will be used
+            title: material.title || 'Untitled Material',
+            header: material.header || { title: '', content: '' },
+            footer: material.footer || { title: '', content: '' },
+            sections: material.sections || [],
+            published: true, // Materials from syllabus are published by default
+            course: courseDocRef.id, // Changed from courseId to course
+            author: currentRequestData.uid, // Changed from createdBy to author
+            timestamp: new Date(), // Added timestamp field for ordering
+            createdAt: new Date(),
+            updatedAt: new Date()
+          };
+          
+          if (material.scheduledTimestamp) {
+            materialData.scheduledTimestamp = material.scheduledTimestamp;
+          }
+          
+          batch.set(materialRef, materialData);
+          createdMaterialsCount++;
+        });
+        
+        // Commit the batch
+        await batch.commit();
+        console.log(`Created ${createdMaterialsCount} materials from syllabus`);
+      }
   
       // Update the course request document with the new course ID and passcode
       await updateDoc(doc(db, 'courseRequests', currentRequestId), {
@@ -100,7 +141,7 @@ const CourseRequestsAdminPage: React.FC = () => {
         passcode: passcode,
       });
   
-      // Add an email document to the `mail` collection to notify the educator
+      // Enhanced email notification
       const emailDoc = {
         to: ['andriy@intofuture.org', 'dylan@intofuture.org'],
         message: {
@@ -109,6 +150,9 @@ const CourseRequestsAdminPage: React.FC = () => {
             <p>Your course request has been approved:</p>
             <p><strong>Course:</strong> ${currentRequestData.courseNumber} - ${currentRequestData.courseTitle}</p>
             <p><strong>Passcode:</strong> ${passcode}</p>
+            ${currentRequestData.syllabusImported && createdMaterialsCount > 0 ? 
+              `<p><strong>Materials Created:</strong> ${createdMaterialsCount} materials have been automatically added to your course from your syllabus import.</p>` : ''
+            }
             <p><a href="https://institute-for-future-intelligence.github.io/nexlab/supplemental-materials">
             Click here to view your course.
             </a></p>
@@ -117,7 +161,9 @@ const CourseRequestsAdminPage: React.FC = () => {
       };
       await addDoc(collection(db, 'mail'), emailDoc);
   
-      setSnackbarMessage('Course request approved, course added.');
+      setSnackbarMessage(
+        `Course request approved, course added${createdMaterialsCount > 0 ? ` with ${createdMaterialsCount} materials` : ''}.`
+      );
       setSnackbarSeverity('success');
       setRequests((prevRequests) =>
         prevRequests.map((request) =>
@@ -194,6 +240,7 @@ const CourseRequestsAdminPage: React.FC = () => {
               <TableCell>Course Number</TableCell>
               <TableCell>Course Title</TableCell>
               <TableCell>Course Description</TableCell>
+              <TableCell>Creation Method</TableCell>
               <TableCell>Timestamp</TableCell>
               <TableCell>Actions</TableCell>
             </TableRow>
@@ -204,22 +251,50 @@ const CourseRequestsAdminPage: React.FC = () => {
                 <TableCell>{request.uid}</TableCell>
                 <TableCell>{request.courseNumber}</TableCell>
                 <TableCell>{request.courseTitle}</TableCell>
-                <TableCell>{request.courseDescription}</TableCell>
-                <TableCell>{new Date(request.timestamp.seconds * 1000).toLocaleString()}</TableCell>
+                <TableCell>
+                  {request.courseDescription.length > 100 
+                    ? `${request.courseDescription.substring(0, 100)}...` 
+                    : request.courseDescription
+                  }
+                </TableCell>
+                <TableCell>
+                  {request.syllabusImported ? (
+                    <Box>
+                      <Typography variant="body2" color="primary" sx={{ fontWeight: 'bold' }}>
+                        Syllabus Import
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {request.syllabusData?.generatedMaterials?.length || 0} materials
+                      </Typography>
+                    </Box>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      Manual Entry
+                    </Typography>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {request.timestamp?.seconds 
+                    ? new Date(request.timestamp.seconds * 1000).toLocaleString()
+                    : 'Invalid Date'
+                  }
+                </TableCell>
                 <TableCell>
                   {request.status === 'pending' && (
                     <>
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        sx={{ mr: 1 }}
+                      <Button 
+                        variant="contained" 
+                        color="success" 
+                        size="small"
                         onClick={() => handleOpenDialog('approve', request.id, request)}
+                        sx={{ mr: 1 }}
                       >
                         Approve
                       </Button>
-                      <Button
-                        variant="contained"
-                        color="secondary"
+                      <Button 
+                        variant="outlined" 
+                        color="error" 
+                        size="small"
                         onClick={() => handleOpenDialog('deny', request.id, request)}
                       >
                         Deny
@@ -227,10 +302,14 @@ const CourseRequestsAdminPage: React.FC = () => {
                     </>
                   )}
                   {request.status === 'approved' && (
-                    <Typography color="success.main">Approved</Typography>
+                    <Typography variant="body2" color="success.main" sx={{ fontWeight: 'bold' }}>
+                      Approved
+                    </Typography>
                   )}
                   {request.status === 'denied' && (
-                    <Typography color="error.main">Denied</Typography>
+                    <Typography variant="body2" color="error.main" sx={{ fontWeight: 'bold' }}>
+                      Denied
+                    </Typography>
                   )}
                 </TableCell>
               </TableRow>
@@ -239,41 +318,52 @@ const CourseRequestsAdminPage: React.FC = () => {
         </Table>
       </TableContainer>
 
-      <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleCloseSnackbar}>
-        <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }}>
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
-
       {/* Confirmation Dialog */}
-      <Dialog
-        open={dialogOpen}
-        onClose={handleCloseDialog}
-        aria-labelledby="confirmation-dialog-title"
-        aria-describedby="confirmation-dialog-description"
-      >
-        <DialogTitle id="confirmation-dialog-title">
-          {currentAction === 'approve' ? 'Confirm Approval' : 'Confirm Denial'}
+      <Dialog open={dialogOpen} onClose={handleCloseDialog}>
+        <DialogTitle>
+          {currentAction === 'approve' ? 'Approve Course Request' : 'Deny Course Request'}
         </DialogTitle>
         <DialogContent>
-          <DialogContentText id="confirmation-dialog-description">
-            Are you sure you want to {currentAction} this request for {currentRequestData?.courseNumber} submitted by Educator ID: {currentRequestData?.uid}?
+          <DialogContentText>
+            {currentAction === 'approve' ? (
+              <>
+                Are you sure you want to approve this course request?
+                {currentRequestData?.syllabusImported && (
+                  <Box sx={{ mt: 2, p: 2, backgroundColor: 'info.light', borderRadius: 1 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                      📚 Syllabus Import Detected
+                    </Typography>
+                    <Typography variant="body2">
+                      This request includes {currentRequestData?.syllabusData?.generatedMaterials?.length || 0} auto-generated materials that will be added to the course.
+                    </Typography>
+                  </Box>
+                )}
+              </>
+            ) : (
+              'Are you sure you want to deny this course request?'
+            )}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog} color="primary">
             Cancel
           </Button>
-          <Button
-            onClick={currentAction === 'approve' ? handleApprove : handleDeny}
-            color="primary"
+          <Button 
+            onClick={currentAction === 'approve' ? handleApprove : handleDeny} 
+            color={currentAction === 'approve' ? 'success' : 'error'}
             variant="contained"
-            autoFocus
           >
-            Confirm
+            {currentAction === 'approve' ? 'Approve' : 'Deny'}
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Snackbar for notifications */}
+      <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleCloseSnackbar}>
+        <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
