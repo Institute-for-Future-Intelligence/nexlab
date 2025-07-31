@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { messageService, Message } from '../services/messageService';
+import { useErrorHandler } from '../utils/errorHandling';
+import { useNotificationStore } from '../stores/notificationStore';
 
 export interface UseMessagesReturn {
   messages: Message[];
@@ -14,6 +16,8 @@ export const useMessages = (): UseMessagesReturn => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { handleError } = useErrorHandler();
+  const { showError, showSuccess } = useNotificationStore();
 
   useEffect(() => {
     // Try to load cached messages first
@@ -41,20 +45,29 @@ export const useMessages = (): UseMessagesReturn => {
   const deleteMessage = async (id: string): Promise<void> => {
     try {
       await messageService.deleteMessage(id);
+      showSuccess('Message deleted successfully');
       // Real-time listener will update the UI automatically
     } catch (err) {
-      setError('Failed to delete message');
-      console.error('Error deleting message:', err);
+      const appError = handleError(err, { operation: 'delete_message', messageId: id });
+      setError(appError.message);
+      showError(appError);
     }
   };
 
   const togglePinMessage = async (messageId: string, currentPinStatus: boolean): Promise<void> => {
     try {
       await messageService.togglePinMessage(messageId, currentPinStatus);
+      const action = currentPinStatus ? 'unpinned' : 'pinned';
+      showSuccess(`Message ${action} successfully`);
       // Real-time listener will update the UI automatically
     } catch (err) {
-      setError('Failed to update pin status');
-      console.error('Error toggling pin status:', err);
+      const appError = handleError(err, { 
+        operation: 'toggle_pin_message', 
+        messageId, 
+        currentPinStatus 
+      });
+      setError(appError.message);
+      showError(appError);
     }
   };
 

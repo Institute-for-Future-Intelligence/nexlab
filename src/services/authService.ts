@@ -10,6 +10,7 @@ import {
   User as FirebaseUser,
   Auth
 } from 'firebase/auth';
+import { handleAsyncError, ErrorType } from '../utils/errorHandling';
 
 export interface AuthService {
   signInWithGoogle: (keepSignedIn: boolean) => Promise<FirebaseUser>;
@@ -33,32 +34,38 @@ class FirebaseAuthService implements AuthService {
 
   async signInWithGoogle(keepSignedIn: boolean = true): Promise<FirebaseUser> {
     this.initialize();
-    try {
+    
+    const result = await handleAsyncError(async () => {
       // Set persistence based on user preference
       const persistence = keepSignedIn ? browserLocalPersistence : browserSessionPersistence;
       await setPersistence(this.auth!, persistence);
       
       // Sign in with popup
-      const result = await signInWithPopup(this.auth!, this.googleProvider!);
+      const authResult = await signInWithPopup(this.auth!, this.googleProvider!);
       
-      if (!result.user) {
+      if (!authResult.user) {
         throw new Error('No user returned from authentication');
       }
       
-      return result.user;
-    } catch (error: any) {
-      // Transform Firebase errors into user-friendly messages
-      const errorMessage = this.getErrorMessage(error.code);
-      throw new Error(errorMessage);
+      return authResult.user;
+    }, { operation: 'google_sign_in', keepSignedIn });
+
+    if (result.error) {
+      throw result.error;
     }
+    
+    return result.data!;
   }
 
   async signOut(): Promise<void> {
     this.initialize();
-    try {
+    
+    const result = await handleAsyncError(async () => {
       await signOut(this.auth!);
-    } catch (error: any) {
-      throw new Error('Failed to sign out. Please try again.');
+    }, { operation: 'sign_out' });
+
+    if (result.error) {
+      throw result.error;
     }
   }
 
