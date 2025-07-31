@@ -1,6 +1,8 @@
 import { lazy } from 'react';
 import { RouteObject, Navigate } from 'react-router-dom';
 import PrivateRoute from '../components/PrivateRoute';
+import ErrorBoundary from '../components/common/ErrorBoundary';
+import RouteErrorBoundary from '../components/common/RouteErrorBoundary';
 
 // Lazy loading components
 const Login = lazy(() => import('../components/Login/index'));
@@ -14,6 +16,20 @@ import EditMaterialForm from '../components/Supplemental/EditMaterialForm';
 import ViewMaterial from '../components/Supplemental/ViewMaterial';
 import AddMessage from '../components/Messages/AddMessage';
 import EditMessage from '../components/Messages/EditMessage';
+
+// Wrapper for protected routes with error boundaries
+const ProtectedRoute: React.FC<{ element: React.ComponentType }> = ({ element: Component }) => (
+  <RouteErrorBoundary>
+    <PrivateRoute element={Component} />
+  </RouteErrorBoundary>
+);
+
+// Wrapper for public routes with error boundaries  
+const PublicRoute: React.FC<{ element: React.ReactElement }> = ({ element }) => (
+  <ErrorBoundary>
+    {element}
+  </ErrorBoundary>
+);
 import UserManagement from '../components/UserPermissions/UserManagement';
 import MyProfile from '../components/UserAccount/MyProfile';
 import CourseManagement from '../components/CourseManagement/CourseManagement';
@@ -37,19 +53,25 @@ export interface RouteConfig {
 export const createRoutes = (userDetails: any, isSuperAdmin: boolean): RouteObject[] => [
   {
     path: "/",
-    element: userDetails ? <SelectionPage /> : <Login />
+    element: userDetails ? (
+      <RouteErrorBoundary>
+        <SelectionPage />
+      </RouteErrorBoundary>
+    ) : (
+      <PublicRoute element={<Login />} />
+    )
   },
   {
     path: "/laboratory-notebooks",
-    element: <PrivateRoute element={Dashboard} />
+    element: <ProtectedRoute element={Dashboard} />
   },
   {
     path: "/supplemental-materials",
-    element: <PrivateRoute element={SupplementalMaterials} />
+    element: <ProtectedRoute element={SupplementalMaterials} />
   },
   {
     path: "/my-profile",
-    element: <PrivateRoute element={MyProfile} />
+    element: <ProtectedRoute element={MyProfile} />
   },
   {
     path: "/add-material",
