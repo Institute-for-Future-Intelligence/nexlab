@@ -13,6 +13,12 @@ interface UIState {
   currentPage: string;
   previousPage: string | null;
   
+  // Navigation sections (collapsible)
+  navigationSections: {
+    educatorExpanded: boolean;
+    superAdminExpanded: boolean;
+  };
+  
   // Layout preferences
   sidebarCollapsed: boolean;
   theme: 'light' | 'dark';
@@ -27,6 +33,13 @@ interface UIState {
   isDialogOpen: (dialogId: string) => boolean;
   
   setCurrentPage: (page: string) => void;
+  
+  // Navigation section actions
+  toggleEducatorSection: () => void;
+  toggleSuperAdminSection: () => void;
+  setEducatorSectionExpanded: (expanded: boolean) => void;
+  setSuperAdminSectionExpanded: (expanded: boolean) => void;
+  
   setSidebarCollapsed: (collapsed: boolean) => void;
   toggleSidebar: () => void;
   setTheme: (theme: 'light' | 'dark') => void;
@@ -43,6 +56,10 @@ export const useUIStore = create<UIState>()(
         openDialogs: {},
         currentPage: '/',
         previousPage: null,
+        navigationSections: {
+          educatorExpanded: false, // Start collapsed to reduce clutter
+          superAdminExpanded: false,
+        },
         sidebarCollapsed: false,
         theme: 'light',
         
@@ -70,6 +87,32 @@ export const useUIStore = create<UIState>()(
           previousPage: state.currentPage
         })),
         
+        // Navigation section actions
+        toggleEducatorSection: () => set((state) => ({
+          navigationSections: {
+            ...state.navigationSections,
+            educatorExpanded: !state.navigationSections.educatorExpanded
+          }
+        })),
+        toggleSuperAdminSection: () => set((state) => ({
+          navigationSections: {
+            ...state.navigationSections,
+            superAdminExpanded: !state.navigationSections.superAdminExpanded
+          }
+        })),
+        setEducatorSectionExpanded: (expanded) => set((state) => ({
+          navigationSections: {
+            ...state.navigationSections,
+            educatorExpanded: expanded
+          }
+        })),
+        setSuperAdminSectionExpanded: (expanded) => set((state) => ({
+          navigationSections: {
+            ...state.navigationSections,
+            superAdminExpanded: expanded
+          }
+        })),
+        
         // Layout actions
         setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
         toggleSidebar: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
@@ -80,7 +123,8 @@ export const useUIStore = create<UIState>()(
         name: 'ui-preferences',
         partialize: (state) => ({ 
           sidebarCollapsed: state.sidebarCollapsed,
-          theme: state.theme 
+          theme: state.theme,
+          navigationSections: state.navigationSections
         })
       }
     )
