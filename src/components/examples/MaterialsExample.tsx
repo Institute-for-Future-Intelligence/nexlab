@@ -12,6 +12,7 @@ import {
 import { useMaterialsStore } from '../../stores/materialsStore';
 import { useNotificationStore } from '../../stores/notificationStore';
 import { useUIStore } from '../../stores/uiStore';
+import { useErrorHandler } from '../../utils/errorHandling';
 
 /**
  * Example component showing how to use Zustand stores
@@ -43,6 +44,7 @@ const MaterialsExample: React.FC = () => {
   } = useMaterialsStore();
   
   const { showSuccess, showError } = useNotificationStore();
+  const { handleError } = useErrorHandler();
   const { openDialog, closeDialog, isDialogOpen } = useUIStore();
 
   // Example course ID - in real app this would come from user selection
@@ -64,7 +66,8 @@ const MaterialsExample: React.FC = () => {
       await publishMaterial(materialId);
       showSuccess('Material published successfully!');
     } catch (error) {
-      showError('Failed to publish material');
+      const appError = handleError(error, { operation: 'publish_material', materialId });
+      showError(appError);
     }
   };
 
@@ -73,7 +76,8 @@ const MaterialsExample: React.FC = () => {
       await unpublishMaterial(materialId);
       showSuccess('Material unpublished successfully!');
     } catch (error) {
-      showError('Failed to unpublish material');
+      const appError = handleError(error, { operation: 'unpublish_material', materialId });
+      showError(appError);
     }
   };
 

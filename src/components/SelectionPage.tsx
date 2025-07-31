@@ -9,7 +9,7 @@ import { NavigationMenu, MessagesSection } from './SelectionPageComponents';
 const SelectionPage: React.FC = () => {
   const { userDetails, isSuperAdmin } = useUser();
   const [openSnackbar, setOpenSnackbar] = useState(false);
-  const { messages, loading, error, deleteMessage, togglePinMessage } = useMessages();
+  const { messages, loading, deleteMessage, togglePinMessage } = useMessages();
 
   const handleCloseSnackbar = (event: React.SyntheticEvent | Event, reason?: SnackbarCloseReason) => {
     if (reason === 'clickaway') {

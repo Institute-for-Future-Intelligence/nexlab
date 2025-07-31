@@ -18,14 +18,24 @@ import AddMessage from '../components/Messages/AddMessage';
 import EditMessage from '../components/Messages/EditMessage';
 
 // Wrapper for protected routes with error boundaries
-const ProtectedRoute: React.FC<{ element: React.ComponentType }> = ({ element: Component }) => (
+interface ProtectedRouteProps {
+  element: React.ComponentType;
+}
+
+// eslint-disable-next-line react/prop-types
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ element: Component }) => (
   <RouteErrorBoundary>
     <PrivateRoute element={Component} />
   </RouteErrorBoundary>
 );
 
 // Wrapper for public routes with error boundaries  
-const PublicRoute: React.FC<{ element: React.ReactElement }> = ({ element }) => (
+interface PublicRouteProps {
+  element: React.ReactElement;
+}
+
+// eslint-disable-next-line react/prop-types
+const PublicRoute: React.FC<PublicRouteProps> = ({ element }) => (
   <ErrorBoundary>
     {element}
   </ErrorBoundary>

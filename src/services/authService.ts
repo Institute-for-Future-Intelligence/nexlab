@@ -10,7 +10,7 @@ import {
   User as FirebaseUser,
   Auth
 } from 'firebase/auth';
-import { handleAsyncError, ErrorType } from '../utils/errorHandling';
+import { handleAsyncError } from '../utils/errorHandling';
 
 export interface AuthService {
   signInWithGoogle: (keepSignedIn: boolean) => Promise<FirebaseUser>;
