@@ -1,42 +1,33 @@
 // Login/index.tsx
 import { useState } from 'react';
-import { getAuth, signInWithPopup, GoogleAuthProvider, setPersistence, browserLocalPersistence, browserSessionPersistence } from 'firebase/auth';
 import { Button, Typography, Container, Box, Snackbar, Alert, Checkbox, FormControlLabel, Tooltip, Divider, Grid, Link } from '@mui/material';
 import GoogleIcon from '@mui/icons-material/Google';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import { authService } from '../../services/authService';
 
 const Login = () => {
-  const auth = getAuth();
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'info' | 'success' | 'warning'>('success');
   const [keepSignedIn, setKeepSignedIn] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const theme = useTheme();
-  // Call `useMediaQuery` directly without `useMemo`
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  const ERROR_MESSAGES = {
-    network: 'Login Failed: Network error, please check your connection.',
-    popupClosed: 'Login Failed: The sign-in popup was closed before completion.',
-    cancelledRequest: 'Login Failed: Another sign-in request was made before the first one was completed.',
-    popupBlocked: 'Login Failed: The sign-in popup was blocked by the browser. Please allow popups for this site.',
-    unknown: 'Login Failed: An unexpected error occurred.'
-  } as const;
-  
-  type ErrorCode = keyof typeof ERROR_MESSAGES;
-
   const handleGoogleSignIn = async () => {
+    if (loading) return;
+
+    setLoading(true);
     try {
-      await setPersistence(auth, keepSignedIn ? browserLocalPersistence : browserSessionPersistence);
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      await authService.signInWithGoogle(keepSignedIn);
       showSnackbar('Successfully logged in with Google!', 'success');
     } catch (error: unknown) {
-      const code = ((error as Error & { code?: string })?.code as ErrorCode) || 'unknown';
-      const errorMessage = ERROR_MESSAGES[code] || ERROR_MESSAGES.unknown;
+      const errorMessage = error instanceof Error ? error.message : 'Login Failed: An unexpected error occurred.';
       showSnackbar(errorMessage, 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -60,9 +51,25 @@ const Login = () => {
               variant="contained"
               startIcon={<GoogleIcon />}
               onClick={handleGoogleSignIn}
-              sx={{ textTransform: 'none', fontSize: '1rem', minWidth: '250px', boxShadow: 'none', '&:hover': { backgroundColor: '#357ae8', boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.2)', transform: 'scale(1.05)' }, transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out' }}
+              disabled={loading}
+              sx={{ 
+                textTransform: 'none', 
+                fontSize: '1rem', 
+                minWidth: '250px', 
+                boxShadow: 'none', 
+                '&:hover': { 
+                  backgroundColor: '#357ae8', 
+                  boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.2)', 
+                  transform: 'scale(1.05)' 
+                }, 
+                transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
+                '&:disabled': {
+                  backgroundColor: '#ccc',
+                  color: '#999'
+                }
+              }}
             >
-              Google Authentication
+              {loading ? 'Signing in...' : 'Google Authentication'}
             </Button>
             <Typography variant="body2" color="textSecondary" sx={{ marginBottom: 2, textAlign: 'center', maxWidth: 300 }}>
               Note: Your email is only used for Google Authentication. No private information is collected in our database. For more details, please review our{' '}

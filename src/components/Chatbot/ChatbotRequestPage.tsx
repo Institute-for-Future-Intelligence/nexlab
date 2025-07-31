@@ -16,7 +16,7 @@ import { collection, addDoc } from 'firebase/firestore';
 import { getFirestore } from 'firebase/firestore';
 import FileUpload from './FileUpload';
 
-import useMaterials from '../../hooks/useMaterials';
+import { useMaterialsStore } from '../../stores/materialsStore';
 
 const ChatbotRequestPage: React.FC = () => {
   const { userDetails } = useUser();
@@ -31,11 +31,14 @@ const ChatbotRequestPage: React.FC = () => {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
 
-  const { materials, loading: materialsLoading, error: materialsError } = useMaterials(courseId);
+  const { materials, loading: materialsLoading, error: materialsError, fetchMaterials } = useMaterialsStore();
 
   useEffect(() => {
     setMaterialId(''); // Reset materialId whenever courseId changes
-  }, [courseId]);
+    if (courseId) {
+      fetchMaterials(courseId);
+    }
+  }, [courseId, fetchMaterials]);
 
   const handleFileUploadComplete = (newFileUrls: string[]) => {
     setUploadedFileUrls((prevUrls) => [...prevUrls, ...newFileUrls]); // Append new URLs to existing state

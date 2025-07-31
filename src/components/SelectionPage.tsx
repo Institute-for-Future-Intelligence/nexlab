@@ -1,55 +1,19 @@
 // src/components/SelectionPage.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Grid, Card, CardActionArea, CardContent, Typography, Tooltip, Button, Divider, Snackbar, Alert, SnackbarCloseReason } from '@mui/material';
-import MailOutlineIcon from '@mui/icons-material/MailOutline'; // Import the mail icon
-
-import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
-import { getFirestore } from 'firebase/firestore';
-
-import MessagesDisplay, { Message } from './Messages/MessagesDisplay';
-import { useUser } from '../hooks/useUser';
-
+import MailOutlineIcon from '@mui/icons-material/MailOutline';
 import { CircularProgress } from '@mui/material';
+
+import MessagesDisplay from './Messages/MessagesDisplay';
+import { useUser } from '../hooks/useUser';
+import { useMessages } from '../hooks/useMessages';
 
 const SelectionPage: React.FC = () => {
   const navigate = useNavigate();
   const { userDetails, isSuperAdmin } = useUser();
   const [openSnackbar, setOpenSnackbar] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const db = getFirestore();
-
-  const [loading, setLoading] = useState(true); // New state for loading
-
-  useEffect(() => {
-    const cachedMessages = sessionStorage.getItem('messages');
-  
-    if (cachedMessages) {
-      const parsedMessages = JSON.parse(cachedMessages);
-      setMessages(parsedMessages);
-      setLoading(false); // Hide spinner if cache exists
-    }
-  
-    const q = query(collection(db, 'messages'), orderBy('postedOn', 'desc'));
-  
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const messagesList = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      } as Message));
-      
-      setMessages(messagesList);
-      sessionStorage.setItem('messages', JSON.stringify(messagesList)); // Cache messages
-      
-      // Hide spinner only if cache was empty before
-      if (!cachedMessages) {
-        setLoading(false);
-      }
-    });
-  
-    return () => unsubscribe();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Remove 'db' dependency to avoid unnecessary re-fetching
+  const { messages, loading, error, deleteMessage } = useMessages();
 
   const handleCloseSnackbar = (event: React.SyntheticEvent | Event, reason?: SnackbarCloseReason) => {
     if (reason === 'clickaway') {
@@ -59,7 +23,7 @@ const SelectionPage: React.FC = () => {
   };
 
   const handleDeleteMessage = (id: string) => {
-    setMessages(messages.filter(message => message.id !== id));
+    deleteMessage(id);
   };
 
   return (
@@ -269,13 +233,12 @@ const SelectionPage: React.FC = () => {
                 <CircularProgress />
               </Box>
             ) : (
-              <MessagesDisplay
-                messages={messages}
-                userDetails={userDetails}
-                navigate={navigate}
-                handleDeleteMessage={handleDeleteMessage}
-                setMessages={setMessages}
-              />
+                          <MessagesDisplay
+              messages={messages}
+              userDetails={userDetails}
+              navigate={navigate}
+              handleDeleteMessage={handleDeleteMessage}
+            />
             )}
           </Box>
         </Grid>

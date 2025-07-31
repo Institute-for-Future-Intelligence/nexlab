@@ -1,8 +1,6 @@
 // Logout/index.tsx
 import React, { useState } from 'react';
-import { getAuth, signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
-
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -11,6 +9,7 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
+import { authService } from '../../services/authService';
 
 // Define the correct type for the ref prop
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(props, ref) {
@@ -21,9 +20,10 @@ const Logout = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  console.log("Logout loaded")
+  console.log("Logout loaded");
 
   const handleClickOpen = () => {
     setOpenDialog(true);
@@ -33,19 +33,24 @@ const Logout = () => {
     setOpenDialog(false);
   };
   
-  const handleAgree = () => {
-    const auth = getAuth();
-    
-    signOut(auth).then(() => {
+  const handleAgree = async () => {
+    if (loading) return;
+
+    setLoading(true);
+    try {
+      await authService.signOut();
       setOpenDialog(false);
       setOpenSnackbar(true);
       setSnackbarMessage('Logged out successfully');
-      navigate('/'); // Redirect to the login page after logging out
-    }).catch((error) => {
+      navigate('/');
+    } catch (error) {
       setOpenDialog(false);
       setOpenSnackbar(true);
-      setSnackbarMessage('Logout failed: ' + error.message);
-    });
+      const errorMessage = error instanceof Error ? error.message : 'Logout failed: An unexpected error occurred';
+      setSnackbarMessage(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -53,27 +58,32 @@ const Logout = () => {
       <Button 
         variant="outlined" 
         onClick={handleClickOpen}
+        disabled={loading}
         sx={{ 
           fontSize: '1rem',
           fontFamily: 'Staatliches, sans-serif',
           textTransform: 'none',
-          minWidth: '120px', // Adjusted the width to make the button slightly larger
-          color: '#FBFADA', // Updated text color to match your UI
-          borderColor: '#FBFADA', // Border color to match your UI
-          borderRadius: '15px', // Adding border radius for rounded corners
-          backgroundColor: 'transparent', // No background color by default
-          boxShadow: 'none', // No box-shadow initially
+          minWidth: '120px',
+          color: '#FBFADA',
+          borderColor: '#FBFADA',
+          borderRadius: '15px',
+          backgroundColor: 'transparent',
+          boxShadow: 'none',
           '&:hover': {
-            borderColor: '#FFFFFF', // Slightly lighter border on hover
-            backgroundColor: '#ffcdd2', // Light background on hover
-            color: '#c62828', // Updated text color to match your UI
-            boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.2)', // Shadow effect on hover
-            transform: 'scale(1.05)', // Transform effect on hover
+            borderColor: '#FFFFFF',
+            backgroundColor: '#ffcdd2',
+            color: '#c62828',
+            boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.2)',
+            transform: 'scale(1.05)',
+          },
+          '&:disabled': {
+            borderColor: '#ccc',
+            color: '#999',
           },
           transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out, border-color 0.3s ease-in-out, background-color 0.3s ease-in-out',
         }}
       >
-        Logout
+        {loading ? 'Logging out...' : 'Logout'}
       </Button>
       <Dialog
         open={openDialog}
@@ -90,10 +100,10 @@ const Logout = () => {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleAgree} autoFocus>
-            Yes
+          <Button onClick={handleAgree} autoFocus disabled={loading}>
+            {loading ? 'Please wait...' : 'Yes'}
           </Button>
-          <Button onClick={handleDisagree}>No</Button>
+          <Button onClick={handleDisagree} disabled={loading}>No</Button>
         </DialogActions>
       </Dialog>
       <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={() => setOpenSnackbar(false)}>
