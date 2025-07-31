@@ -33,7 +33,7 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  console.log("UserContext loaded");
+
 
   useEffect(() => {
     const unsubscribe = authService.onAuthStateChanged(async (authUser) => {

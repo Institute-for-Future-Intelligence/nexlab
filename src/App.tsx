@@ -10,7 +10,7 @@ import { appTheme } from './config/theme';
 // Import layout and global components
 import DeviceVersion from './components/DeviceVersion';
 import Header from './components/Header';
-import Footer from './components/Dashboard/Footer';
+import Footer from './components/Footer';
 import ChatbotManager from './components/ChatbotIntegration/ChatbotManager';
 import GlobalNotifications from './components/common/GlobalNotifications';
 
@@ -33,15 +33,18 @@ const App = () => {
 
   // Set basename conditionally: /nexlab/ for production, undefined for development
   const basename = import.meta.env.PROD ? '/nexlab' : undefined;
+  
+  // Create stable boolean to prevent Header re-mounting on userDetails changes
+  const isLoggedIn = Boolean(userDetails?.uid);
 
-  console.log("App loaded");
+
 
   return (
     <ThemeProvider theme={appTheme}>
       <CssBaseline />
       <Router basename={basename}>
-        {/* Conditionally render the Header based on whether the user is logged in */}
-        {userDetails && <Header />}
+        {/* Conditionally render the Header based on stable login state */}
+        {isLoggedIn && <Header />}
         <div className="content">
           <Suspense fallback={
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -54,7 +57,7 @@ const App = () => {
         <Footer />
         <DeviceVersion />
         {/* Chatbot Manager */}
-        {userDetails && <ChatbotManager />}
+        {isLoggedIn && <ChatbotManager />}
         {/* Global Notifications */}
         <GlobalNotifications />
       </Router>

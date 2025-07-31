@@ -23,7 +23,7 @@ const Logout = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  console.log("Logout loaded");
+
 
   const handleClickOpen = () => {
     setOpenDialog(true);
