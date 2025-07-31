@@ -3,7 +3,7 @@
 
 import { Divider, Box, Typography } from '@mui/material';
 
-import ReportBugButton from './ReportBugButton';
+import ReportBugButton from './Dashboard/ReportBugButton';
 
 function Footer() {
     return (

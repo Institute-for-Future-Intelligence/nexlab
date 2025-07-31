@@ -34,10 +34,10 @@ interface Props {
   } | null;
   navigate: (path: string) => void;
   handleDeleteMessage: (id: string) => void;
-  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+  togglePinMessage: (messageId: string, currentPinStatus: boolean) => Promise<void>;
 }
 
-const MessagesDisplay: React.FC<Props> = ({ messages, userDetails, navigate, handleDeleteMessage, setMessages }) => {
+const MessagesDisplay: React.FC<Props> = ({ messages, userDetails, navigate, handleDeleteMessage, togglePinMessage }) => {
   const [currentPage, setCurrentPage] = useState(0);
   const messagesPerPage = 3;
 
@@ -114,7 +114,7 @@ const MessagesDisplay: React.FC<Props> = ({ messages, userDetails, navigate, han
                     </Grid>
                     {canEditMessage(message) && (
                       <Grid item>
-                        <PinMessage message={message} messages={messages} setMessages={setMessages} />
+                        <PinMessage message={message} togglePinMessage={togglePinMessage} />
                         <IconButton onClick={() => navigate(`/edit-message/${message.id}`)} sx={{ marginRight: 1 }}>
                           <EditIcon />
                         </IconButton>
@@ -183,7 +183,7 @@ const MessagesDisplay: React.FC<Props> = ({ messages, userDetails, navigate, han
                   </Grid>
                   {canEditMessage(message) && (
                     <Grid item>
-                      <PinMessage message={message} messages={messages} setMessages={setMessages} />
+                      <PinMessage message={message} togglePinMessage={togglePinMessage} />
                       <IconButton onClick={() => navigate(`/edit-message/${message.id}`)} sx={{ marginRight: 1 }}>
                         <EditIcon />
                       </IconButton>

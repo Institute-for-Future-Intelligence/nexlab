@@ -1,52 +1,97 @@
 import React from 'react';
-import { Snackbar, Alert, AlertColor } from '@mui/material';
-import { useNotificationStore, NotificationSeverity } from '../../stores/notificationStore';
+import { 
+  Alert, 
+  AlertTitle, 
+  Button, 
+  Box, 
+  IconButton,
+  Collapse,
+  Paper
+} from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+import { useNotificationStore } from '../../stores/notificationStore';
 
 const GlobalNotifications: React.FC = () => {
   const { notifications, removeNotification } = useNotificationStore();
 
-  const handleClose = (notificationId: string) => {
-    removeNotification(notificationId);
-  };
-
-  const getMuiSeverity = (severity: NotificationSeverity): AlertColor => {
-    // Map our notification severity to MUI Alert severity
-    const severityMap: Record<NotificationSeverity, AlertColor> = {
-      success: 'success',
-      error: 'error', 
-      warning: 'warning',
-      info: 'info'
-    };
-    return severityMap[severity];
-  };
+  if (notifications.length === 0) {
+    return null;
+  }
 
   return (
-    <>
-      {notifications.map((notification, index) => (
-        <Snackbar
+    <Box 
+      sx={{ 
+        position: 'fixed', 
+        top: 16, 
+        right: 16, 
+        zIndex: 9999, 
+        maxWidth: 400,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 1
+      }}
+    >
+      {notifications.map((notification) => (
+        <Collapse
           key={notification.id}
-          open={true}
-          anchorOrigin={{ 
-            vertical: 'bottom', 
-            horizontal: 'right' 
-          }}
-          style={{
-            // Stack multiple notifications
-            bottom: 16 + (notifications.length - index - 1) * 70
-          }}
-          onClose={() => handleClose(notification.id)}
+          in={true}
+          timeout={300}
         >
-          <Alert
-            onClose={() => handleClose(notification.id)}
-            severity={getMuiSeverity(notification.severity)}
-            variant="filled"
-            sx={{ width: '100%' }}
-          >
-            {notification.message}
-          </Alert>
-        </Snackbar>
+          <Paper elevation={6}>
+            <Alert
+              severity={notification.type}
+              sx={{ 
+                width: '100%',
+                '& .MuiAlert-action': {
+                  alignItems: 'flex-start',
+                  padding: '4px 0 0 16px'
+                }
+              }}
+              action={
+                <IconButton
+                  size="small"
+                  onClick={() => removeNotification(notification.id)}
+                  sx={{ color: 'inherit' }}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              }
+            >
+              {notification.title && (
+                <AlertTitle sx={{ fontWeight: 'bold', mb: 0.5 }}>
+                  {notification.title}
+                </AlertTitle>
+              )}
+              {notification.message}
+              
+              {notification.actions && notification.actions.length > 0 && (
+                <Box sx={{ mt: 1.5, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                  {notification.actions.map((action, actionIndex) => (
+                    <Button
+                      key={actionIndex}
+                      size="small"
+                      variant={action.primary ? 'contained' : 'outlined'}
+                      color={notification.type === 'error' ? 'error' : 'primary'}
+                      onClick={() => {
+                        action.action();
+                        removeNotification(notification.id);
+                      }}
+                      sx={{ 
+                        minWidth: 'auto',
+                        fontSize: '0.75rem',
+                        padding: '2px 8px'
+                      }}
+                    >
+                      {action.label}
+                    </Button>
+                  ))}
+                </Box>
+              )}
+            </Alert>
+          </Paper>
+        </Collapse>
       ))}
-    </>
+    </Box>
   );
 };
 
