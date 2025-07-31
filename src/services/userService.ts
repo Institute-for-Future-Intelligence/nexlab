@@ -18,11 +18,10 @@ export interface UserService {
 }
 
 class FirestoreUserService implements UserService {
-  private db: Firestore;
+  private db: Firestore | null = null;
   private publicCourseId: string;
 
   constructor() {
-    this.db = getFirestore();
     this.publicCourseId = import.meta.env.VITE_PUBLIC_COURSE_ID;
     
     if (!this.publicCourseId) {
@@ -30,9 +29,18 @@ class FirestoreUserService implements UserService {
     }
   }
 
+  private initialize() {
+    if (!this.db) {
+      // Import Firebase config to ensure initialization
+      import('../config/firestore');
+      this.db = getFirestore();
+    }
+  }
+
   async getUserDetails(uid: string): Promise<UserDetails | null> {
+    this.initialize();
     try {
-      const userRef = doc(this.db, "users", uid);
+      const userRef = doc(this.db!, "users", uid);
       const userDoc = await getDoc(userRef);
       
       if (!userDoc.exists()) {
@@ -48,9 +56,10 @@ class FirestoreUserService implements UserService {
   }
 
   async createUserDocument(user: FirebaseUser): Promise<UserDetails> {
+    this.initialize();
     try {
       const publicCourse = await this.getPublicCourseInfo();
-      const userRef = doc(this.db, "users", user.uid);
+      const userRef = doc(this.db!, "users", user.uid);
       
       const newUserData = {
         isAdmin: false,
@@ -79,8 +88,9 @@ class FirestoreUserService implements UserService {
   }
 
   async updateUserLogin(uid: string): Promise<void> {
+    this.initialize();
     try {
-      const userRef = doc(this.db, "users", uid);
+      const userRef = doc(this.db!, "users", uid);
       await updateDoc(userRef, { 
         lastLogin: serverTimestamp() 
       });
@@ -95,6 +105,7 @@ class FirestoreUserService implements UserService {
   }
 
   async ensurePublicCourseAccess(uid: string, existingUserDetails: UserDetails): Promise<UserDetails> {
+    this.initialize();
     try {
       // Check if user already has access to public course
       if (existingUserDetails.classes && existingUserDetails.classes[this.publicCourseId]) {
@@ -103,7 +114,7 @@ class FirestoreUserService implements UserService {
       
       // Add public course access
       const publicCourse = await this.getPublicCourseInfo();
-      const userRef = doc(this.db, "users", uid);
+      const userRef = doc(this.db!, "users", uid);
       
       await updateDoc(userRef, {
         [`classes.${this.publicCourseId}`]: publicCourse,
@@ -123,8 +134,9 @@ class FirestoreUserService implements UserService {
   }
 
   private async getPublicCourseInfo() {
+    this.initialize();
     try {
-      const publicCourseRef = doc(this.db, "courses", this.publicCourseId);
+      const publicCourseRef = doc(this.db!, "courses", this.publicCourseId);
       const publicCourseDoc = await getDoc(publicCourseRef);
       
       if (!publicCourseDoc.exists()) {

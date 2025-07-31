@@ -5,7 +5,8 @@ export interface UseMessagesReturn {
   messages: Message[];
   loading: boolean;
   error: string | null;
-  deleteMessage: (id: string) => void;
+  deleteMessage: (id: string) => Promise<void>;
+  togglePinMessage: (messageId: string, currentPinStatus: boolean) => Promise<void>;
   clearError: () => void;
 }
 
@@ -37,9 +38,24 @@ export const useMessages = (): UseMessagesReturn => {
     };
   }, []);
 
-  const deleteMessage = (id: string) => {
-    // Optimistically update the UI
-    setMessages(prevMessages => prevMessages.filter(message => message.id !== id));
+  const deleteMessage = async (id: string): Promise<void> => {
+    try {
+      await messageService.deleteMessage(id);
+      // Real-time listener will update the UI automatically
+    } catch (err) {
+      setError('Failed to delete message');
+      console.error('Error deleting message:', err);
+    }
+  };
+
+  const togglePinMessage = async (messageId: string, currentPinStatus: boolean): Promise<void> => {
+    try {
+      await messageService.togglePinMessage(messageId, currentPinStatus);
+      // Real-time listener will update the UI automatically
+    } catch (err) {
+      setError('Failed to update pin status');
+      console.error('Error toggling pin status:', err);
+    }
   };
 
   const clearError = () => {
@@ -51,6 +67,7 @@ export const useMessages = (): UseMessagesReturn => {
     loading,
     error,
     deleteMessage,
+    togglePinMessage,
     clearError
   };
 }; 

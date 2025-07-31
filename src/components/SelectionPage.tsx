@@ -13,7 +13,7 @@ const SelectionPage: React.FC = () => {
   const navigate = useNavigate();
   const { userDetails, isSuperAdmin } = useUser();
   const [openSnackbar, setOpenSnackbar] = useState(false);
-  const { messages, loading, error, deleteMessage } = useMessages();
+  const { messages, loading, error, deleteMessage, togglePinMessage } = useMessages();
 
   const handleCloseSnackbar = (event: React.SyntheticEvent | Event, reason?: SnackbarCloseReason) => {
     if (reason === 'clickaway') {
@@ -238,6 +238,7 @@ const SelectionPage: React.FC = () => {
               userDetails={userDetails}
               navigate={navigate}
               handleDeleteMessage={handleDeleteMessage}
+              togglePinMessage={togglePinMessage}
             />
             )}
           </Box>

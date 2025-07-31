@@ -19,22 +19,27 @@ export interface AuthService {
 }
 
 class FirebaseAuthService implements AuthService {
-  private auth: Auth;
-  private googleProvider: GoogleAuthProvider;
+  private auth: Auth | null = null;
+  private googleProvider: GoogleAuthProvider | null = null;
 
-  constructor() {
-    this.auth = getAuth();
-    this.googleProvider = new GoogleAuthProvider();
+  private initialize() {
+    if (!this.auth) {
+      // Import Firebase config to ensure initialization
+      import('../config/firestore');
+      this.auth = getAuth();
+      this.googleProvider = new GoogleAuthProvider();
+    }
   }
 
   async signInWithGoogle(keepSignedIn: boolean = true): Promise<FirebaseUser> {
+    this.initialize();
     try {
       // Set persistence based on user preference
       const persistence = keepSignedIn ? browserLocalPersistence : browserSessionPersistence;
-      await setPersistence(this.auth, persistence);
+      await setPersistence(this.auth!, persistence);
       
       // Sign in with popup
-      const result = await signInWithPopup(this.auth, this.googleProvider);
+      const result = await signInWithPopup(this.auth!, this.googleProvider!);
       
       if (!result.user) {
         throw new Error('No user returned from authentication');
@@ -49,19 +54,22 @@ class FirebaseAuthService implements AuthService {
   }
 
   async signOut(): Promise<void> {
+    this.initialize();
     try {
-      await signOut(this.auth);
+      await signOut(this.auth!);
     } catch (error: any) {
       throw new Error('Failed to sign out. Please try again.');
     }
   }
 
   onAuthStateChanged(callback: (user: FirebaseUser | null) => void): () => void {
-    return onAuthStateChanged(this.auth, callback);
+    this.initialize();
+    return onAuthStateChanged(this.auth!, callback);
   }
 
   getCurrentUser(): FirebaseUser | null {
-    return this.auth.currentUser;
+    this.initialize();
+    return this.auth!.currentUser;
   }
 
   private getErrorMessage(errorCode: string): string {

@@ -5,7 +5,10 @@ import {
   orderBy, 
   onSnapshot, 
   Unsubscribe,
-  Firestore 
+  Firestore,
+  doc,
+  updateDoc,
+  deleteDoc
 } from 'firebase/firestore';
 
 export interface Message {
@@ -26,19 +29,30 @@ export interface MessageService {
   getCachedMessages: () => Message[] | null;
   setCachedMessages: (messages: Message[]) => void;
   clearCache: () => void;
+  togglePinMessage: (messageId: string, currentPinStatus: boolean) => Promise<void>;
+  deleteMessage: (messageId: string) => Promise<void>;
 }
 
 class FirestoreMessageService implements MessageService {
-  private db: Firestore;
+  private db: Firestore | null = null;
   private readonly cacheKey = 'messages';
 
   constructor() {
-    this.db = getFirestore();
+    // Do nothing - lazy initialization
+  }
+
+  private initialize() {
+    if (!this.db) {
+      // Import Firebase config to ensure initialization
+      import('../config/firestore');
+      this.db = getFirestore();
+    }
   }
 
   subscribeToMessages(callback: (messages: Message[]) => void): Unsubscribe {
+    this.initialize();
     const q = query(
-      collection(this.db, 'messages'), 
+      collection(this.db!, 'messages'), 
       orderBy('postedOn', 'desc')
     );
 
@@ -86,6 +100,29 @@ class FirestoreMessageService implements MessageService {
       sessionStorage.removeItem(this.cacheKey);
     } catch (error) {
       console.error('Error clearing message cache:', error);
+    }
+  }
+
+  async togglePinMessage(messageId: string, currentPinStatus: boolean): Promise<void> {
+    this.initialize();
+    try {
+      const messageRef = doc(this.db!, 'messages', messageId);
+      await updateDoc(messageRef, { 
+        isPinned: !currentPinStatus 
+      });
+    } catch (error) {
+      console.error('Error toggling pin status:', error);
+      throw error;
+    }
+  }
+
+  async deleteMessage(messageId: string): Promise<void> {
+    try {
+      const messageRef = doc(this.db, 'messages', messageId);
+      await deleteDoc(messageRef);
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      throw error;
     }
   }
 }
