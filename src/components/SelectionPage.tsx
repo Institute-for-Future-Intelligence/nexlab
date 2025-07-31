@@ -4,7 +4,7 @@ import { Box, Grid, Snackbar, Alert, SnackbarCloseReason } from '@mui/material';
 
 import { useUser } from '../hooks/useUser';
 import { useMessages } from '../hooks/useMessages';
-import { NavigationMenu, MessagesSection } from './SelectionPage/';
+import { NavigationMenu, MessagesSection } from './SelectionPageComponents';
 
 const SelectionPage: React.FC = () => {
   const { userDetails, isSuperAdmin } = useUser();
