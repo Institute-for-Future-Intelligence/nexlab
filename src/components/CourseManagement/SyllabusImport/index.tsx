@@ -90,6 +90,8 @@ const SyllabusImport: React.FC<SyllabusImportProps> = ({
     onCancel?.(); // Call the parent cancel handler
   };
 
+
+
   const renderCurrentStep = () => {
     switch (currentStep) {
       case 'upload':
@@ -99,6 +101,7 @@ const SyllabusImport: React.FC<SyllabusImportProps> = ({
             onUploadComplete={() => {
               // Upload completion is handled by the store
             }}
+
           />
         );
 
@@ -124,6 +127,7 @@ const SyllabusImport: React.FC<SyllabusImportProps> = ({
             onUploadComplete={() => {
               // Upload completion is handled by the store
             }}
+
           />
         );
     }
@@ -157,6 +161,8 @@ const SyllabusImport: React.FC<SyllabusImportProps> = ({
           ))}
         </Stepper>
       </Paper>
+
+
 
       {/* Global Error Display */}
       {error && (
