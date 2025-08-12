@@ -17,16 +17,19 @@ import { useSyllabusStore } from '../../../stores/syllabusStore';
 
 interface SyllabusUploadZoneProps {
   onUploadComplete?: (file: File) => void;
+  apiKey?: string; // From environment configuration
 }
 
 const SyllabusUploadZone: React.FC<SyllabusUploadZoneProps> = ({
-  onUploadComplete
+  onUploadComplete,
+  apiKey
 }) => {
   const {
     uploadedFile,
     uploadProgress,
     error,
     isProcessing,
+    useAIProcessing,
     uploadSyllabus,
     setUploadedFile,
     setError
@@ -67,12 +70,12 @@ const SyllabusUploadZone: React.FC<SyllabusUploadZoneProps> = ({
     }
 
     try {
-      await uploadSyllabus(file);
+      await uploadSyllabus(file, apiKey);
       onUploadComplete?.(file);
     } catch (error) {
       console.error('Upload error:', error);
     }
-  }, [uploadSyllabus, onUploadComplete, setError, acceptedTypes, acceptedExtensions]);
+  }, [uploadSyllabus, onUploadComplete, setError, acceptedTypes, acceptedExtensions, apiKey]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -231,7 +234,10 @@ const SyllabusUploadZone: React.FC<SyllabusUploadZoneProps> = ({
             <Box sx={{ mt: 2 }}>
               <LinearProgress sx={{ height: 6, borderRadius: 3 }} />
               <Typography variant="caption" sx={{ mt: 1, display: 'block' }}>
-                Processing syllabus...
+                {useAIProcessing ? 
+                  'AI is analyzing your syllabus...' : 
+                  'Processing syllabus...'
+                }
               </Typography>
             </Box>
           )}

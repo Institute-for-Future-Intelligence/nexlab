@@ -28,6 +28,7 @@
     "@ckeditor/ckeditor5-react": "^6.2.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
+    "@google/generative-ai": "^0.24.1",
     "@mui/icons-material": "^6.2.1",
     "@mui/material": "^6.2.1",
     "@mui/x-date-pickers": "^7.7.0",

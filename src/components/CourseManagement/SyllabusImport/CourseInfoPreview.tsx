@@ -34,7 +34,9 @@ const CourseInfoPreview: React.FC<CourseInfoPreviewProps> = ({
   const {
     parsedCourseInfo,
     editCourseInfo,
-    error
+    error,
+    isProcessing,
+    currentStep
   } = useSyllabusStore();
 
   const [isEditing, setIsEditing] = useState(false);
@@ -44,6 +46,17 @@ const CourseInfoPreview: React.FC<CourseInfoPreviewProps> = ({
     return (
       <Alert severity="warning">
         No course information available. Please upload and process a syllabus first.
+      </Alert>
+    );
+  }
+
+  // Don't show content if still processing - even if we have parsedCourseInfo
+  if (isProcessing || currentStep === 'processing') {
+    return (
+      <Alert severity="info">
+        <Typography variant="body2">
+          📊 Processing complete! Preparing course information for review...
+        </Typography>
       </Alert>
     );
   }
