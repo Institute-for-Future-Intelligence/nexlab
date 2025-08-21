@@ -1,13 +1,13 @@
-// src/components/UserAccount/UserDetailsBox.tsx
 import React from 'react';
-import { Box, Typography, Chip, Divider, Avatar, Paper } from '@mui/material';
+import { Box, Typography, Chip, Divider, Avatar, Paper, Button } from '@mui/material';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import { FirebaseTimestamp, formatFirebaseTimestamp } from '../../types/firebase'; // Import proper types and utilities
+import { useNavigate } from 'react-router-dom'; // 👈 add this import
+import { FirebaseTimestamp, formatFirebaseTimestamp } from '../../types/firebase';
 
 interface UserDetailsBoxProps {
   userDetails: {
     uid: string;
-    lastLogin?: FirebaseTimestamp; // Now properly typed
+    lastLogin?: FirebaseTimestamp;
     classes?: Record<string, { number: string; title: string; isCourseAdmin?: boolean }>;
   };
   getAccountStatus: () => string;
@@ -15,6 +15,8 @@ interface UserDetailsBoxProps {
 }
 
 const UserDetailsBox: React.FC<UserDetailsBoxProps> = ({ userDetails, getAccountStatus, renderCourses }) => {
+  const navigate = useNavigate(); // 👈 hook for navigation
+
   return (
     <Paper
       elevation={3}
@@ -85,7 +87,17 @@ const UserDetailsBox: React.FC<UserDetailsBoxProps> = ({ userDetails, getAccount
 
       {/* Current Courses */}
       <Typography sx={{ fontWeight: 'bold', mb: 1 }}>Current Courses:</Typography>
-      <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>{renderCourses()}</Box>
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 2 }}>{renderCourses()}</Box>
+
+      {/* Action Buttons */}
+      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
+        <Button variant="contained" color="primary" onClick={() => navigate('/update-profile')}>
+          Update Profile
+        </Button>
+        <Button variant="outlined" color="secondary" onClick={() => navigate('/change-password')}>
+          Change Password
+        </Button>
+      </Box>
     </Paper>
   );
 };
