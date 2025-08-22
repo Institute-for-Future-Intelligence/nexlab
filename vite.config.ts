@@ -10,6 +10,10 @@ export default defineConfig(({ command }) => ({
     open: true,
     port: 3001,
     host: true,
+    headers: {
+      'Cross-Origin-Embedder-Policy': 'credentialless',
+      'Cross-Origin-Opener-Policy': 'same-origin',
+    },
   },
   build: {
     outDir: 'dist',
@@ -22,7 +26,9 @@ export default defineConfig(({ command }) => ({
           ui: ['@mui/material', '@mui/icons-material']
         }
       }
-    }
+    },
+    // Ensure the PDF worker is copied during build
+    copyPublicDir: true
   },
   publicDir: 'public' // This ensures files from public/ (including 404.html) are copied to dist/
 }))

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Paper,
@@ -7,12 +7,16 @@ import {
   StepLabel,
   Typography,
   Alert,
-  Button
+  Button,
+  LinearProgress,
+  Chip
 } from '@mui/material';
 import { useSyllabusStore, ParsedCourseInfo, GeneratedMaterial } from '../../../stores/syllabusStore';
+import { getAIConfig, type AIConfig } from '../../../config/aiConfig';
 import SyllabusUploadZone from './SyllabusUploadZone';
 import CourseInfoPreview from './CourseInfoPreview';
 import MaterialsPreview from './MaterialsPreview';
+import AISettingsPanel from './AISettingsPanel';
 
 interface SyllabusImportProps {
   onComplete?: (data: {
@@ -33,8 +37,18 @@ const SyllabusImport: React.FC<SyllabusImportProps> = ({
     generatedMaterials,
     isProcessing,
     error,
+    useAIProcessing,
+    processingProgress,
     reset
   } = useSyllabusStore();
+  
+  const [aiConfig, setAiConfig] = useState<AIConfig | null>(null);
+
+  // Load initial AI configuration
+  React.useEffect(() => {
+    const { config } = getAIConfig();
+    setAiConfig(config);
+  }, []);
 
   const steps = [
     {
@@ -90,7 +104,9 @@ const SyllabusImport: React.FC<SyllabusImportProps> = ({
     onCancel?.(); // Call the parent cancel handler
   };
 
-
+  const handleAIConfigChange = (config: AIConfig) => {
+    setAiConfig(config);
+  };
 
   const renderCurrentStep = () => {
     switch (currentStep) {
@@ -101,7 +117,6 @@ const SyllabusImport: React.FC<SyllabusImportProps> = ({
             onUploadComplete={() => {
               // Upload completion is handled by the store
             }}
-
           />
         );
 
@@ -127,7 +142,6 @@ const SyllabusImport: React.FC<SyllabusImportProps> = ({
             onUploadComplete={() => {
               // Upload completion is handled by the store
             }}
-
           />
         );
     }
@@ -162,7 +176,13 @@ const SyllabusImport: React.FC<SyllabusImportProps> = ({
         </Stepper>
       </Paper>
 
-
+      {/* AI Settings Panel - Show before upload */}
+      {currentStep === 'upload' && (
+        <AISettingsPanel 
+          onConfigChange={handleAIConfigChange}
+          compact={false}
+        />
+      )}
 
       {/* Global Error Display */}
       {error && (
@@ -181,7 +201,10 @@ const SyllabusImport: React.FC<SyllabusImportProps> = ({
       {isProcessing && (
         <Alert severity="info" sx={{ mb: 3 }}>
           <Typography variant="body2">
-            🔄 Processing your syllabus... This may take a moment.
+            {useAIProcessing ? 
+              '🤖 AI is analyzing your syllabus for enhanced data extraction... This may take 10-30 seconds.' :
+              '🔄 Processing your syllabus with pattern-based analysis... This may take a moment.'
+            }
           </Typography>
         </Alert>
       )}

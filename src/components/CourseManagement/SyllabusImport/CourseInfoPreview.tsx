@@ -34,7 +34,9 @@ const CourseInfoPreview: React.FC<CourseInfoPreviewProps> = ({
   const {
     parsedCourseInfo,
     editCourseInfo,
-    error
+    error,
+    isProcessing,
+    currentStep
   } = useSyllabusStore();
 
   const [isEditing, setIsEditing] = useState(false);
@@ -44,6 +46,17 @@ const CourseInfoPreview: React.FC<CourseInfoPreviewProps> = ({
     return (
       <Alert severity="warning">
         No course information available. Please upload and process a syllabus first.
+      </Alert>
+    );
+  }
+
+  // Don't show content if still processing - even if we have parsedCourseInfo
+  if (isProcessing || currentStep === 'processing') {
+    return (
+      <Alert severity="info">
+        <Typography variant="body2">
+          📊 Processing complete! Preparing course information for review...
+        </Typography>
       </Alert>
     );
   }
@@ -264,7 +277,7 @@ const CourseInfoPreview: React.FC<CourseInfoPreviewProps> = ({
           </AccordionSummary>
           <AccordionDetails>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {currentData.schedule.slice(0, 8).map((week, index) => (
+              {currentData.schedule.map((week, index) => (
                 <Paper key={index} sx={{ p: 2, backgroundColor: 'grey.50' }}>
                   <Grid container spacing={2} alignItems="center">
                     <Grid item xs={12} sm={1}>
@@ -307,12 +320,6 @@ const CourseInfoPreview: React.FC<CourseInfoPreviewProps> = ({
                   </Grid>
                 </Paper>
               ))}
-              
-              {currentData.schedule.length > 8 && (
-                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 1 }}>
-                  ... and {currentData.schedule.length - 8} more weeks
-                </Typography>
-              )}
             </Box>
           </AccordionDetails>
         </Accordion>

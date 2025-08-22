@@ -71,8 +71,8 @@ const ViewMaterial: React.FC = () => {
         const prevSection = materialData?.sections[sectionIndex! - 1];
         setSelectedSection({
           sectionIndex: sectionIndex! - 1,
-          subsectionIndex: prevSection?.subsections.length ? prevSection.subsections.length - 1 : undefined,
-          subSubsectionIndex: prevSection?.subsections.length ? prevSection.subsections[prevSection.subsections.length - 1].subSubsections.length - 1 : undefined,
+          subsectionIndex: prevSection?.subsections?.length ? prevSection.subsections.length - 1 : undefined,
+          subSubsectionIndex: prevSection?.subsections?.length ? prevSection.subsections[prevSection.subsections.length - 1]?.subSubsections?.length - 1 : undefined,
         });
       } else if (type === 'footer') {
         setSelectedSection({ sectionIndex: (materialData?.sections.length ?? 1) - 1, type: 'footer' });
@@ -80,21 +80,21 @@ const ViewMaterial: React.FC = () => {
         setSelectedSection({ sectionIndex: (materialData?.sections.length ?? 1) - 1 });
       }
     } else if (direction === 'next') {
-      if (subSubsectionIndex === undefined && subsectionIndex !== undefined && materialData?.sections[sectionIndex ?? 0].subsections[subsectionIndex].subSubsections.length) {
+      if (subSubsectionIndex === undefined && subsectionIndex !== undefined && materialData?.sections[sectionIndex ?? 0]?.subsections?.[subsectionIndex]?.subSubsections?.length) {
         setSelectedSection({ sectionIndex, subsectionIndex, subSubsectionIndex: 0 });
-      } else if (subSubsectionIndex !== undefined && subSubsectionIndex < (materialData?.sections[sectionIndex ?? 0].subsections[subsectionIndex ?? 0].subSubsections.length ?? 1) - 1) {
+      } else if (subSubsectionIndex !== undefined && subSubsectionIndex < (materialData?.sections[sectionIndex ?? 0]?.subsections?.[subsectionIndex ?? 0]?.subSubsections?.length ?? 1) - 1) {
         setSelectedSection({ sectionIndex, subsectionIndex, subSubsectionIndex: subSubsectionIndex + 1 });
-              } else if (subSubsectionIndex !== undefined && subSubsectionIndex === (materialData?.sections[sectionIndex ?? 0].subsections[subsectionIndex ?? 0].subSubsections.length ?? 1) - 1 && (subsectionIndex ?? 0) < (materialData?.sections[sectionIndex ?? 0].subsections.length ?? 1) - 1) {
+              } else if (subSubsectionIndex !== undefined && subSubsectionIndex === (materialData?.sections[sectionIndex ?? 0]?.subsections?.[subsectionIndex ?? 0]?.subSubsections?.length ?? 1) - 1 && (subsectionIndex ?? 0) < (materialData?.sections[sectionIndex ?? 0]?.subsections?.length ?? 1) - 1) {
                   setSelectedSection({ sectionIndex, subsectionIndex: (subsectionIndex ?? 0) + 1 });
-              } else if (subsectionIndex === undefined && materialData?.sections[sectionIndex ?? 0].subsections.length) {
+              } else if (subsectionIndex === undefined && materialData?.sections[sectionIndex ?? 0]?.subsections?.length) {
         setSelectedSection({ sectionIndex, subsectionIndex: 0 });
-              } else if (subsectionIndex !== undefined && subsectionIndex < (materialData?.sections[sectionIndex ?? 0].subsections.length ?? 1) - 1) {
+              } else if (subsectionIndex !== undefined && subsectionIndex < (materialData?.sections[sectionIndex ?? 0]?.subsections?.length ?? 1) - 1) {
         setSelectedSection({ sectionIndex, subsectionIndex: subsectionIndex + 1 });
-                              } else if (subsectionIndex !== undefined && subsectionIndex === (materialData?.sections[sectionIndex ?? 0].subsections.length ?? 1) - 1 && (sectionIndex ?? 0) < (materialData?.sections.length ?? 1) - 1) {
+                              } else if (subsectionIndex !== undefined && subsectionIndex === (materialData?.sections[sectionIndex ?? 0]?.subsections?.length ?? 1) - 1 && (sectionIndex ?? 0) < (materialData?.sections?.length ?? 1) - 1) {
           setSelectedSection({ sectionIndex: (sectionIndex ?? 0) + 1 });
-                              } else if ((sectionIndex ?? 0) < (materialData?.sections.length ?? 1) - 1) {
+                              } else if ((sectionIndex ?? 0) < (materialData?.sections?.length ?? 1) - 1) {
           setSelectedSection({ sectionIndex: (sectionIndex ?? 0) + 1 });
-              } else if (sectionIndex === (materialData?.sections.length ?? 1) - 1 && subsectionIndex === undefined) {
+              } else if (sectionIndex === (materialData?.sections?.length ?? 1) - 1 && subsectionIndex === undefined) {
         setSelectedSection({ sectionIndex: undefined, type: 'footer' });
       }
     }
@@ -215,16 +215,16 @@ const ViewMaterial: React.FC = () => {
                   <Box>
                     {selectedSection.sectionIndex !== undefined && (
                       <>
-                        {selectedSection.subSubsectionIndex !== undefined
-                          ? materialData.sections[selectedSection.sectionIndex].subsections[selectedSection.subsectionIndex!].subSubsections[selectedSection.subSubsectionIndex].images.length > 0 && (
-                            <ImageGallery images={materialData.sections[selectedSection.sectionIndex].subsections[selectedSection.subsectionIndex!].subSubsections[selectedSection.subSubsectionIndex].images} />
+                                                  {selectedSection.subSubsectionIndex !== undefined
+                            ? (materialData.sections[selectedSection.sectionIndex]?.subsections?.[selectedSection.subsectionIndex!]?.subSubsections?.[selectedSection.subSubsectionIndex]?.images?.length || 0) > 0 && (
+                            <ImageGallery images={materialData.sections[selectedSection.sectionIndex]?.subsections?.[selectedSection.subsectionIndex!]?.subSubsections?.[selectedSection.subSubsectionIndex]?.images || []} />
                           )
                           : selectedSection.subsectionIndex !== undefined
-                            ? materialData.sections[selectedSection.sectionIndex].subsections[selectedSection.subsectionIndex].images.length > 0 && (
-                              <ImageGallery images={materialData.sections[selectedSection.sectionIndex].subsections[selectedSection.subsectionIndex].images} />
+                            ? (materialData.sections[selectedSection.sectionIndex]?.subsections?.[selectedSection.subsectionIndex]?.images?.length || 0) > 0 && (
+                              <ImageGallery images={materialData.sections[selectedSection.sectionIndex]?.subsections?.[selectedSection.subsectionIndex]?.images || []} />
                             )
-                            : materialData.sections[selectedSection.sectionIndex].images.length > 0 && (
-                              <ImageGallery images={materialData.sections[selectedSection.sectionIndex].images} />
+                            : (materialData.sections[selectedSection.sectionIndex]?.images?.length || 0) > 0 && (
+                              <ImageGallery images={materialData.sections[selectedSection.sectionIndex]?.images || []} />
                             )}
                       </>
                     )}
@@ -249,9 +249,9 @@ const ViewMaterial: React.FC = () => {
                   <IconButton
                     onClick={() => handleNavigate('next')}
                     disabled={
-                      selectedSection.sectionIndex === materialData.sections.length - 1 &&
+                      selectedSection.sectionIndex === (materialData.sections?.length ?? 1) - 1 &&
                       (selectedSection.subsectionIndex === undefined ||
-                        selectedSection.subsectionIndex === materialData.sections[selectedSection.sectionIndex!].subsections.length - 1) &&
+                        selectedSection.subsectionIndex === (materialData.sections[selectedSection.sectionIndex!]?.subsections?.length ?? 1) - 1) &&
                       selectedSection.type === 'footer'
                     }
                   >

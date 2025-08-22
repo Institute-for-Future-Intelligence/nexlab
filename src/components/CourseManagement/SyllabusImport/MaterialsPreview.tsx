@@ -173,7 +173,7 @@ const MaterialsPreview: React.FC<MaterialsPreviewProps> = ({
                         }
                         label={
                           <Typography variant="caption">
-                            {material.published ? 'Will publish' : 'Draft'}
+                            {material.published ? 'Publish' : 'Draft'}
                           </Typography>
                         }
                         sx={{ mr: 0 }}

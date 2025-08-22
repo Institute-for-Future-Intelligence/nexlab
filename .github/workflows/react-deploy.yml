@@ -32,6 +32,7 @@ jobs:
           VITE_GOOGLE_ANALYTICS_ID: ${{ secrets.VITE_GOOGLE_ANALYTICS_ID }}
           VITE_PUBLIC_COURSE_ID: ${{ secrets.VITE_PUBLIC_COURSE_ID }}
           VITE_CHATBOT_DEFAULT_ID: ${{ secrets.VITE_CHATBOT_DEFAULT_ID }}
+          VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
           VITE_DEPLOY_ENV: 'github'
 
       - name: Deploy to GitHub Pages
