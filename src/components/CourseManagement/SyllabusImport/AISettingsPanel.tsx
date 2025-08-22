@@ -37,7 +37,8 @@ const AISettingsPanel: React.FC<AISettingsPanelProps> = ({
 }) => {
   const { useAIProcessing, setUseAIProcessing } = useSyllabusStore();
   
-  // Remove API key state - it's handled by environment variables
+  const [apiKey, setApiKey] = useState<string>('');
+  const [showApiKey, setShowApiKey] = useState<boolean>(false);
   const [configStatus, setConfigStatus] = useState<{
     isValid: boolean;
     errors: string[];
