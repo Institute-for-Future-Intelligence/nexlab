@@ -117,7 +117,6 @@ const SyllabusImport: React.FC<SyllabusImportProps> = ({
             onUploadComplete={() => {
               // Upload completion is handled by the store
             }}
-            apiKey={aiConfig?.geminiApiKey}
           />
         );
 
@@ -143,7 +142,6 @@ const SyllabusImport: React.FC<SyllabusImportProps> = ({
             onUploadComplete={() => {
               // Upload completion is handled by the store
             }}
-            apiKey={aiConfig?.geminiApiKey}
           />
         );
     }
