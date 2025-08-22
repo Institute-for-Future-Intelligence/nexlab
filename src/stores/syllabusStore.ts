@@ -25,6 +25,18 @@ interface ExtractionMetadata {
   confidence?: number;
 }
 
+// Enhanced progress tracking
+interface ProcessingProgress {
+  stage: 'uploading' | 'extracting' | 'analyzing' | 'generating' | 'complete';
+  percentage: number;
+  currentOperation: string;
+  subSteps?: {
+    current: number;
+    total: number;
+    description: string;
+  };
+}
+
 // Type definitions for material components
 interface ImageItem {
   url: string;
@@ -142,6 +154,7 @@ interface SyllabusState {
   currentStep: 'upload' | 'processing' | 'review' | 'editing' | 'complete';
   isProcessing: boolean;
   error: string | null;
+  processingProgress: ProcessingProgress | null;
   
   // Actions
   setUploadedFile: (file: File | null) => void;
@@ -154,12 +167,13 @@ interface SyllabusState {
   setCurrentStep: (step: SyllabusState['currentStep']) => void;
   setIsProcessing: (processing: boolean) => void;
   setError: (error: string | null) => void;
+  setProcessingProgress: (progress: ProcessingProgress | null) => void;
   
   // Complex actions
-  uploadSyllabus: (file: File, apiKey?: string) => Promise<void>;
+  uploadSyllabus: (file: File) => Promise<void>;
   extractTextFromFile: () => Promise<void>;
-  parseSyllabus: (apiKey?: string) => Promise<void>;
-  generateMaterials: (apiKey?: string) => Promise<void>;
+  parseSyllabus: () => Promise<void>;
+  generateMaterials: () => Promise<void>;
   fallbackParsing: (extractedText: string) => Promise<ParsedCourseInfo>;
   generateFallbackMaterials: (parsedCourseInfo: ParsedCourseInfo) => GeneratedMaterial[];
   editMaterial: (index: number, updates: Partial<GeneratedMaterial>) => void;
@@ -201,6 +215,7 @@ export const useSyllabusStore = create<SyllabusState>()(
         currentStep: 'upload',
         isProcessing: false,
         error: null,
+        processingProgress: null,
         
         // Simple setters
         setUploadedFile: (file) => set({ uploadedFile: file }),
@@ -213,9 +228,10 @@ export const useSyllabusStore = create<SyllabusState>()(
         setCurrentStep: (step) => set({ currentStep: step }),
         setIsProcessing: (processing) => set({ isProcessing: processing }),
         setError: (error) => set({ error }),
+        setProcessingProgress: (progress) => set({ processingProgress: progress }),
         
         // Complex actions
-        uploadSyllabus: async (file: File, apiKey?: string) => {
+        uploadSyllabus: async (file: File) => {
           // Validate file before processing
           const validation = validateFileForExtraction(file);
           if (!validation.isValid) {
@@ -223,6 +239,8 @@ export const useSyllabusStore = create<SyllabusState>()(
             return;
           }
 
+          const estimatedTime = estimateProcessingTime(file);
+          
           set({ 
             uploadedFile: file, 
             uploadProgress: 0, 
@@ -231,28 +249,56 @@ export const useSyllabusStore = create<SyllabusState>()(
               fileName: file.name,
               fileSize: file.size,
               fileType: getFileTypeDescription(file),
-              estimatedProcessingTime: estimateProcessingTime(file)
+              estimatedProcessingTime: estimatedTime
+            },
+            processingProgress: {
+              stage: 'uploading',
+              percentage: 0,
+              
+              currentOperation: 'Preparing file for processing...'
             }
           });
           
           try {
-            // Simulate upload progress
-            for (let i = 0; i <= 100; i += 10) {
-              set({ uploadProgress: i });
-              await new Promise(resolve => setTimeout(resolve, 50));
+            // Simulate upload progress with enhanced feedback
+            for (let i = 0; i <= 100; i += 20) {
+              set({ 
+                uploadProgress: i,
+                processingProgress: {
+                  stage: 'uploading',
+                  percentage: i,
+                  
+                  currentOperation: i === 100 ? 'Upload complete, starting text extraction...' : `Uploading file... ${i}%`
+                }
+              });
+              await new Promise(resolve => setTimeout(resolve, 100));
             }
             
-            set({ currentStep: 'processing', isProcessing: true });
+            set({ 
+              currentStep: 'processing', 
+              isProcessing: true,
+              processingProgress: {
+                stage: 'extracting',
+                percentage: 0,
+                
+                currentOperation: 'Extracting text from document...'
+              }
+            });
+            
             await get().extractTextFromFile();
             
+            // Update progress for analysis phase
+            set({
+              processingProgress: {
+                stage: 'analyzing',
+                percentage: 0,
+                
+                currentOperation: get().useAIProcessing ? 'Analyzing syllabus with AI...' : 'Parsing syllabus content...'
+              }
+            });
+            
             // Now parse the syllabus with appropriate method
-            if (get().useAIProcessing) {
-              // Use AI processing (API key from environment)
-              await get().parseSyllabus(apiKey);
-            } else {
-              // Use pattern-based parsing
-              await get().parseSyllabus();
-            }
+            await get().parseSyllabus();
           } catch (error) {
             set({ 
               error: error instanceof Error ? error.message : 'Failed to upload file',
@@ -292,7 +338,7 @@ export const useSyllabusStore = create<SyllabusState>()(
           }
         },
         
-        parseSyllabus: async (apiKey?: string) => {
+        parseSyllabus: async () => {
           const { extractedText, uploadedFile, useAIProcessing } = get();
           if (!extractedText) {
             set({ error: 'No text to parse' });
@@ -307,11 +353,31 @@ export const useSyllabusStore = create<SyllabusState>()(
             // Use AI processing if enabled
             if (useAIProcessing) {
               try {
-                const geminiService = getGeminiService(apiKey);
+                // Update progress for AI analysis
+                set({
+                  processingProgress: {
+                    stage: 'analyzing',
+                    percentage: 25,
+
+                    currentOperation: 'Sending syllabus to AI for analysis...'
+                  }
+                });
+                
+                const geminiService = getGeminiService(); // API key from environment only
                 const aiResult = await geminiService.processSyllabusText(
                   extractedText,
                   uploadedFile?.name
                 );
+                
+                // Update progress after AI analysis
+                set({
+                  processingProgress: {
+                    stage: 'analyzing',
+                    percentage: 75,
+
+                    currentOperation: 'Processing AI analysis results...'
+                  }
+                });
                 
                 set({ aiExtractedInfo: aiResult });
                 
@@ -360,7 +426,18 @@ export const useSyllabusStore = create<SyllabusState>()(
             }
             
             set({ parsedCourseInfo: parsedInfo });
-            await get().generateMaterials(apiKey);
+            
+            // Update progress for material generation
+            set({
+              processingProgress: {
+                stage: 'generating',
+                percentage: 0,
+
+                currentOperation: 'Generating course materials...'
+              }
+            });
+            
+            await get().generateMaterials();
           } catch (error) {
             set({ 
               error: error instanceof Error ? error.message : 'Failed to parse syllabus',
@@ -469,7 +546,7 @@ export const useSyllabusStore = create<SyllabusState>()(
           };
         },
         
-        generateMaterials: async (apiKey?: string) => {
+        generateMaterials: async () => {
           const { parsedCourseInfo, aiExtractedInfo, useAIProcessing } = get();
           if (!parsedCourseInfo) {
             set({ error: 'No parsed course info available' });
@@ -484,22 +561,27 @@ export const useSyllabusStore = create<SyllabusState>()(
             // Use AI-enhanced material generation if available
             if (useAIProcessing && aiExtractedInfo) {
               try {
-                const geminiService = getGeminiService(apiKey);
+                const geminiService = getGeminiService(); // API key from environment only
                 const aiMaterials = await geminiService.generateCourseMaterials(aiExtractedInfo, {
-                  includeWeeks: 6,
+                  includeWeeks: aiExtractedInfo.schedule.length, // Generate for all weeks/sessions
                   materialTypes: ['overview', 'weekly', 'assignment']
                 });
                 
-                // Convert AI materials to GeneratedMaterial format
-                materials = aiMaterials.map((material: any) => ({
-                  id: material.id || generateId(),
-                  title: material.title,
-                  header: material.header || { title: "Header", content: `<p>${material.title}</p>` },
-                  footer: material.footer || { title: "Footer", content: "<p>Contact instructor for questions</p>" },
-                  sections: material.sections || [],
-                  published: material.published || false,
-                  scheduledTimestamp: material.scheduledTimestamp ? new Date(material.scheduledTimestamp) : undefined
-                }));
+                // Convert AI materials to GeneratedMaterial format if we got valid results
+                if (aiMaterials && aiMaterials.length > 0) {
+                  materials = aiMaterials.map((material: any) => ({
+                    id: material.id || generateId(),
+                    title: material.title || 'Generated Material',
+                    header: material.header || { title: "Header", content: `<p>${material.title || 'Material'}</p>` },
+                    footer: material.footer || { title: "Footer", content: "<p>Contact instructor for questions</p>" },
+                    sections: material.sections || [],
+                    published: material.published || false,
+                    scheduledTimestamp: material.scheduledTimestamp ? new Date(material.scheduledTimestamp) : undefined
+                  }));
+                } else {
+                  console.warn('AI material generation returned empty results, using fallback');
+                  materials = get().generateFallbackMaterials(parsedCourseInfo);
+                }
               } catch (aiError) {
                 console.warn('AI material generation failed, using fallback:', aiError);
                 materials = get().generateFallbackMaterials(parsedCourseInfo);
@@ -511,7 +593,13 @@ export const useSyllabusStore = create<SyllabusState>()(
             set({ 
               generatedMaterials: materials, 
               isProcessing: false, 
-              currentStep: 'review' 
+              currentStep: 'review',
+              processingProgress: {
+                stage: 'complete',
+                percentage: 100,
+
+                currentOperation: 'Processing complete! Review your course materials below.'
+              }
             });
           } catch (error) {
             set({ 

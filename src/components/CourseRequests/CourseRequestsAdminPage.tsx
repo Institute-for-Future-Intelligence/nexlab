@@ -117,7 +117,21 @@ const CourseRequestsAdminPage: React.FC = () => {
             title: material.title || 'Untitled Material',
             header: material.header || { title: '', content: '' },
             footer: material.footer || { title: '', content: '' },
-            sections: material.sections || [],
+            sections: (material.sections || []).map(section => ({
+              ...section,
+              images: section.images || [],
+              links: section.links || [],
+              subsections: (section.subsections || []).map(subsection => ({
+                ...subsection,
+                images: subsection.images || [],
+                links: subsection.links || [],
+                subSubsections: (subsection.subSubsections || []).map(subSubsection => ({
+                  ...subSubsection,
+                  images: subSubsection.images || [],
+                  links: subSubsection.links || []
+                }))
+              }))
+            })),
             published: true, // Materials from syllabus are published by default
             course: courseDocRef.id, // Changed from courseId to course
             author: currentRequestData.uid, // Changed from createdBy to author

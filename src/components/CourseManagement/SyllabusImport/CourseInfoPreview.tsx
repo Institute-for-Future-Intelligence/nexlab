@@ -277,7 +277,7 @@ const CourseInfoPreview: React.FC<CourseInfoPreviewProps> = ({
           </AccordionSummary>
           <AccordionDetails>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {currentData.schedule.slice(0, 8).map((week, index) => (
+              {currentData.schedule.map((week, index) => (
                 <Paper key={index} sx={{ p: 2, backgroundColor: 'grey.50' }}>
                   <Grid container spacing={2} alignItems="center">
                     <Grid item xs={12} sm={1}>
@@ -320,12 +320,6 @@ const CourseInfoPreview: React.FC<CourseInfoPreviewProps> = ({
                   </Grid>
                 </Paper>
               ))}
-              
-              {currentData.schedule.length > 8 && (
-                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 1 }}>
-                  ... and {currentData.schedule.length - 8} more weeks
-                </Typography>
-              )}
             </Box>
           </AccordionDetails>
         </Accordion>

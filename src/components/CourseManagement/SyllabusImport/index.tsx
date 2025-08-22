@@ -7,7 +7,9 @@ import {
   StepLabel,
   Typography,
   Alert,
-  Button
+  Button,
+  LinearProgress,
+  Chip
 } from '@mui/material';
 import { useSyllabusStore, ParsedCourseInfo, GeneratedMaterial } from '../../../stores/syllabusStore';
 import { getAIConfig, type AIConfig } from '../../../config/aiConfig';
@@ -36,6 +38,7 @@ const SyllabusImport: React.FC<SyllabusImportProps> = ({
     isProcessing,
     error,
     useAIProcessing,
+    processingProgress,
     reset
   } = useSyllabusStore();
   

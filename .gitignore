@@ -25,3 +25,6 @@ dist-ssr
 *.sw?
 
 .env
+
+# Auto-generated PDF.js worker
+public/js/

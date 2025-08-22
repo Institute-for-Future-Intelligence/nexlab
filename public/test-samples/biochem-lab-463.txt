@@ -1,0 +1,86 @@
+CHE 463	Biochemistry Laboratory	Koeppe and Bendinskas
+L5M, L51, L60	                                                                    Fall 2021
+
+Instructors: Drs. Julia Koeppe and Kestutis Bendinskas
+Laboratory: Shineman 112, M 1:50-4:45 pm, 5:30-8:25 pm, T 2:20-5:15 pm
+Office Hours: walk-in or by appointment, 231 or 360 Shineman
+Email: julia.koeppe@oswego.edu, kestutis.bendinskas@oswego.edu
+
+Course Description:
+The laboratory will cover selected techniques of modern protein biochemistry. Part of the semester will be devoted to a research-style series of experiments in which you will study enzymes of unknown function in order to determine their function.
+
+Learning Objectives:
+Development of experimental techniques related to proteins.
+Development of writing strategies for scientific papers.
+Exposure to the scientific literature and searching capabilities.
+Development of multi-tasking skills.
+Integration of research into the teaching lab through inquiry-based experiments.
+Introduction to modeling of protein structures and substrate binding.
+Development of your ability to work as part of a collaborative group.
+Development of you as a scientist (meaning the ability to develop experimental protocols, troubleshooting those protocols, and the analysis of your experimental data).
+
+Required Materials: 
+Safety glasses or goggles and a laboratory notebook are required; these can be purchased at the college bookstore. A laptop computer is required for the computational experiments. Students will be working in pairs, so only one of the pair needs to bring a computer (but both may). Instructions for downloading and installing the required computational software will be provided during the first lab period.
+
+Experiment Handouts:
+There is no required textbook.  Handouts on all experiments – developed by Drs. Koeppe, Bendinskas, and collaborators – will be used. A handout and all ancillary materials on each experiment will be posted on Blackboard or sent by email prior to the date of the experiment.
+
+Safety: 
+Safety in the laboratory is our prime concern. Accidents can and do happen; in order to minimize the probability of accidents and to limit damage in case an accident happens, you are required to follow and apply all the safety rules and guidelines provided in the syllabus, covered by the safety assignment, and those specifically related to each experiment as per each experiment's handout.
+
+Many accidents result from individuals not following instructions. The greatest contribution you can make to lab safety is to read carefully every experiment handout before you begin and pay attention to what you are doing at all times. Take your safety very seriously. 
+A few essential safety considerations:
+Eye protection is essential.  Eye protection must be worn at all times during the lab period for wet labs.  If at any time during the experiments you do not have your eye protection on your eyes, you will be given one warning.  The second time you are noticed, you will be asked to leave and will receive a grade of "0" for that portion of the experiment.  The inconvenience of eye protection is well worth the preservation of your eyesight.
+Open-toed shoes, sandals, and bare feet are not ever permitted in the laboratory.  You must wear closed-toe shoes in the laboratory at all times.
+No shorts or short skirts.  Although shorts and skirts are tempting at the beginning of the semester, long pants provide more protection. Your legs must be covered.
+Face masks that cover the nose and mouth must be worn at all times when in the lab. If you come to class without a mask, you will be asked to put one on (there will be some masks available if you do not have your own). If you refuse to wear a mask, you will be asked to leave and will receive a zero for the missed experiment.
+While some of our labs are "dry" and will not require the use of chemicals, you will still be working in a lab setting and should follow these safety considerations.
+
+Academic Honesty:
+Plagiarism/academic dishonesty of any kind will result in the harshest penalty that we can pursue under college regulations.  If you are not sure what constitutes academic dishonesty in a specific setting, just ask and we can consider examples.  Failure to cite properly work from books and the literature IS academic dishonesty!
+
+Grading:
+Your grade in this course will be determined using pre- or post-lab questions and assignments, oral presentations, formal lab reports, and lab attitude (including timeliness, effort, communication, and participation). Additional assignments may be made at the instructors' discretion and will be added to the overall point total for the course. The approximate point breakdown is listed below:
+
+		Lab questions/assignments: 		10%
+		Lab reports:				55%
+		Oral presentation			15%
+		Lab attitude:				20%
+		Total:					100%
+
+Grading scale:
+
+
+Lab questions/assignments:
+There will be some lab assignments consisting of prelab or postlab questions to answer regarding various aspects of the laboratory protocols. You may work together to answer these questions, but each student is responsible for completing their own assignment. Any answers that have been copied directly from another source (even the provided lab handouts!) will be awarded zero credit.
+
+Lab reports:
+You will write four formal lab reports about the experiments that you complete this semester. The details of what should be included in each report will be provided in the lab handouts on Blackboard or via email. Your instructor will also provide the grading guidelines for each report. Multi-week experiments will have 1.5x or 2x weight, whereas single week experiments will have 1x weight. Although this varies from field to field, manuscripts here should be written in the third person passive voice. A full report should consist of (in order): title and authors, abstract, introduction, materials and methods, results, discussion, and references. Some reports will require presentation of data while others will also require data analysis. Data should be reported efficiently and in a manner that aids in communication of the science. All manuscripts will be graded on the information asked for, completeness, accuracy, presentation and/or analysis of the data, formatting, grammar, punctuation, spelling, and appropriate referencing. We will post a few example reports and articles from the journal Biochemistry on Blackboard for you to use as a guide. Some reports may be written with your lab partner, and your instructor will provide more guidance on this.
+
+Requirements for lab reports:
+All reports are due at the beginning of lab on the due date. Any reports turned in one day to one week after the due date will be considered late and penalized at the rate of 10%. No lab reports will be accepted if they are more than one week late.
+All reports must be typed. We will not accept hand-written reports.
+Your instructor will advise you on whether lab reports should be submitted in hard copy or electronically. 
+
+Oral presentation:
+At the end of the semester you will be giving an oral presentation to report on your progress in studying an enzyme of unknown function. This presentation will be completed and presented with your lab partner. The presentation will be given during the last lab period of the semester. Information about the presentation and a grading rubric will be provided on Blackboard or via email.
+
+Lab notebook:
+Each student is expected to keep a lab notebook. These will be checked regularly, and you should include copies of relevant notebook pages with each report. You should write a plan for each lab period that includes relevant safety information prior to coming to lab (you do not need to rewrite full procedures in your notebook as long as you have lab handouts available). While in the lab, all data and observations should be recorded in your notebook, and you should write a description of the actual procedure that you follow while you are completing your experiments. Someone reading your notebook should be able to complete the experiment without having to refer to any other sources. You should not write data or observations on scratch paper, post-it notes, paper towels, pieces of tape, etc. while in the lab. Everything should be recorded in your lab notebook. Notebooks may be collected in the final week of lab for final grading.
+
+Attendance and attitude grade:
+There will be an attendance and "attitude" grade in this course. As lab work is hands-on, attending lab is mandatory. There are NO MAKE-UP LABS.  If you anticipate an absence from a lab session, notify your instructor by email prior to your absence. You will be graded on your use of proper laboratory techniques and practices; your preparedness for experiments; your overall attitude toward your lab instructor; your ability to work with others; punctuality; cleanliness; and co-management of the use of the lab as explained hereafter. The instructor will appoint one student per lab period to keep a tab on proper use of common reagents, to check that all instruments are turned off at the end of the lab period, to see that no glassware is left on tables or next to the sink, and some other specific items applicable to individual experiments.
+
+Group work:
+Some lab work this semester will be done in pairs (or groups of three, as needed). This may include assignments, presentations, and lab reports in addition to the in-lab experiments. All group members are expected to attend all meetings of the laboratory and contribute to group work. Being a fully active, respectful, and responsible participant in all group work (from inception to completion) is a large portion of your lab attitude grade.   
+
+College Policies:
+If you have a disabling condition, which may interfere with your ability to successfully complete this course, please contact the office of Accessibility Resources (https://www.oswego.edu/accessibility-resources/).
+We are committed to Intellectual Integrity.  Any form of intellectual dishonesty is prohibited, and will be dealt with according to College policies posted at https://www.oswego.edu/intellectual-integrity/.
+SUNY Oswego is committed to enhancing the safety and security of the campus for all its members. In support of this, faculty may be required to report their knowledge of certain crimes or harassment. Reportable incidents include harassment on the basis of sex or gender prohibited by Title IX and crimes covered by the Clery Act. For more information about Title IX protections, go to https://www.oswego.edu/title-ix/ or contact the Title IX Coordinator, 405 Culkin Hall, 315-312-5604, titleix@oswego.edu. For more information about the Clery Act and campus reporting, go to the University Police annual report: https://www.oswego.edu/police/annual-report. 
+Stress is a normal and important part of our human experience. However, there are times when your stress will exceed your coping skills and resources. The changes that we have experienced due to the COVID-19 pandemic have impacted us all in various ways and are expected to continue to do so for the foreseeable future. Your health and well-being are critical components in your ability to learn. If you find that you are struggling to engage and function, please reach out. Resources are available, including Counseling Services, oswego.edu/csc, which provides brief and confidential counseling support to enrolled students (covered by your student health fee.) After-hours crisis coverage is available by calling Counseling Services at 315.312.4416 and listening to the available options. The CrisisTextLine can be accessed by texting GOT5U to 741741. Lastly, the Oz Concern Navigator, oswego.concerncenter.com, is now available to point you to additional resources to help you address your concerns.
+APPROXIMATE LABORATORY TIME LINE FOR THE SEMESTER
+
+Notes: 
+Biochemical research may require one to return to the lab outside of the scheduled lab time. We will let you know each week if you need to return to the lab to finish a task or start something for the coming week.
+This schedule is approximate and may change due to unforeseen circumstances.

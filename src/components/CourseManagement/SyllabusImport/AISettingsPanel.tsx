@@ -27,7 +27,7 @@ import { getAIConfig, validateAIConfig, type AIConfig } from '../../../config/ai
 import { useSyllabusStore } from '../../../stores/syllabusStore';
 
 interface AISettingsPanelProps {
-  onConfigChange?: (config: AIConfig & { apiKey?: string }) => void;
+  onConfigChange?: (config: AIConfig) => void;
   compact?: boolean;
 }
 
@@ -37,8 +37,7 @@ const AISettingsPanel: React.FC<AISettingsPanelProps> = ({
 }) => {
   const { useAIProcessing, setUseAIProcessing } = useSyllabusStore();
   
-  const [apiKey, setApiKey] = useState<string>('');
-  const [showApiKey, setShowApiKey] = useState<boolean>(false);
+  // API key is now handled entirely through environment variables
   const [configStatus, setConfigStatus] = useState<{
     isValid: boolean;
     errors: string[];

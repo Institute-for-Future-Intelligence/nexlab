@@ -30,6 +30,7 @@ const SyllabusUploadZone: React.FC<SyllabusUploadZoneProps> = ({
     error,
     isProcessing,
     useAIProcessing,
+    processingProgress,
     uploadSyllabus,
     setUploadedFile,
     setError
@@ -229,16 +230,49 @@ const SyllabusUploadZone: React.FC<SyllabusUploadZoneProps> = ({
             </Box>
           )}
           
-          {/* Processing Indicator */}
+          {/* Enhanced Processing Indicator */}
           {isProcessing && (
             <Box sx={{ mt: 2 }}>
-              <LinearProgress sx={{ height: 6, borderRadius: 3 }} />
-              <Typography variant="caption" sx={{ mt: 1, display: 'block' }}>
-                {useAIProcessing ? 
-                  'AI is analyzing your syllabus...' : 
-                  'Processing syllabus...'
-                }
-              </Typography>
+              {processingProgress ? (
+                <>
+                  {/* Stage indicator */}
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                    <Chip 
+                      label={processingProgress.stage.charAt(0).toUpperCase() + processingProgress.stage.slice(1)}
+                      size="small"
+                      color="primary"
+                      variant="outlined"
+                    />
+                    <Typography variant="caption" color="text.secondary">
+                      {processingProgress.percentage}%
+                    </Typography>
+                  </Box>
+                  
+                  {/* Progress bar */}
+                  <LinearProgress 
+                    variant="determinate" 
+                    value={processingProgress.percentage}
+                    sx={{ height: 6, borderRadius: 3, mb: 1 }} 
+                  />
+                  
+                  {/* Current operation */}
+                  <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
+                    {processingProgress.currentOperation}
+                  </Typography>
+                  
+
+                </>
+              ) : (
+                <>
+                  <LinearProgress sx={{ height: 6, borderRadius: 3 }} />
+                  <Typography variant="caption" sx={{ mt: 1, display: 'block' }}>
+                    {useAIProcessing ? 
+                      'AI is analyzing your syllabus...' : 
+                      'Processing syllabus...'
+                    }
+                  </Typography>
+                </>
+              )}
             </Box>
           )}
         </Paper>

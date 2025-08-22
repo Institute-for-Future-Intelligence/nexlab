@@ -140,9 +140,9 @@ const RequestNewCourseForm: React.FC = () => {
   };
 
   const handleSyllabusComplete = (data: { courseInfo: ParsedCourseInfo; materials: GeneratedMaterial[] }) => {
-    // The course info is already populated via useEffect
-    // Just show a success message or continue with the flow
     console.log('Syllabus import completed:', data);
+    // Automatically trigger course creation when syllabus import is complete
+    handleRequestNewCourse();
   };
 
   const handleRequestNewCourse = async () => {
