@@ -1,6 +1,6 @@
 // src/components/Supplemental/AddMaterialForm.tsx
-import React, { useState, useEffect } from 'react';
-import { Box, TextField, Button, Snackbar, Alert, Typography, IconButton, Tooltip } from '@mui/material';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
+import { Box, TextField, Button, Snackbar, Alert, Typography, IconButton, Tooltip, ToggleButton, ToggleButtonGroup, Paper, Divider, CircularProgress } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { getFirestore, collection, addDoc, updateDoc, doc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { useUser } from '../../hooks/useUser';
@@ -24,6 +24,10 @@ import TextEditor from './TextEditor';
 import SimpleTextEditor from './SimpleTextEditor';
 import CourseDropdown from './CourseDropdown';
 import DateTimePickerComponent from './DateTimePickerComponent';
+import { Edit as ManualIcon, AutoAwesome as AIIcon } from '@mui/icons-material';
+
+// Lazy load AI import wrapper component
+const MaterialImportWrapper = lazy(() => import('./MaterialImport/MaterialImportWrapper'));
 
 interface AddMaterialFormProps {
   materialData?: Material;
@@ -57,6 +61,9 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData }) => {
 
   const [scheduledTimestamp, setScheduledTimestamp] = useState<Date | null>(materialData?.scheduledTimestamp?.toDate() || null);
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
+  
+  // AI Import functionality
+  const [importMode, setImportMode] = useState<'manual' | 'ai'>('manual');
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -355,237 +362,337 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData }) => {
     setSections(newSections);
   };
 
+  // Handle AI Import mode switching
+  const handleImportModeChange = (event: React.MouseEvent<HTMLElement>, newMode: 'manual' | 'ai' | null) => {
+    if (newMode !== null) {
+      setImportMode(newMode);
+    }
+  };
+
+  // Handle material ready from AI import
+  const handleMaterialReady = (materialData: Omit<Material, 'id' | 'timestamp'>) => {
+    // Populate the form with AI-generated data
+    setTitle(materialData.title);
+    setHeader(materialData.header);
+    setFooter(materialData.footer);
+    setSections(materialData.sections);
+    setCourse(materialData.course);
+    
+    // Switch back to manual mode for editing
+    setImportMode('manual');
+    
+    // Show success message
+    setSnackbarMessage('Material imported successfully! You can now edit and save it.');
+    setSnackbarSeverity('success');
+    setOpenSnackbar(true);
+    
+    // Auto-select first section for editing
+    setSelectedSection({ sectionIndex: 0 });
+  };
+
+  // Handle AI import cancellation
+  const handleImportCancel = () => {
+    setImportMode('manual');
+  };
+
   return (
     <Box sx={{ display: 'flex', flexGrow: 1, flexDirection: 'column' }}>
       <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
         <Box sx={{ width: '450px', ml: 2, mt: 2 }}>
           <BackToAllMaterialsButton />
         </Box>
-        <Box sx={{ display: 'flex', flexGrow: 1 }}>
-          <SideBar
-            sections={sections}
-            selected={selectedSection}
-            onAddSection={handleAddSection}
-            onAddSubsection={handleAddSubsection}
-            onAddSubSubsection={handleAddSubSubsection} // Add this line
-            onSelectSection={handleSelectSection}
-            onUpdateSectionTitle={handleUpdateSectionTitle}
-            onUpdateSubsectionTitle={handleUpdateSubsectionTitle}
-            onUpdateSubSubsectionTitle={handleUpdateSubSubsectionTitle} // Add this line
-            onDeleteSection={handleDeleteSection} // Pass delete section handler
-            onDeleteSubsection={handleDeleteSubsection} // Pass delete subsection handler
-            onDeleteSubSubsection={handleDeleteSubSubsection} // Add this line
-          />
-          <Box sx={{ flexGrow: 1, padding: 3 }}>
-            <TextField
-              label="Material Title"
-              variant="outlined"
-              fullWidth
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              sx={{ mb: 2 }}
-            />
-            <CourseDropdown value={course} onChange={setCourse} />
-            {scheduledTimestamp && (
-              <Typography variant="body1" gutterBottom>
-                Scheduled Publish Date & Time: {scheduledTimestamp.toLocaleString()}
+        
+        {/* Import Mode Toggle */}
+        <Paper elevation={2} sx={{ mx: 2, mt: 2, p: 2 }}>
+          <Typography variant="h6" gutterBottom>
+            📝 Create Material
+          </Typography>
+          <ToggleButtonGroup
+            value={importMode}
+            exclusive
+            onChange={handleImportModeChange}
+            aria-label="import mode"
+            fullWidth
+            sx={{ mb: 2 }}
+          >
+            <ToggleButton value="manual" aria-label="manual creation">
+              <ManualIcon sx={{ mr: 1 }} />
+              Manual Creation
+            </ToggleButton>
+            <ToggleButton value="ai" aria-label="ai import">
+              <AIIcon sx={{ mr: 1 }} />
+              AI Import
+            </ToggleButton>
+          </ToggleButtonGroup>
+          
+          {importMode === 'ai' && (
+            <Alert severity="info" sx={{ mb: 2 }}>
+              <Typography variant="body2">
+                Upload your presentation, document, or material and let AI automatically structure it into course content.
               </Typography>
-            )}
-            <Box sx={{ border: selectedSection.type === 'header' ? '2px solid blue' : 'none', borderRadius: 1, padding: 2, mb: 2 }}>
-              <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <Typography variant="h6" sx={{ color: 'gray', textAlign: 'center' }}>Header</Typography>
-              </Box>
-              <SimpleTextEditor content={header.content} onChange={handleUpdateHeaderContent} />
-            </Box>
-            <Typography variant="h4" align="center" gutterBottom>
-              {currentTitle}
-            </Typography>
-            {selectedSection.type !== 'header' && selectedSection.type !== 'footer' && (
-              <>
-                <TextEditor
-                  key={`${selectedSection.sectionIndex}-${selectedSection.subsectionIndex}-${selectedSection.subSubsectionIndex}`}
-                  content={currentContent}
-                  onChange={(content) => handleUpdateContent(
-                    selectedSection.sectionIndex!,
-                    content,
-                    selectedSection.subsectionIndex,
-                    selectedSection.subSubsectionIndex
-                  )}
-                />
-                <ImageUpload
-                  sectionId={
-                    selectedSection.sectionIndex !== undefined
-                      ? selectedSection.subSubsectionIndex !== undefined && selectedSection.subsectionIndex !== undefined
-                        ? sections[selectedSection.sectionIndex]?.subsections?.[selectedSection.subsectionIndex]?.subSubsections?.[selectedSection.subSubsectionIndex]?.id || ''
-                        : selectedSection.subsectionIndex !== undefined
-                          ? sections[selectedSection.sectionIndex]?.subsections?.[selectedSection.subsectionIndex]?.id || ''
-                          : sections[selectedSection.sectionIndex]?.id || ''
-                      : ''
-                  }
-                  onImagesUploaded={(urls) => handleImagesUploaded(
-                    selectedSection.sectionIndex!,
-                    urls,
-                    selectedSection.subsectionIndex,
-                    selectedSection.subSubsectionIndex
-                  )}
-                />
-                {(selectedSection.subSubsectionIndex !== undefined
-                  ? sections[selectedSection.sectionIndex!]?.subsections?.[selectedSection.subsectionIndex!]?.subSubsections?.[selectedSection.subSubsectionIndex]?.images || []
-                  : selectedSection.subsectionIndex !== undefined
-                    ? sections[selectedSection.sectionIndex!]?.subsections?.[selectedSection.subsectionIndex]?.images || []
-                    : sections[selectedSection.sectionIndex!]?.images || []
-                ).map((image, index) => (
-                  <Box key={index} sx={{ position: 'relative', mt: 2 }}>
-                    <img src={image.url} alt={`Section ${selectedSection.sectionIndex! + 1} Image ${index + 1}`} style={{ maxWidth: '50%', marginBottom: '16px' }} />
-                    <ImageTitle
-                      imageTitle={image.title}
-                      onTitleChange={(newTitle) => {
-                        const newSections = [...sections];
-
-                        // Check each level of the nested structure before assigning
-                        if (selectedSection.sectionIndex !== undefined) {
-                          if (selectedSection.subSubsectionIndex !== undefined && selectedSection.subsectionIndex !== undefined) {
-                            const subSubsections = newSections[selectedSection.sectionIndex].subsections?.[selectedSection.subsectionIndex]?.subSubsections;
-                            if (subSubsections && subSubsections[selectedSection.subSubsectionIndex]) {
-                              subSubsections[selectedSection.subSubsectionIndex].images[index].title = newTitle;
-                            }
-                          } else if (selectedSection.subsectionIndex !== undefined) {
-                            const subsections = newSections[selectedSection.sectionIndex].subsections;
-                            if (subsections && subsections[selectedSection.subsectionIndex]) {
-                              subsections[selectedSection.subsectionIndex].images[index].title = newTitle;
-                            }
-                          } else {
-                            newSections[selectedSection.sectionIndex].images[index].title = newTitle;
-                          }
-                        }
-
-                        setSections(newSections);
-                      }}
-                    />
-                    <IconButton
-                      sx={{ position: 'absolute', top: 0, right: 0, backgroundColor: 'rgba(255, 255, 255, 0.7)' }}
-                      onClick={() => handleDeleteImage(selectedSection.sectionIndex!, image.url, selectedSection.subsectionIndex, selectedSection.subSubsectionIndex)}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
+            </Alert>
+          )}
+        </Paper>
+        
+        {/* Conditional Content Based on Import Mode */}
+        <>
+          {importMode === 'ai' ? (
+            <Box sx={{ flexGrow: 1, p: 2 }}>
+              <Suspense 
+                fallback={
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
+                    <CircularProgress />
+                    <Typography variant="body2" sx={{ ml: 2 }}>
+                      Loading AI Import...
+                    </Typography>
                   </Box>
-                ))}
-                <LinkManager
-                  links={
-                    selectedSection.sectionIndex !== undefined
-                      ? selectedSection.subSubsectionIndex !== undefined && selectedSection.subsectionIndex !== undefined
-                        ? sections[selectedSection.sectionIndex]?.subsections?.[selectedSection.subsectionIndex]?.subSubsections?.[selectedSection.subSubsectionIndex]?.links || []
-                        : selectedSection.subsectionIndex !== undefined
-                          ? sections[selectedSection.sectionIndex]?.subsections?.[selectedSection.subsectionIndex]?.links || []
-                          : sections[selectedSection.sectionIndex]?.links || []
-                      : []
-                  }
-                  onLinksChange={(newLinks) => handleLinksChange(
-                    selectedSection.sectionIndex!,
-                    newLinks,
-                    selectedSection.subsectionIndex,
-                    selectedSection.subSubsectionIndex
-                  )}
-                />
-              </>
-            )}
-            <Box sx={{ border: selectedSection.type === 'footer' ? '2px solid blue' : 'none', borderRadius: 1, padding: 2, mt: 2 }}>
-              <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <Typography variant="h6" sx={{ color: 'gray', textAlign: 'center' }}>Footer</Typography>
-              </Box>
-              <SimpleTextEditor content={footer.content} onChange={handleUpdateFooterContent} />
-            </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Tooltip title="Previous Section/Subsection (Left Arrow)" arrow>
-                <span>
-                  <IconButton
-                    onClick={() => handleNavigate('prev')}
-                    disabled={selectedSection.sectionIndex === 0 && selectedSection.subsectionIndex === undefined && selectedSection.type === 'header'}
-                  >
-                    <ArrowBackIosIcon />
-                  </IconButton>
-                </span>
-              </Tooltip>
-              <Tooltip title="Next Section/Subsection (Right Arrow)" arrow>
-                <span>
-                  <IconButton
-                    onClick={() => handleNavigate('next')}
-                    disabled={
-                      selectedSection.sectionIndex === sections.length - 1 &&
-                      (selectedSection.subsectionIndex === undefined ||
-                        selectedSection.subsectionIndex === sections[selectedSection.sectionIndex!].subsections.length - 1) &&
-                      selectedSection.type === 'footer'
-                    }
-                  >
-                    <ArrowForwardIosIcon />
-                  </IconButton>
-                </span>
-              </Tooltip>
-            </Box>
-            <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              {/* Cancel Button */}
-              <Button 
-                type="button" 
-                variant="outlined" 
-                onClick={handleCancel} 
-                className="supplemental-button cancel-button"
+                }
               >
-                Cancel
-              </Button>
-
-              {/* Save Button with Save Message */}
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Button 
-                  type="submit" 
-                  variant="outlined" 
-                  onClick={(e) => handleSubmit(e, false)}
-                  className="supplemental-button save-button"
-                >
-                  Save
-                </Button>
-                {showSaveMessage && (
-                  <Typography variant="body2" sx={{ fontStyle: 'italic', ml: 1 }}>
-                    Changes Saved
+                <MaterialImportWrapper
+                  courseId={course}
+                  authorId={userDetails?.uid || ''}
+                  onMaterialReady={handleMaterialReady}
+                  onCancel={handleImportCancel}
+                  onError={(error, errorInfo) => {
+                    console.error('Material Import Error:', error, errorInfo);
+                    // Optionally show a snackbar notification
+                    setSnackbarMessage(`Import error: ${error.message}`);
+                    setSnackbarSeverity('error');
+                    setOpenSnackbar(true);
+                  }}
+                />
+              </Suspense>
+            </Box>
+          ) : (
+            <Box sx={{ display: 'flex', flexGrow: 1 }}>
+              <SideBar
+                sections={sections}
+                selected={selectedSection}
+                onAddSection={handleAddSection}
+                onAddSubsection={handleAddSubsection}
+                onAddSubSubsection={handleAddSubSubsection}
+                onSelectSection={handleSelectSection}
+                onUpdateSectionTitle={handleUpdateSectionTitle}
+                onUpdateSubsectionTitle={handleUpdateSubsectionTitle}
+                onUpdateSubSubsectionTitle={handleUpdateSubSubsectionTitle}
+                onDeleteSection={handleDeleteSection}
+                onDeleteSubsection={handleDeleteSubsection}
+                onDeleteSubSubsection={handleDeleteSubSubsection}
+              />
+              <Box sx={{ flexGrow: 1, padding: 3 }}>
+                <TextField
+                  label="Material Title"
+                  variant="outlined"
+                  fullWidth
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  sx={{ mb: 2 }}
+                />
+                <CourseDropdown value={course} onChange={setCourse} />
+                {scheduledTimestamp && (
+                  <Typography variant="body1" gutterBottom>
+                    Scheduled Publish Date & Time: {scheduledTimestamp.toLocaleString()}
                   </Typography>
                 )}
-              </Box>
+                <Box sx={{ border: selectedSection.type === 'header' ? '2px solid blue' : 'none', borderRadius: 1, padding: 2, mb: 2 }}>
+                  <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <Typography variant="h6" sx={{ color: 'gray', textAlign: 'center' }}>Header</Typography>
+                  </Box>
+                  <SimpleTextEditor content={header.content} onChange={handleUpdateHeaderContent} />
+                </Box>
+                <Typography variant="h4" align="center" gutterBottom>
+                  {currentTitle}
+                </Typography>
+                {selectedSection.type !== 'header' && selectedSection.type !== 'footer' && (
+                  <>
+                    <TextEditor
+                      key={`${selectedSection.sectionIndex}-${selectedSection.subsectionIndex}-${selectedSection.subSubsectionIndex}`}
+                      content={currentContent}
+                      onChange={(content) => handleUpdateContent(
+                        selectedSection.sectionIndex!,
+                        content,
+                        selectedSection.subsectionIndex,
+                        selectedSection.subSubsectionIndex
+                      )}
+                    />
+                    <ImageUpload
+                      sectionId={
+                        selectedSection.sectionIndex !== undefined
+                          ? selectedSection.subSubsectionIndex !== undefined && selectedSection.subsectionIndex !== undefined
+                            ? sections[selectedSection.sectionIndex]?.subsections?.[selectedSection.subsectionIndex]?.subSubsections?.[selectedSection.subSubsectionIndex]?.id || ''
+                            : selectedSection.subsectionIndex !== undefined
+                              ? sections[selectedSection.sectionIndex]?.subsections?.[selectedSection.subsectionIndex]?.id || ''
+                              : sections[selectedSection.sectionIndex]?.id || ''
+                          : ''
+                      }
+                      onImagesUploaded={(urls) => handleImagesUploaded(
+                        selectedSection.sectionIndex!,
+                        urls,
+                        selectedSection.subsectionIndex,
+                        selectedSection.subSubsectionIndex
+                      )}
+                    />
+                    {(selectedSection.subSubsectionIndex !== undefined
+                      ? sections[selectedSection.sectionIndex!]?.subsections?.[selectedSection.subsectionIndex!]?.subSubsections?.[selectedSection.subSubsectionIndex]?.images || []
+                      : selectedSection.subsectionIndex !== undefined
+                        ? sections[selectedSection.sectionIndex!]?.subsections?.[selectedSection.subsectionIndex]?.images || []
+                        : sections[selectedSection.sectionIndex!]?.images || []
+                    ).map((image, index) => (
+                      <Box key={index} sx={{ position: 'relative', mt: 2 }}>
+                        <img src={image.url} alt={`Section ${selectedSection.sectionIndex! + 1} Image ${index + 1}`} style={{ maxWidth: '50%', marginBottom: '16px' }} />
+                        <ImageTitle
+                          imageTitle={image.title}
+                          onTitleChange={(newTitle) => {
+                            const newSections = [...sections];
 
-              {/* Publish Button */}
-              <Button 
-                type="button" 
-                variant="outlined" 
-                onClick={handlePublish} 
-                className="supplemental-button publish-button"
-              >
-                Publish
-              </Button>
+                            // Check each level of the nested structure before assigning
+                            if (selectedSection.sectionIndex !== undefined) {
+                              if (selectedSection.subSubsectionIndex !== undefined && selectedSection.subsectionIndex !== undefined) {
+                                const subSubsections = newSections[selectedSection.sectionIndex].subsections?.[selectedSection.subsectionIndex]?.subSubsections;
+                                if (subSubsections && subSubsections[selectedSection.subSubsectionIndex]) {
+                                  subSubsections[selectedSection.subSubsectionIndex].images[index].title = newTitle;
+                                }
+                              } else if (selectedSection.subsectionIndex !== undefined) {
+                                const subsections = newSections[selectedSection.sectionIndex].subsections;
+                                if (subsections && subsections[selectedSection.subsectionIndex]) {
+                                  subsections[selectedSection.subsectionIndex].images[index].title = newTitle;
+                                }
+                              } else {
+                                newSections[selectedSection.sectionIndex].images[index].title = newTitle;
+                              }
+                            }
 
-              {/* Schedule Publish Button with Date Picker */}
-              <div>
-                {showDatePicker && (
-                  <DateTimePickerComponent
-                    value={scheduledTimestamp}
-                    onChange={setScheduledTimestamp}
-                  />
+                            setSections(newSections);
+                          }}
+                        />
+                        <IconButton
+                          sx={{ position: 'absolute', top: 0, right: 0, backgroundColor: 'rgba(255, 255, 255, 0.7)' }}
+                          onClick={() => handleDeleteImage(selectedSection.sectionIndex!, image.url, selectedSection.subsectionIndex, selectedSection.subSubsectionIndex)}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Box>
+                    ))}
+                    <LinkManager
+                      links={
+                        selectedSection.sectionIndex !== undefined
+                          ? selectedSection.subSubsectionIndex !== undefined && selectedSection.subsectionIndex !== undefined
+                            ? sections[selectedSection.sectionIndex]?.subsections?.[selectedSection.subsectionIndex]?.subSubsections?.[selectedSection.subSubsectionIndex]?.links || []
+                            : selectedSection.subsectionIndex !== undefined
+                              ? sections[selectedSection.sectionIndex]?.subsections?.[selectedSection.subsectionIndex]?.links || []
+                              : sections[selectedSection.sectionIndex]?.links || []
+                          : []
+                      }
+                      onLinksChange={(newLinks) => handleLinksChange(
+                        selectedSection.sectionIndex!,
+                        newLinks,
+                        selectedSection.subsectionIndex,
+                        selectedSection.subSubsectionIndex
+                      )}
+                    />
+                  </>
                 )}
-                <Button 
-                  type="button" 
-                  variant="outlined" 
-                  onClick={handleSchedulePublish} 
-                  className="supplemental-button schedule-publish-button"
-                >
-                  {showDatePicker ? 'Schedule Publish' : 'Schedule Publish'}
-                </Button>
-              </div>
+                <Box sx={{ border: selectedSection.type === 'footer' ? '2px solid blue' : 'none', borderRadius: 1, padding: 2, mt: 2 }}>
+                  <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <Typography variant="h6" sx={{ color: 'gray', textAlign: 'center' }}>Footer</Typography>
+                  </Box>
+                  <SimpleTextEditor content={footer.content} onChange={handleUpdateFooterContent} />
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Tooltip title="Previous Section/Subsection (Left Arrow)" arrow>
+                    <span>
+                      <IconButton
+                        onClick={() => handleNavigate('prev')}
+                        disabled={selectedSection.sectionIndex === 0 && selectedSection.subsectionIndex === undefined && selectedSection.type === 'header'}
+                      >
+                        <ArrowBackIosIcon />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                  <Tooltip title="Next Section/Subsection (Right Arrow)" arrow>
+                    <span>
+                      <IconButton
+                        onClick={() => handleNavigate('next')}
+                        disabled={
+                          selectedSection.sectionIndex === sections.length - 1 &&
+                          (selectedSection.subsectionIndex === undefined ||
+                            selectedSection.subsectionIndex === sections[selectedSection.sectionIndex!].subsections.length - 1) &&
+                          selectedSection.type === 'footer'
+                        }
+                      >
+                        <ArrowForwardIosIcon />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                </Box>
+                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  {/* Cancel Button */}
+                  <Button 
+                    type="button" 
+                    variant="outlined" 
+                    onClick={handleCancel} 
+                    className="supplemental-button cancel-button"
+                  >
+                    Cancel
+                  </Button>
+
+                  {/* Save Button with Save Message */}
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Button 
+                      type="submit" 
+                      variant="outlined" 
+                      onClick={(e) => handleSubmit(e, false)}
+                      className="supplemental-button save-button"
+                    >
+                      Save
+                    </Button>
+                    {showSaveMessage && (
+                      <Typography variant="body2" sx={{ fontStyle: 'italic', ml: 1 }}>
+                        Changes Saved
+                      </Typography>
+                    )}
+                  </Box>
+
+                  {/* Publish Button */}
+                  <Button 
+                    type="button" 
+                    variant="outlined" 
+                    onClick={handlePublish} 
+                    className="supplemental-button publish-button"
+                  >
+                    Publish
+                  </Button>
+
+                  {/* Schedule Publish Button with Date Picker */}
+                  <div>
+                    {showDatePicker && (
+                      <DateTimePickerComponent
+                        value={scheduledTimestamp}
+                        onChange={setScheduledTimestamp}
+                      />
+                    )}
+                    <Button 
+                      type="button" 
+                      variant="outlined" 
+                      onClick={handleSchedulePublish} 
+                      className="supplemental-button schedule-publish-button"
+                    >
+                      {showDatePicker ? 'Schedule Publish' : 'Schedule Publish'}
+                    </Button>
+                  </div>
+                </Box>
+              </Box>
             </Box>
-          </Box>
-        </Box>
+          )}
+          
+          {/* Snackbar for notifications */}
+          <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={() => setOpenSnackbar(false)}>
+            <Alert onClose={() => setOpenSnackbar(false)} severity={snackbarSeverity} sx={{ width: '100%' }}>
+              {snackbarMessage}
+            </Alert>
+          </Snackbar>
+        </>
       </Box>
-      <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={() => setOpenSnackbar(false)}>
-        <Alert onClose={() => setOpenSnackbar(false)} severity={snackbarSeverity} sx={{ width: '100%' }}>
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 };
