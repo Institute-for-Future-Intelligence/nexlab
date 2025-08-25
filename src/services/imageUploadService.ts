@@ -194,7 +194,9 @@ export const uploadExtractedImages = async (
  * Create a fallback placeholder for failed uploads
  */
 const createFallbackPlaceholder = (title: string): string => {
-  const text = title.substring(0, 30);
+  // Clean the title to only include Latin1 characters to avoid btoa errors
+  const cleanTitle = title.replace(/[^\x00-\xFF]/g, '?').substring(0, 30);
+  
   const svg = `
     <svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
       <rect width="100%" height="100%" fill="#f44336"/>
@@ -202,12 +204,19 @@ const createFallbackPlaceholder = (title: string): string => {
         Upload Failed
       </text>
       <text x="50%" y="55%" font-family="Arial, sans-serif" font-size="10" fill="white" text-anchor="middle" dominant-baseline="middle">
-        ${text}
+        ${cleanTitle}
       </text>
     </svg>
   `;
   
-  return `data:image/svg+xml;base64,${btoa(svg)}`;
+  try {
+    return `data:image/svg+xml;base64,${btoa(svg)}`;
+  } catch (error) {
+    console.error('Failed to create fallback placeholder:', error);
+    // Return a simple fallback without btoa if that fails too
+    const encodedSvg = encodeURIComponent(svg);
+    return `data:image/svg+xml,${encodedSvg}`;
+  }
 };
 
 /**
@@ -251,13 +260,13 @@ export const uploadExtractedImagesWithProgress = async (
           filename,
           materialId,
           2, // retryCount (reduced from 3)
-          15000 // timeoutMs (reduced from 30000)
+          30000 // timeoutMs (back to 30000)
         );
         
         const timeoutPromise = new Promise<never>((_, reject) => {
           setTimeout(() => {
-            reject(new Error(`Individual image timeout after 20 seconds for image ${globalIndex + 1}`));
-          }, 20000);
+            reject(new Error(`Individual image timeout after 45 seconds for image ${globalIndex + 1}`));
+          }, 45000);
         });
         
         const { url } = await Promise.race([uploadPromise, timeoutPromise]);
