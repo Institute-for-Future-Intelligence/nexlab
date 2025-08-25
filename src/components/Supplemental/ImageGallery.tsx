@@ -43,13 +43,20 @@ const SmartImage: React.FC<SmartImageProps> = ({ src, alt, title, index }) => {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
   const [imageRef, setImageRef] = useState<HTMLImageElement | null>(null);
+  const [retryAttempt, setRetryAttempt] = useState(0);
 
-  // Preload image
+  // Preload image with retry mechanism
   useEffect(() => {
     setLoaded(false);
     setError(false);
     
     const img = new Image();
+    
+    // Add crossOrigin attribute for CORS handling (only on first attempt)
+    if (retryAttempt === 0) {
+      img.crossOrigin = 'anonymous';
+    }
+    
     img.src = src;
     
     img.onload = () => {
@@ -65,6 +72,27 @@ const SmartImage: React.FC<SmartImageProps> = ({ src, alt, title, index }) => {
         naturalHeight: img.naturalHeight,
         complete: img.complete
       });
+      
+      // Test if this is a CORS issue by trying to fetch the image
+      fetch(src, { method: 'HEAD', mode: 'cors' })
+        .then(response => {
+          console.error(`Fetch test result:`, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: Object.fromEntries(response.headers.entries())
+          });
+          
+          // If fetch succeeds but image load failed, try without CORS
+          if (response.ok && retryAttempt === 0) {
+            console.log(`Retrying image load without CORS...`);
+            setRetryAttempt(1);
+            return;
+          }
+        })
+        .catch(fetchError => {
+          console.error(`Fetch test failed:`, fetchError);
+        });
+      
       setError(true);
     };
     
@@ -74,7 +102,7 @@ const SmartImage: React.FC<SmartImageProps> = ({ src, alt, title, index }) => {
       img.onload = null;
       img.onerror = null;
     };
-  }, [src]);
+  }, [src, retryAttempt]);
 
   if (error) {
     return (

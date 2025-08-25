@@ -50,7 +50,18 @@ const compressImageBlob = (blob: Blob, maxSizeBytes = 5 * 1024 * 1024): Promise<
       (result) => {
         if (result instanceof Blob) {
           console.log(`Image processed: ${result.size} bytes, format: ${outputFormat}`);
-          resolve({ blob: result, format: outputExtension });
+          
+          // Validate the compressed blob by testing if it's a valid image
+          const testImg = new Image();
+          testImg.onload = () => {
+            console.log(`✅ Compressed image validation passed: ${testImg.naturalWidth}x${testImg.naturalHeight}`);
+            resolve({ blob: result, format: outputExtension });
+          };
+          testImg.onerror = () => {
+            console.error(`❌ Compressed image validation failed - corrupted blob`);
+            reject(new Error('Compression created corrupted image data'));
+          };
+          testImg.src = URL.createObjectURL(result);
         } else {
           reject(new Error('Compression failed - unexpected result type'));
         }
