@@ -215,15 +215,29 @@ export const uploadExtractedImagesWithProgress = async (
     const batchPromises = batch.map(async (imageRef, batchIndex) => {
       const globalIndex = batchStart + batchIndex;
       
+      console.log(`🚀 Starting upload for image ${globalIndex + 1}/${imagesToUpload.length} (slide ${imageRef.slideNumber})`);
+      
       try {
         const filename = `slide_${imageRef.slideNumber}_image_${globalIndex + 1}`;
-        const { url } = await uploadImageBlob(
+        
+        // Add individual image timeout wrapper
+        const uploadPromise = uploadImageBlob(
           imageRef.imageBlob!,
           filename,
           materialId,
-          3, // retryCount
-          30000 // timeoutMs
+          2, // retryCount (reduced from 3)
+          15000 // timeoutMs (reduced from 30000)
         );
+        
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(() => {
+            reject(new Error(`Individual image timeout after 20 seconds for image ${globalIndex + 1}`));
+          }, 20000);
+        });
+        
+        const { url } = await Promise.race([uploadPromise, timeoutPromise]);
+        
+        console.log(`✅ Successfully processed image ${globalIndex + 1}/${imagesToUpload.length}`);
         
         return {
           url,
@@ -233,7 +247,7 @@ export const uploadExtractedImagesWithProgress = async (
           index: globalIndex
         };
       } catch (error) {
-        console.error(`Failed to upload image from slide ${imageRef.slideNumber} (index ${globalIndex}):`, error);
+        console.error(`❌ Failed to upload image ${globalIndex + 1}/${imagesToUpload.length} from slide ${imageRef.slideNumber}:`, error);
         
         return {
           url: createFallbackPlaceholder(imageRef.description || `Image from Slide ${imageRef.slideNumber}`),
@@ -245,9 +259,24 @@ export const uploadExtractedImagesWithProgress = async (
       }
     });
     
-    // Wait for batch to complete
+    // Wait for batch to complete with timeout
     try {
-      const batchResults = await Promise.allSettled(batchPromises);
+      console.log(`⏳ Waiting for batch ${Math.floor(batchStart / batchSize) + 1} to complete...`);
+      
+      // Add batch-level timeout (60 seconds per batch)
+      const batchTimeout = 60000;
+      const batchTimeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => {
+          reject(new Error(`Batch ${Math.floor(batchStart / batchSize) + 1} timeout after ${batchTimeout}ms`));
+        }, batchTimeout);
+      });
+      
+      const batchResults = await Promise.race([
+        Promise.allSettled(batchPromises),
+        batchTimeoutPromise
+      ]);
+      
+      console.log(`✅ Batch ${Math.floor(batchStart / batchSize) + 1} completed, processing ${batchResults.length} results...`);
       
       batchResults.forEach((result, batchIndex) => {
         const globalIndex = batchStart + batchIndex;
@@ -271,7 +300,22 @@ export const uploadExtractedImagesWithProgress = async (
       });
       
     } catch (error) {
-      console.error(`Batch upload failed:`, error);
+      console.error(`❌ Batch ${Math.floor(batchStart / batchSize) + 1} failed or timed out:`, error);
+      
+      // Handle batch timeout by creating fallbacks for all images in this batch
+      batch.forEach((imageRef, batchIndex) => {
+        const globalIndex = batchStart + batchIndex;
+        console.log(`🔄 Creating fallback for timed out image ${globalIndex + 1}/${imagesToUpload.length}`);
+        
+        results.push({
+          url: createFallbackPlaceholder(imageRef.description || `Image from Slide ${imageRef.slideNumber}`),
+          title: imageRef.description || `Image from Slide ${imageRef.slideNumber}`,
+          originalFilename: imageRef.filename,
+          slideNumber: imageRef.slideNumber
+        });
+        
+        onProgress?.(globalIndex + 1, imagesToUpload.length);
+      });
     }
     
     // Small delay between batches to avoid overwhelming Firebase
