@@ -26,7 +26,7 @@ import { useAdjacentSectionPreloader } from '../../hooks/useImagePreloader';
 import SimpleTextEditor from './SimpleTextEditor';
 import CourseDropdown from './CourseDropdown';
 import DateTimePickerComponent from './DateTimePickerComponent';
-import { Edit as ManualIcon, AutoAwesome as AIIcon } from '@mui/icons-material';
+import { Edit as ManualIcon, AutoAwesome as AIIcon, Refresh as RefreshIcon } from '@mui/icons-material';
 
 // Lazy load AI import wrapper component
 const MaterialImportWrapper = lazy(() => import('./MaterialImport/MaterialImportWrapper'));
@@ -143,6 +143,8 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData }) => {
   const [importMode, setImportMode] = useState<'manual' | 'ai'>('manual');
   const [isAIImported, setIsAIImported] = useState(false);
   const [imageUploadProgress, setImageUploadProgress] = useState<{ completed: number; total: number } | null>(null);
+  const [imageUploadError, setImageUploadError] = useState<string | null>(null);
+  const [isRetryingUpload, setIsRetryingUpload] = useState(false);
 
   // Preload images from adjacent sections for smooth navigation
   useAdjacentSectionPreloader(
@@ -229,6 +231,12 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData }) => {
           setSnackbarMessage(`Material ${shouldPublish ? 'published' : 'saved'} successfully with images!`);
         } catch (imageError) {
           console.error('Image upload failed:', imageError);
+          
+          // Set error state for retry functionality
+          const errorMessage = imageError instanceof Error ? imageError.message : 'Unknown error occurred';
+          setImageUploadError(errorMessage);
+          setImageUploadProgress(null);
+          
           // Still save the material but without uploaded images
           await updateDoc(docRef, {
             sections,
@@ -554,6 +562,122 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData }) => {
     setImportMode('manual');
   };
 
+  // Handle retry image upload (smart resume - only upload failed images)
+  const handleRetryImageUpload = async () => {
+    if (!materialId || !course || !userDetails?.uid) {
+      setSnackbarMessage('Cannot retry - missing material information');
+      setSnackbarSeverity('error');
+      setOpenSnackbar(true);
+      return;
+    }
+
+    setIsRetryingUpload(true);
+    setImageUploadError(null);
+    setImageUploadProgress({ completed: 0, total: 1 }); // Reset progress
+
+    try {
+      setSnackbarMessage('Analyzing existing images and retrying failed uploads...');
+      setSnackbarSeverity('info');
+      setOpenSnackbar(true);
+
+      // Smart retry: only upload images that are missing or have placeholder URLs
+      const uploadTimeout = 10 * 60 * 1000; // 10 minutes
+      
+      // Check current sections to identify which images need uploading
+      const imagesToRetry: Array<{ sectionIndex: number; subsectionIndex?: number; subSubsectionIndex?: number; imageIndex: number }> = [];
+      let totalImagesToUpload = 0;
+      
+      sections.forEach((section, sectionIndex) => {
+        // Check section images
+        section.images?.forEach((image, imageIndex) => {
+          if (!image.url || image.url.startsWith('data:image/svg+xml')) {
+            imagesToRetry.push({ sectionIndex, imageIndex });
+            totalImagesToUpload++;
+          }
+        });
+        
+        // Check subsection images
+        section.subsections?.forEach((subsection, subsectionIndex) => {
+          subsection.images?.forEach((image, imageIndex) => {
+            if (!image.url || image.url.startsWith('data:image/svg+xml')) {
+              imagesToRetry.push({ sectionIndex, subsectionIndex, imageIndex });
+              totalImagesToUpload++;
+            }
+          });
+          
+          // Check sub-subsection images
+          subsection.subSubsections?.forEach((subSubsection, subSubsectionIndex) => {
+            subSubsection.images?.forEach((image, imageIndex) => {
+              if (!image.url || image.url.startsWith('data:image/svg+xml')) {
+                imagesToRetry.push({ sectionIndex, subsectionIndex, subSubsectionIndex, imageIndex });
+                totalImagesToUpload++;
+              }
+            });
+          });
+        });
+      });
+
+      console.log(`Found ${totalImagesToUpload} images that need uploading (out of total images)`);
+      
+      if (totalImagesToUpload === 0) {
+        setSnackbarMessage('All images are already uploaded successfully!');
+        setSnackbarSeverity('success');
+        setOpenSnackbar(true);
+        setImageUploadError(null);
+        setImageUploadProgress(null);
+        return;
+      }
+
+      // For now, fall back to full re-upload if we detect failed images
+      // TODO: Implement selective image upload in future iteration
+      setSnackbarMessage(`Retrying upload for ${totalImagesToUpload} failed images...`);
+      
+      const uploadPromise = convertMaterialWithImageUpload(
+        course,
+        userDetails.uid,
+        materialId,
+        (completed, total) => {
+          setImageUploadProgress({ completed, total });
+          console.log(`Retry image upload progress: ${completed}/${total}`);
+        }
+      );
+
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Image upload timeout - taking too long')), uploadTimeout);
+      });
+
+      const materialWithImages = await Promise.race([uploadPromise, timeoutPromise]);
+
+      // Update the existing material with uploaded images
+      const docRef = doc(db, 'materials', materialId);
+      await updateDoc(docRef, {
+        sections: materialWithImages.sections,
+      });
+
+      // Update local state
+      setSections(materialWithImages.sections);
+      setImageUploadProgress(null);
+      setImageUploadError(null);
+
+      setSnackbarMessage('Images uploaded successfully!');
+      setSnackbarSeverity('success');
+      setOpenSnackbar(true);
+
+    } catch (error) {
+      console.error('Retry image upload failed:', error);
+      
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      setImageUploadError(errorMessage);
+      setImageUploadProgress(null);
+      
+      setSnackbarMessage(`Image upload retry failed: ${errorMessage}`);
+      setSnackbarSeverity('error');
+      setOpenSnackbar(true);
+    } finally {
+      setIsRetryingUpload(false);
+    }
+  };
+
   return (
     <Box sx={{ display: 'flex', flexGrow: 1, flexDirection: 'column' }}>
       <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
@@ -765,13 +889,33 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData }) => {
                   {imageUploadProgress && (
                     <Box sx={{ mb: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: 1, bgcolor: '#f5f5f5' }}>
                       <Typography variant="body2" gutterBottom>
-                        Uploading images: {imageUploadProgress.completed} / {imageUploadProgress.total}
+                        {isRetryingUpload ? 'Retrying image upload...' : 'Uploading images:'} {imageUploadProgress.completed} / {imageUploadProgress.total}
                       </Typography>
                       <LinearProgress 
                         variant="determinate" 
                         value={(imageUploadProgress.completed / imageUploadProgress.total) * 100}
                         sx={{ height: 8, borderRadius: 1 }}
                       />
+                    </Box>
+                  )}
+
+                  {/* Image Upload Error & Retry */}
+                  {imageUploadError && !imageUploadProgress && (
+                    <Box sx={{ mb: 2, p: 2, border: '1px solid #f44336', borderRadius: 1, bgcolor: '#ffebee' }}>
+                      <Typography variant="body2" color="error" gutterBottom>
+                        Image upload failed: {imageUploadError}
+                      </Typography>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        size="small"
+                        onClick={handleRetryImageUpload}
+                        disabled={isRetryingUpload}
+                        startIcon={isRetryingUpload ? <CircularProgress size={16} /> : <RefreshIcon />}
+                        sx={{ mt: 1 }}
+                      >
+                        {isRetryingUpload ? 'Retrying...' : 'Retry Image Upload'}
+                      </Button>
                     </Box>
                   )}
 

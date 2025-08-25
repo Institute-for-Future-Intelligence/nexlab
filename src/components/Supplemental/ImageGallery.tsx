@@ -46,10 +46,28 @@ const SmartImage: React.FC<SmartImageProps> = ({ src, alt, title, index }) => {
 
   // Preload image
   useEffect(() => {
+    setLoaded(false);
+    setError(false);
+    
     const img = new Image();
     img.src = src;
-    img.onload = () => setLoaded(true);
-    img.onerror = () => setError(true);
+    
+    img.onload = () => {
+      console.log(`✅ SmartImage loaded: ${src.substring(0, 50)}...`);
+      setLoaded(true);
+    };
+    
+    img.onerror = (error) => {
+      console.error(`❌ SmartImage failed to load: ${src}`, error);
+      console.error(`Image details:`, {
+        src,
+        naturalWidth: img.naturalWidth,
+        naturalHeight: img.naturalHeight,
+        complete: img.complete
+      });
+      setError(true);
+    };
+    
     setImageRef(img);
 
     return () => {
@@ -66,16 +84,24 @@ const SmartImage: React.FC<SmartImageProps> = ({ src, alt, title, index }) => {
             width: '100%', 
             maxWidth: 400,
             height: 200, 
-            bgcolor: '#f5f5f5', 
+            bgcolor: '#ffebee', 
             display: 'flex', 
+            flexDirection: 'column',
             alignItems: 'center', 
             justifyContent: 'center',
             borderRadius: 1,
-            border: '1px dashed #ccc'
+            border: '1px dashed #f44336',
+            p: 2
           }}
         >
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="error" gutterBottom>
             Image failed to load
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', wordBreak: 'break-all' }}>
+            {title}
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ mt: 1, fontSize: '0.7rem' }}>
+            URL: {src.substring(0, 60)}...
           </Typography>
         </Box>
         <Typography variant="body2" sx={{ fontStyle: 'italic', mt: 1 }}>{title}</Typography>

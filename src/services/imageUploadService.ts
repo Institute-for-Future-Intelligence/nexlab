@@ -14,28 +14,43 @@ export interface UploadedImage {
 }
 
 /**
- * Compress an image blob if it's too large
+ * Compress and normalize image blob for web compatibility
  */
-const compressImageBlob = (blob: Blob, maxSizeBytes = 5 * 1024 * 1024): Promise<Blob> => {
+const compressImageBlob = (blob: Blob, maxSizeBytes = 5 * 1024 * 1024): Promise<{ blob: Blob; format: string }> => {
   return new Promise((resolve, reject) => {
-    if (blob.size <= maxSizeBytes) {
-      resolve(blob);
-      return;
-    }
-
+    // Always compress/normalize to ensure web compatibility
+    const shouldCompress = blob.size > maxSizeBytes;
+    const originalFormat = blob.type.split('/')[1]?.toLowerCase() || 'unknown';
+    
+    console.log(`Processing image: ${blob.size} bytes, format: ${originalFormat}, compress: ${shouldCompress}`);
+    
     // Convert blob to file for resizer
-    const file = new File([blob], 'image.jpg', { type: blob.type });
+    const file = new File([blob], `image.${originalFormat}`, { type: blob.type });
+    
+    // Choose output format based on original format and web compatibility
+    let outputFormat = 'JPEG';
+    let outputExtension = 'jpg';
+    
+    if (originalFormat === 'png' || originalFormat === 'gif') {
+      // Preserve transparency for PNG/GIF
+      outputFormat = 'PNG';
+      outputExtension = 'png';
+    }
+    
+    const quality = shouldCompress ? 70 : 85; // Higher quality if not compressing for size
+    const maxDimension = shouldCompress ? 800 : 1200; // Larger dimensions if not compressing for size
     
     Resizer.imageFileResizer(
       file,
-      500,
-      500,
-      'JPEG',
-      70,
+      maxDimension,
+      maxDimension,
+      outputFormat,
+      quality,
       0,
       (result) => {
         if (result instanceof Blob) {
-          resolve(result);
+          console.log(`Image processed: ${result.size} bytes, format: ${outputFormat}`);
+          resolve({ blob: result, format: outputExtension });
         } else {
           reject(new Error('Compression failed - unexpected result type'));
         }
@@ -59,12 +74,11 @@ export const uploadImageBlob = async (
   
   for (let attempt = 1; attempt <= retryCount; attempt++) {
     try {
-      // Compress if needed
-      const compressedBlob = await compressImageBlob(imageBlob);
+      // Compress and normalize for web compatibility
+      const { blob: compressedBlob, format: outputFormat } = await compressImageBlob(imageBlob);
       
-      // Generate unique filename
-      const fileExtension = imageBlob.type.split('/')[1] || 'jpg';
-      const uniqueFilename = `${filename}_${uuidv4()}.${fileExtension}`;
+      // Generate unique filename with correct extension
+      const uniqueFilename = `${filename}_${uuidv4()}.${outputFormat}`;
       
       // Create upload promise with timeout
       const uploadPromise = async () => {

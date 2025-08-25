@@ -34,11 +34,17 @@ export const useImagePreloader = (
         img.src = url;
         
         img.onload = () => {
-          console.log(`Preloaded image: ${url.substring(0, 50)}...`);
+          console.log(`✅ Preloaded image: ${url.substring(0, 50)}...`);
         };
         
-        img.onerror = () => {
-          console.warn(`Failed to preload image: ${url.substring(0, 50)}...`);
+        img.onerror = (error) => {
+          console.error(`❌ Failed to preload image: ${url}`, error);
+          console.error(`Image details:`, {
+            url,
+            naturalWidth: img.naturalWidth,
+            naturalHeight: img.naturalHeight,
+            complete: img.complete
+          });
         };
       }, delay);
     });
