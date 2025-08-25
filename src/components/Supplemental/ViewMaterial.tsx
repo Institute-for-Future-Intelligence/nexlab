@@ -214,7 +214,7 @@ const ViewMaterial: React.FC = () => {
           </Box>
           <Box sx={{ flexGrow: 1, padding: 3 }}>
             <hr /> {/* Horizontal line above the header */}
-            <Box sx={{ border: selectedSection.type === 'header' ? '2px solid blue' : 'none', borderRadius: 1, padding: 2, mb: 2 }}>
+            <Box sx={{ borderRadius: 1, padding: 2, mb: 2 }}>
               <Typography dangerouslySetInnerHTML={{ __html: materialData.header.content.replace(/\n/g, '<br />') }} />
             </Box>
             <hr /> {/* Horizontal line below the header */}
@@ -231,7 +231,6 @@ const ViewMaterial: React.FC = () => {
                   <Box
                     sx={{
                       mb: 2,
-                      border: selectedSection.sectionIndex !== undefined && selectedSection.subsectionIndex === undefined ? '2px solid blue' : selectedSection.subSubsectionIndex !== undefined ? '2px solid red' : selectedSection.subsectionIndex !== undefined ? '2px solid green' : 'none',
                       borderRadius: 1,
                       padding: 2,
                     }}
@@ -287,7 +286,7 @@ const ViewMaterial: React.FC = () => {
               </Tooltip>
             </Box>
             <hr /> {/* Horizontal line above the footer */}
-            <Box sx={{ border: selectedSection.type === 'footer' ? '2px solid blue' : 'none', borderRadius: 1, padding: 2, mt: 2 }}>
+            <Box sx={{ borderRadius: 1, padding: 2, mt: 2 }}>
               <Typography dangerouslySetInnerHTML={{ __html: materialData.footer.content.replace(/\n/g, '<br />') }} />
             </Box>
             <hr /> {/* Horizontal line below the footer */}

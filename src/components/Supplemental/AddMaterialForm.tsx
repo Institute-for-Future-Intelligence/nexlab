@@ -645,7 +645,7 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData }) => {
                     Scheduled Publish Date & Time: {scheduledTimestamp.toLocaleString()}
                   </Typography>
                 )}
-                <Box sx={{ border: selectedSection.type === 'header' ? '2px solid blue' : 'none', borderRadius: 1, padding: 2, mb: 2 }}>
+                <Box sx={{ borderRadius: 1, padding: 2, mb: 2 }}>
                   <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                     <Typography variant="h6" sx={{ color: 'gray', textAlign: 'center' }}>Header</Typography>
                   </Box>
@@ -747,7 +747,7 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData }) => {
                     />
                   </>
                 )}
-                <Box sx={{ border: selectedSection.type === 'footer' ? '2px solid blue' : 'none', borderRadius: 1, padding: 2, mt: 2 }}>
+                <Box sx={{ borderRadius: 1, padding: 2, mt: 2 }}>
                   <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                     <Typography variant="h6" sx={{ color: 'gray', textAlign: 'center' }}>Footer</Typography>
                   </Box>
