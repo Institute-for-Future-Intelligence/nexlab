@@ -10,6 +10,7 @@ export interface UploadedImage {
   title: string;
   originalFilename?: string;
   slideNumber?: number;
+  index?: number; // For maintaining order during batch processing
 }
 
 /**
@@ -45,44 +46,76 @@ const compressImageBlob = (blob: Blob, maxSizeBytes = 5 * 1024 * 1024): Promise<
 };
 
 /**
- * Upload a single image blob to Firebase Storage
+ * Upload a single image blob to Firebase Storage with timeout and retry logic
  */
 export const uploadImageBlob = async (
   imageBlob: Blob,
   filename: string,
-  sectionId: string
+  sectionId: string,
+  retryCount: number = 3,
+  timeoutMs: number = 30000
 ): Promise<{ url: string; path: string }> => {
   const storage = getStorage();
   
-  try {
-    // Compress if needed
-    const compressedBlob = await compressImageBlob(imageBlob);
-    
-    // Generate unique filename
-    const fileExtension = imageBlob.type.split('/')[1] || 'jpg';
-    const uniqueFilename = `${filename}_${uuidv4()}.${fileExtension}`;
-    
-    // Upload to Firebase Storage
-    const storageRef = ref(storage, `materials/${sectionId}/${uniqueFilename}`);
-    const snapshot = await uploadBytes(storageRef, compressedBlob);
-    
-    // Get download URL
-    const downloadURL = await getDownloadURL(snapshot.ref);
-    
-    console.log(`Successfully uploaded image: ${uniqueFilename}`, {
-      originalSize: imageBlob.size,
-      compressedSize: compressedBlob.size,
-      url: downloadURL
-    });
-    
-    return {
-      url: downloadURL,
-      path: snapshot.ref.fullPath
-    };
-  } catch (error) {
-    console.error(`Failed to upload image ${filename}:`, error);
-    throw new Error(`Image upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  for (let attempt = 1; attempt <= retryCount; attempt++) {
+    try {
+      // Compress if needed
+      const compressedBlob = await compressImageBlob(imageBlob);
+      
+      // Generate unique filename
+      const fileExtension = imageBlob.type.split('/')[1] || 'jpg';
+      const uniqueFilename = `${filename}_${uuidv4()}.${fileExtension}`;
+      
+      // Create upload promise with timeout
+      const uploadPromise = async () => {
+        const storageRef = ref(storage, `materials/${sectionId}/${uniqueFilename}`);
+        const snapshot = await uploadBytes(storageRef, compressedBlob);
+        const downloadURL = await getDownloadURL(snapshot.ref);
+        
+        return {
+          url: downloadURL,
+          path: snapshot.ref.fullPath,
+          filename: uniqueFilename,
+          originalSize: imageBlob.size,
+          compressedSize: compressedBlob.size
+        };
+      };
+      
+      // Add timeout wrapper
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error(`Upload timeout after ${timeoutMs}ms`)), timeoutMs);
+      });
+      
+      const result = await Promise.race([uploadPromise(), timeoutPromise]);
+      
+      console.log(`Successfully uploaded image: ${result.filename} (attempt ${attempt})`, {
+        originalSize: result.originalSize,
+        compressedSize: result.compressedSize,
+        url: result.url
+      });
+      
+      return {
+        url: result.url,
+        path: result.path
+      };
+      
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      console.warn(`Upload attempt ${attempt}/${retryCount} failed for ${filename}: ${errorMsg}`);
+      
+      if (attempt === retryCount) {
+        console.error(`All ${retryCount} upload attempts failed for ${filename}:`, error);
+        throw new Error(`Image upload failed after ${retryCount} attempts: ${errorMsg}`);
+      }
+      
+      // Wait before retry (exponential backoff)
+      const waitTime = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+      console.log(`Waiting ${waitTime}ms before retry...`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
   }
+  
+  throw new Error('Upload failed - should not reach here');
 };
 
 /**
@@ -158,47 +191,102 @@ const createFallbackPlaceholder = (title: string): string => {
 export type UploadProgressCallback = (completed: number, total: number) => void;
 
 /**
- * Upload images with progress tracking
+ * Upload images with progress tracking and batch processing
  */
 export const uploadExtractedImagesWithProgress = async (
   images: ImageReference[],
   materialId: string,
-  onProgress?: UploadProgressCallback
+  onProgress?: UploadProgressCallback,
+  batchSize: number = 5
 ): Promise<UploadedImage[]> => {
   const imagesToUpload = images.filter(img => img.imageBlob);
   const results: UploadedImage[] = [];
   
-  for (let i = 0; i < imagesToUpload.length; i++) {
-    const imageRef = imagesToUpload[i];
+  console.log(`Starting batch upload of ${imagesToUpload.length} images (batch size: ${batchSize})`);
+  
+  // Process images in batches
+  for (let batchStart = 0; batchStart < imagesToUpload.length; batchStart += batchSize) {
+    const batchEnd = Math.min(batchStart + batchSize, imagesToUpload.length);
+    const batch = imagesToUpload.slice(batchStart, batchEnd);
     
+    console.log(`Processing batch ${Math.floor(batchStart / batchSize) + 1}/${Math.ceil(imagesToUpload.length / batchSize)} (images ${batchStart + 1}-${batchEnd})`);
+    
+    // Upload batch in parallel
+    const batchPromises = batch.map(async (imageRef, batchIndex) => {
+      const globalIndex = batchStart + batchIndex;
+      
+      try {
+        const filename = `slide_${imageRef.slideNumber}_image_${globalIndex + 1}`;
+        const { url } = await uploadImageBlob(
+          imageRef.imageBlob!,
+          filename,
+          materialId,
+          3, // retryCount
+          30000 // timeoutMs
+        );
+        
+        return {
+          url,
+          title: imageRef.description || `Image from Slide ${imageRef.slideNumber}`,
+          originalFilename: imageRef.filename,
+          slideNumber: imageRef.slideNumber,
+          index: globalIndex
+        };
+      } catch (error) {
+        console.error(`Failed to upload image from slide ${imageRef.slideNumber} (index ${globalIndex}):`, error);
+        
+        return {
+          url: createFallbackPlaceholder(imageRef.description || `Image from Slide ${imageRef.slideNumber}`),
+          title: imageRef.description || `Image from Slide ${imageRef.slideNumber}`,
+          originalFilename: imageRef.filename,
+          slideNumber: imageRef.slideNumber,
+          index: globalIndex
+        };
+      }
+    });
+    
+    // Wait for batch to complete
     try {
-      const filename = `slide_${imageRef.slideNumber}_image_${i + 1}`;
-      const { url } = await uploadImageBlob(
-        imageRef.imageBlob!,
-        filename,
-        materialId
-      );
+      const batchResults = await Promise.allSettled(batchPromises);
       
-      results.push({
-        url,
-        title: imageRef.description || `Image from Slide ${imageRef.slideNumber}`,
-        originalFilename: imageRef.filename,
-        slideNumber: imageRef.slideNumber
+      batchResults.forEach((result, batchIndex) => {
+        const globalIndex = batchStart + batchIndex;
+        
+        if (result.status === 'fulfilled') {
+          results.push(result.value);
+          console.log(`✅ Image ${globalIndex + 1}/${imagesToUpload.length} uploaded successfully`);
+        } else {
+          console.error(`❌ Image ${globalIndex + 1}/${imagesToUpload.length} failed:`, result.reason);
+          const imageRef = batch[batchIndex];
+          results.push({
+            url: createFallbackPlaceholder(imageRef.description || `Image from Slide ${imageRef.slideNumber}`),
+            title: imageRef.description || `Image from Slide ${imageRef.slideNumber}`,
+            originalFilename: imageRef.filename,
+            slideNumber: imageRef.slideNumber
+          });
+        }
+        
+        // Report progress after each image
+        onProgress?.(globalIndex + 1, imagesToUpload.length);
       });
+      
     } catch (error) {
-      console.error(`Failed to upload image from slide ${imageRef.slideNumber}:`, error);
-      
-      results.push({
-        url: createFallbackPlaceholder(imageRef.description || `Image from Slide ${imageRef.slideNumber}`),
-        title: imageRef.description || `Image from Slide ${imageRef.slideNumber}`,
-        originalFilename: imageRef.filename,
-        slideNumber: imageRef.slideNumber
-      });
+      console.error(`Batch upload failed:`, error);
     }
     
-    // Report progress
-    onProgress?.(i + 1, imagesToUpload.length);
+    // Small delay between batches to avoid overwhelming Firebase
+    if (batchEnd < imagesToUpload.length) {
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
   }
+  
+  // Sort results by original index to maintain order
+  results.sort((a, b) => (a.index || 0) - (b.index || 0));
+  
+  const successCount = results.filter(r => !r.url.startsWith('data:')).length;
+  const failureCount = results.length - successCount;
+  
+  console.log(`Upload complete: ${successCount} successful, ${failureCount} failed out of ${results.length} total`);
   
   return results;
 };

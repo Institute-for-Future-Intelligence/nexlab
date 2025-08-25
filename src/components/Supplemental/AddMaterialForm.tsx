@@ -196,7 +196,9 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData }) => {
           setSnackbarSeverity('info');
           setOpenSnackbar(true);
           
-          const materialWithImages = await convertMaterialWithImageUpload(
+          // Add timeout to prevent hanging uploads
+          const uploadTimeout = 10 * 60 * 1000; // 10 minutes
+          const uploadPromise = convertMaterialWithImageUpload(
             course,
             userDetails?.uid || '',
             newMaterialId,
@@ -205,6 +207,12 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData }) => {
               console.log(`Image upload progress: ${completed}/${total}`);
             }
           );
+          
+          const timeoutPromise = new Promise<never>((_, reject) => {
+            setTimeout(() => reject(new Error('Image upload timeout - taking too long')), uploadTimeout);
+          });
+          
+          const materialWithImages = await Promise.race([uploadPromise, timeoutPromise]);
           
           // Update the material with uploaded images
           await updateDoc(docRef, {
