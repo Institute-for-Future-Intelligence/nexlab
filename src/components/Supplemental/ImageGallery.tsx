@@ -80,8 +80,6 @@ const SmartImage: React.FC<SmartImageProps> = ({ src, alt, title }) => {
       
       setError(true);
     };
-    
-    setImageRef(img);
 
     return () => {
       img.onload = null;

@@ -385,7 +385,8 @@ export const useMaterialImportStatus = () => {
     uploadedFile: store.uploadedFile,
     extractedText: store.extractedText,
     aiExtractedData: store.aiExtractedData,
-    convertedMaterial: store.convertedMaterial
+    convertedMaterial: store.convertedMaterial,
+    processingOptions: store.processingOptions
   };
 };
 
