@@ -10,15 +10,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Source Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
-          node-version: '18' # Use the LTS version of Node.js
+          node-version: '20' # Use Node.js 20.x as required by package.json
+          cache: 'npm'
 
       - name: Install Dependencies
-        run: npm install
+        run: npm ci --prefer-offline --no-audit
 
       - name: Build React App
         run: npm run build
