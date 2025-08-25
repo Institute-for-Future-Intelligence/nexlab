@@ -231,7 +231,7 @@ export const uploadExtractedImagesWithProgress = async (
   images: ImageReference[],
   materialId: string,
   onProgress?: UploadProgressCallback,
-  batchSize: number = 5
+  batchSize: number = 3
 ): Promise<UploadedImage[]> => {
   const imagesToUpload = images.filter(img => img.imageBlob);
   const results: UploadedImage[] = [];
@@ -259,14 +259,14 @@ export const uploadExtractedImagesWithProgress = async (
           imageRef.imageBlob!,
           filename,
           materialId,
-          2, // retryCount (reduced from 3)
-          30000 // timeoutMs (back to 30000)
+          1, // retryCount (reduced to 1 for speed)
+          60000 // timeoutMs (increased to 60s)
         );
         
         const timeoutPromise = new Promise<never>((_, reject) => {
           setTimeout(() => {
-            reject(new Error(`Individual image timeout after 45 seconds for image ${globalIndex + 1}`));
-          }, 45000);
+            reject(new Error(`Individual image timeout after 75 seconds for image ${globalIndex + 1}`));
+          }, 75000);
         });
         
         const { url } = await Promise.race([uploadPromise, timeoutPromise]);
@@ -352,9 +352,10 @@ export const uploadExtractedImagesWithProgress = async (
       });
     }
     
-    // Small delay between batches to avoid overwhelming Firebase
+    // Longer delay between batches to avoid overwhelming Firebase Storage
     if (batchEnd < imagesToUpload.length) {
-      await new Promise(resolve => setTimeout(resolve, 500));
+      console.log(`⏳ Waiting 2 seconds before next batch...`);
+      await new Promise(resolve => setTimeout(resolve, 2000));
     }
   }
   

@@ -52,10 +52,11 @@ const SmartImage: React.FC<SmartImageProps> = ({ src, alt, title, index }) => {
     
     const img = new Image();
     
-    // Add crossOrigin attribute for CORS handling (only on first attempt)
-    if (retryAttempt === 0) {
-      img.crossOrigin = 'anonymous';
-    }
+    // Skip crossOrigin to avoid CORS issues for now
+    // TODO: Fix Firebase Storage CORS configuration
+    // if (retryAttempt === 0) {
+    //   img.crossOrigin = 'anonymous';
+    // }
     
     img.src = src;
     
@@ -73,25 +74,10 @@ const SmartImage: React.FC<SmartImageProps> = ({ src, alt, title, index }) => {
         complete: img.complete
       });
       
-      // Test if this is a CORS issue by trying to fetch the image
-      fetch(src, { method: 'HEAD', mode: 'cors' })
-        .then(response => {
-          console.error(`Fetch test result:`, {
-            status: response.status,
-            statusText: response.statusText,
-            headers: Object.fromEntries(response.headers.entries())
-          });
-          
-          // If fetch succeeds but image load failed, try without CORS
-          if (response.ok && retryAttempt === 0) {
-            console.log(`Retrying image load without CORS...`);
-            setRetryAttempt(1);
-            return;
-          }
-        })
-        .catch(fetchError => {
-          console.error(`Fetch test failed:`, fetchError);
-        });
+      // Log the error for debugging
+      console.error(`Image load failed. URL accessible via curl but blocked in browser.`);
+      console.error(`This is likely a Firebase Storage CORS configuration issue.`);
+      console.error(`Fix: Configure CORS to allow ${window.location.origin}`);
       
       setError(true);
     };
