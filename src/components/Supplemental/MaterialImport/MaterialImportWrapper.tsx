@@ -90,7 +90,7 @@ const MaterialImportWrapper: React.FC<MaterialImportWrapperProps> = ({
     );
   }
 
-  const { MaterialImport, MaterialImportErrorBoundary, useMaterialImportStore } = Components;
+  const { MaterialImport, MaterialImportErrorBoundary } = Components;
 
   const handleReset = () => {
     // Reset will be handled by the MaterialImportErrorBoundary itself

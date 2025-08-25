@@ -289,8 +289,7 @@ export const useMaterialImportStore = create<MaterialImportState>()(
           const materialData = materialImportService.convertToMaterialFormat(
             aiResult,
             courseId,
-            authorId,
-            extractionResult?.metadata
+            authorId
           );
 
           // Note: This is the sync version for preview, actual image upload happens during save

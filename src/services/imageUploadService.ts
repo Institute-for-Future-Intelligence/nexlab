@@ -195,7 +195,7 @@ export const uploadExtractedImages = async (
  */
 const createFallbackPlaceholder = (title: string): string => {
   // Clean the title to only include Latin1 characters to avoid btoa errors
-  const cleanTitle = title.replace(/[^\u0000-\u00FF]/g, '?').substring(0, 30);
+  const cleanTitle = title.replace(/[^\u0020-\u00FF]/g, '?').substring(0, 30);
   
   const svg = `
     <svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">

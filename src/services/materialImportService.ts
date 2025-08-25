@@ -218,8 +218,7 @@ export class MaterialImportService {
     fileName: string,
     fileType: string,
     options?: MaterialProcessingOptions,
-    onProgress?: (progress: MaterialProcessingProgress) => void,
-    _extractionMetadata?: { images?: any[]; [key: string]: any }
+    onProgress?: (progress: MaterialProcessingProgress) => void
   ): Promise<AIExtractedMaterialInfo> {
     onProgress?.({
       stage: 'analyzing',
@@ -287,8 +286,7 @@ export class MaterialImportService {
     fileName: string,
     fileType: string,
     options?: MaterialProcessingOptions,
-    extractionMetadata?: { images?: any[]; [key: string]: any },
-    _useConciseMode = false
+    extractionMetadata?: { images?: any[]; [key: string]: any }
   ): string {
     const fileTypeContext = this.getFileTypeContext(fileType);
     
@@ -794,7 +792,7 @@ Return ONLY a JSON object with additional sections, images, or links:
     // Remove any incomplete trailing sections more aggressively
     const lines = repaired.split('\n');
     const cleanedLines: string[] = [];
-    let foundIncompleteSection = false;
+    // let foundIncompleteSection = false;
     
     for (const line of lines) {
       const trimmedLine = line.trim();
@@ -1000,14 +998,13 @@ Return ONLY a JSON object with additional sections, images, or links:
   convertToMaterialFormat(
     aiData: AIExtractedMaterialInfo,
     courseId: string,
-    authorId: string,
-    _extractionMetadata?: { images?: ImageReference[]; [key: string]: any }
+    authorId: string
   ): Omit<Material, 'id' | 'timestamp'> {
     
     // Helper function to create placeholder image URLs
     const createPlaceholderImageUrl = (title: string, width = 400, height = 300): string => {
       // Clean the title to only include Latin1 characters to avoid btoa errors
-      const cleanTitle = title.replace(/[^\u0000-\u00FF]/g, '?').substring(0, 30);
+      const cleanTitle = title.replace(/[^\u0020-\u00FF]/g, '?').substring(0, 30);
       
       const svg = `
         <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">

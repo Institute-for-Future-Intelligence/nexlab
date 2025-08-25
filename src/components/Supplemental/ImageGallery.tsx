@@ -42,7 +42,7 @@ interface SmartImageProps {
 const SmartImage: React.FC<SmartImageProps> = ({ src, alt, title }) => {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
-  const [retryAttempt, setRetryAttempt] = useState(0);
+  const [retryAttempt] = useState(0);
 
   // Preload image with retry mechanism
   useEffect(() => {
