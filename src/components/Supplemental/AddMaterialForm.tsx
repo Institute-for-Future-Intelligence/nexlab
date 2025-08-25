@@ -101,6 +101,12 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData }) => {
         setSnackbarMessage('Material updated successfully');
       } else {
         // Add new material
+        console.log('Saving material with sections:', sections.map(s => ({ 
+          title: s.title, 
+          imageCount: s.images?.length || 0,
+          images: s.images?.map(img => ({ url: img.url.substring(0, 100) + '...', title: img.title })) 
+        })));
+        
         const docRef = await addDoc(collection(db, 'materials'), {
           course,
           title,

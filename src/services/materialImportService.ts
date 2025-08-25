@@ -998,18 +998,36 @@ Return ONLY a JSON object with additional sections, images, or links:
     
     // Helper function to create placeholder image URLs
     const createPlaceholderImageUrl = (title: string, width = 400, height = 300): string => {
-      const encodedTitle = encodeURIComponent(title.substring(0, 50)); // Limit length
-      const bgColor = '4a90e2'; // Professional blue
-      const textColor = 'ffffff'; // White text
-      return `https://via.placeholder.com/${width}x${height}/${bgColor}/${textColor}?text=${encodedTitle}`;
+      // Create a simple SVG placeholder that will always work
+      const text = title.substring(0, 30); // Limit text length
+      const svg = `
+        <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+          <rect width="100%" height="100%" fill="#4a90e2"/>
+          <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle" dominant-baseline="middle">
+            ${text}
+          </text>
+        </svg>
+      `;
+      
+      // Convert SVG to data URI
+      const dataUri = `data:image/svg+xml;base64,${btoa(svg)}`;
+      return dataUri;
     };
 
     // Helper function to enhance images with placeholder URLs
     const enhanceImages = (images: any[]): { url: string; title: string }[] => {
-      return images?.map(image => ({
-        url: image.url && image.url.trim() ? image.url : createPlaceholderImageUrl(image.title || 'Image'),
-        title: image.title || image.description || 'Detected Image'
-      })) || [];
+      const enhanced = images?.map(image => {
+        const placeholderUrl = createPlaceholderImageUrl(image.title || 'Image');
+        const result = {
+          url: image.url && image.url.trim() ? image.url : placeholderUrl,
+          title: image.title || image.description || 'Detected Image'
+        };
+        console.log('Enhanced image:', result);
+        return result;
+      }) || [];
+      
+      console.log(`Enhanced ${enhanced.length} images for material`);
+      return enhanced;
     };
 
     const convertSection = (section: any): Section => ({

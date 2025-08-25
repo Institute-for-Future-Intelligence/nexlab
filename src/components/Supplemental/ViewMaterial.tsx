@@ -30,7 +30,17 @@ const ViewMaterial: React.FC = () => {
         const docRef = doc(db, 'materials', id);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          setMaterialData({ id: docSnap.id, ...docSnap.data() } as Material);
+          const docData = { id: docSnap.id, ...docSnap.data() } as Material;
+          console.log('Loaded material from database:', {
+            title: docData.title,
+            sectionsCount: docData.sections?.length || 0,
+            sectionsWithImages: docData.sections?.filter(s => s.images?.length > 0).length || 0,
+            allImages: docData.sections?.flatMap(s => s.images || []).map(img => ({ 
+              url: img.url.substring(0, 100) + '...', 
+              title: img.title 
+            }))
+          });
+          setMaterialData(docData);
         }
       };
       fetchMaterial();
