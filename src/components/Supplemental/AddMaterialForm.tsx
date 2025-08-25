@@ -1,6 +1,6 @@
 // src/components/Supplemental/AddMaterialForm.tsx
 import React, { useState, useEffect, lazy, Suspense } from 'react';
-import { Box, TextField, Button, Snackbar, Alert, Typography, IconButton, Tooltip, ToggleButton, ToggleButtonGroup, Paper, Divider, CircularProgress, LinearProgress } from '@mui/material';
+import { Box, TextField, Button, Snackbar, Alert, Typography, IconButton, Tooltip, ToggleButton, ToggleButtonGroup, Paper, Divider, CircularProgress, LinearProgress, Skeleton, Fade } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { getFirestore, collection, addDoc, updateDoc, doc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { useUser } from '../../hooks/useUser';
@@ -21,6 +21,7 @@ import ImageTitle from './ImageTitle';
 
 import LinkManager from './LinkManager';
 import TextEditor from './TextEditor';
+import { useAdjacentSectionPreloader } from '../../hooks/useImagePreloader';
 
 import SimpleTextEditor from './SimpleTextEditor';
 import CourseDropdown from './CourseDropdown';
@@ -29,6 +30,81 @@ import { Edit as ManualIcon, AutoAwesome as AIIcon } from '@mui/icons-material';
 
 // Lazy load AI import wrapper component
 const MaterialImportWrapper = lazy(() => import('./MaterialImport/MaterialImportWrapper'));
+
+// Smart Image component for edit mode with loading states
+interface SmartEditImageProps {
+  src: string;
+  alt: string;
+  title: string;
+}
+
+const SmartEditImage: React.FC<SmartEditImageProps> = ({ src, alt, title }) => {
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    const img = new Image();
+    img.src = src;
+    img.onload = () => setLoaded(true);
+    img.onerror = () => setError(true);
+
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
+  }, [src]);
+
+  if (error) {
+    return (
+      <Box 
+        sx={{ 
+          width: '50%', 
+          height: 150, 
+          bgcolor: '#f5f5f5', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          borderRadius: 1,
+          border: '1px dashed #ccc',
+          marginBottom: '16px'
+        }}
+      >
+        <Typography variant="body2" color="text.secondary">
+          Image failed to load
+        </Typography>
+      </Box>
+    );
+  }
+
+  return (
+    <>
+      {!loaded && (
+        <Skeleton 
+          variant="rectangular" 
+          width="50%" 
+          height={150}
+          sx={{ borderRadius: 1, marginBottom: '16px' }}
+        />
+      )}
+      
+      <Fade in={loaded} timeout={300}>
+        <Box sx={{ display: loaded ? 'block' : 'none' }}>
+          <img 
+            src={src} 
+            alt={alt} 
+            style={{ 
+              maxWidth: '50%', 
+              marginBottom: '16px',
+              borderRadius: '4px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+              transition: 'all 0.2s ease-in-out'
+            }} 
+          />
+        </Box>
+      </Fade>
+    </>
+  );
+};
 
 interface AddMaterialFormProps {
   materialData?: Material;
@@ -67,6 +143,13 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData }) => {
   const [importMode, setImportMode] = useState<'manual' | 'ai'>('manual');
   const [isAIImported, setIsAIImported] = useState(false);
   const [imageUploadProgress, setImageUploadProgress] = useState<{ completed: number; total: number } | null>(null);
+
+  // Preload images from adjacent sections for smooth navigation
+  useAdjacentSectionPreloader(
+    sections,
+    selectedSection.sectionIndex || 0,
+    sections.length > 1 // Only enable when there are multiple sections
+  );
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -606,8 +689,12 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData }) => {
                         ? sections[selectedSection.sectionIndex!]?.subsections?.[selectedSection.subsectionIndex]?.images || []
                         : sections[selectedSection.sectionIndex!]?.images || []
                     ).map((image, index) => (
-                      <Box key={index} sx={{ position: 'relative', mt: 2 }}>
-                        <img src={image.url} alt={`Section ${selectedSection.sectionIndex! + 1} Image ${index + 1}`} style={{ maxWidth: '50%', marginBottom: '16px' }} />
+                      <Box key={`${image.url}-${index}`} sx={{ position: 'relative', mt: 2 }}>
+                        <SmartEditImage 
+                          src={image.url} 
+                          alt={`Section ${selectedSection.sectionIndex! + 1} Image ${index + 1}`}
+                          title={image.title}
+                        />
                         <ImageTitle
                           imageTitle={image.title}
                           onTitleChange={(newTitle) => {
