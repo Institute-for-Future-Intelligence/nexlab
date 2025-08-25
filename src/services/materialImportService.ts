@@ -307,7 +307,12 @@ ${extractionMetadata.images.map((img: any, index: number) =>
   `${index + 1}. ${img.description || `Image ${index + 1}`}${img.slideNumber ? ` (Slide ${img.slideNumber})` : ''}${img.altText ? ` - ${img.altText}` : ''}`
 ).join('\n')}
 
-Note: Include these images in the appropriate sections with descriptive titles and context.
+CRITICAL IMAGE PLACEMENT INSTRUCTIONS:
+- Each image MUST be placed in the section corresponding to its slide number
+- If "Image X (Slide Y)" is detected, place it in the section created from Slide Y content
+- Each image should have a unique, descriptive title based on its context
+- Include slideNumber property in each image object for proper matching
+- DO NOT reuse the same image in multiple sections
 ` : ''}
 
 Please extract and structure this content into a comprehensive educational material format. Focus on:
@@ -351,15 +356,15 @@ Return ONLY a JSON object with this exact structure:
             {
               "title": "Sub-subsection Title",
               "content": "HTML formatted detailed content",
-              "images": [{"url": "", "title": "Image description", "description": "Context or caption"}],
+              "images": [{"url": "", "title": "Image description", "description": "Context or caption", "slideNumber": 2}],
               "links": [{"title": "Link title", "url": "URL if available", "description": "Link context"}]
             }
           ],
-          "images": [{"url": "", "title": "Image description", "description": "Context or caption"}],
+          "images": [{"url": "", "title": "Image description", "description": "Context or caption", "slideNumber": 3}],
           "links": [{"title": "Link title", "url": "URL if available", "description": "Link context"}]
         }
       ],
-      "images": [{"url": "", "title": "Image description", "description": "Context or caption"}],
+      "images": [{"url": "", "title": "Image description", "description": "Context or caption", "slideNumber": 4}],
       "links": [{"title": "Link title", "url": "URL if available", "description": "Link context"}]
     }
   ],
@@ -378,7 +383,8 @@ CRITICAL JSON FORMATTING RULES:
 - Use proper HTML tags for content formatting (<p>, <h1>-<h6>, <ul>, <ol>, <li>, <strong>, <em>, <br>)
 - Preserve educational structure and hierarchy
 - Create logical sections based on content organization
-- For images: Use placeholder URLs with descriptive titles and context
+- For images: Use placeholder URLs with descriptive titles, context, and slideNumber property
+-- IMPORTANT: Each image object MUST include "slideNumber" property matching the source slide
 - For links: Extract actual URLs when present, provide context
 - Complete ALL sections and subsections - do not use comments like "// ... continue"
 - Ensure all JSON arrays and objects are properly closed
@@ -1113,13 +1119,42 @@ Return ONLY a JSON object with additional sections, images, or links:
 
     // Helper function to enhance images with real URLs or placeholders
     const enhanceImagesWithUploads = (images: any[]): { url: string; title: string }[] => {
+      // Create a copy of uploaded images to track which ones we've used
+      const availableImages = [...uploadedImages];
+      
       const enhanced = images?.map((image, index) => {
-        // Try to find uploaded image by slide number or index
-        const uploadedImage = uploadedImages.find(uploaded => 
-          uploaded.slideNumber === image.slideNumber ||
-          uploaded.title.includes(image.title) ||
-          uploadedImages[index] // fallback to index match
-        );
+        let uploadedImage: any = null;
+        
+        // Strategy 1: Try to match by slide number if both have it
+        if (image.slideNumber && availableImages.length > 0) {
+          const slideMatch = availableImages.find(uploaded => uploaded.slideNumber === image.slideNumber);
+          if (slideMatch) {
+            uploadedImage = slideMatch;
+            // Remove from available to prevent reuse
+            const matchIndex = availableImages.indexOf(slideMatch);
+            availableImages.splice(matchIndex, 1);
+          }
+        }
+        
+        // Strategy 2: Try to match by similar title content
+        if (!uploadedImage && availableImages.length > 0) {
+          const titleWords = (image.title || image.description || '').toLowerCase().split(' ');
+          const titleMatch = availableImages.find(uploaded => {
+            const uploadedWords = uploaded.title.toLowerCase().split(' ');
+            return titleWords.some(word => word.length > 3 && uploadedWords.some(uWord => uWord.includes(word)));
+          });
+          
+          if (titleMatch) {
+            uploadedImage = titleMatch;
+            const matchIndex = availableImages.indexOf(titleMatch);
+            availableImages.splice(matchIndex, 1);
+          }
+        }
+        
+        // Strategy 3: Use next available image (sequential fallback)
+        if (!uploadedImage && availableImages.length > 0) {
+          uploadedImage = availableImages.shift(); // Take the first available
+        }
         
         const result = {
           url: uploadedImage?.url || 
@@ -1131,12 +1166,16 @@ Return ONLY a JSON object with additional sections, images, or links:
           ...result,
           url: result.url.substring(0, 100) + '...',
           isUploaded: !!uploadedImage,
-          slideNumber: image.slideNumber
+          originalSlideNumber: image.slideNumber,
+          matchedSlideNumber: uploadedImage?.slideNumber,
+          matchStrategy: uploadedImage ? (uploadedImage.slideNumber === image.slideNumber ? 'slideNumber' : 
+                                        result.title.includes(image.title) ? 'title' : 'sequential') : 'placeholder',
+          availableCount: availableImages.length
         });
         return result;
       }) || [];
       
-      console.log(`Enhanced ${enhanced.length} images for material (${uploadedImages.length} uploaded)`);
+      console.log(`Enhanced ${enhanced.length} images for material (${uploadedImages.length} uploaded, ${availableImages.length} remaining)`);
       return enhanced;
     };
 
