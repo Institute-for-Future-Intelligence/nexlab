@@ -3,6 +3,8 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { Material, Section, Subsection, SubSubsection } from '../types/Material';
 import { v4 as uuidv4 } from 'uuid';
+import { uploadExtractedImagesWithProgress, UploadedImage } from './imageUploadService';
+import { ImageReference } from '../utils/textExtraction';
 
 // Enhanced types for AI-extracted material data
 export interface AIExtractedMaterialInfo {
@@ -91,7 +93,7 @@ export class MaterialImportService {
     fileType: string,
     options?: MaterialProcessingOptions,
     onProgress?: (progress: MaterialProcessingProgress) => void,
-    extractionMetadata?: { images?: any[]; [key: string]: any }
+    extractionMetadata?: { images?: ImageReference[]; [key: string]: any }
   ): Promise<AIExtractedMaterialInfo> {
     if (!extractedText?.trim()) {
       throw new Error('No content provided for processing');
@@ -993,7 +995,7 @@ Return ONLY a JSON object with additional sections, images, or links:
     aiData: AIExtractedMaterialInfo,
     courseId: string,
     authorId: string,
-    extractionMetadata?: { images?: any[]; [key: string]: any }
+    extractionMetadata?: { images?: ImageReference[]; [key: string]: any }
   ): Omit<Material, 'id' | 'timestamp'> {
     
     // Helper function to create placeholder image URLs
@@ -1014,7 +1016,7 @@ Return ONLY a JSON object with additional sections, images, or links:
       return dataUri;
     };
 
-    // Helper function to enhance images with placeholder URLs
+    // Helper function to enhance images with placeholder URLs (for preview)
     const enhanceImages = (images: any[]): { url: string; title: string }[] => {
       const enhanced = images?.map(image => {
         const placeholderUrl = createPlaceholderImageUrl(image.title || 'Image');
@@ -1022,11 +1024,11 @@ Return ONLY a JSON object with additional sections, images, or links:
           url: image.url && image.url.trim() ? image.url : placeholderUrl,
           title: image.title || image.description || 'Detected Image'
         };
-        console.log('Enhanced image:', result);
+        console.log('Enhanced image (preview):', result);
         return result;
       }) || [];
       
-      console.log(`Enhanced ${enhanced.length} images for material`);
+      console.log(`Enhanced ${enhanced.length} images for material preview`);
       return enhanced;
     };
 
@@ -1063,6 +1065,117 @@ Return ONLY a JSON object with additional sections, images, or links:
       // Add source reference as metadata in the footer
       sourceInfo: aiData.sourceInfo
     } as any; // Type assertion for the additional sourceInfo field
+  }
+
+  /**
+   * Convert AI extracted data to Material format with image upload
+   */
+  async convertToMaterialFormatWithImageUpload(
+    aiData: AIExtractedMaterialInfo,
+    courseId: string,
+    authorId: string,
+    materialId: string,
+    extractionMetadata?: { images?: ImageReference[]; [key: string]: any },
+    onImageUploadProgress?: (completed: number, total: number) => void
+  ): Promise<Omit<Material, 'id' | 'timestamp'>> {
+    
+    // Upload extracted images to Firebase Storage
+    let uploadedImages: UploadedImage[] = [];
+    if (extractionMetadata?.images) {
+      try {
+        console.log(`Uploading ${extractionMetadata.images.length} extracted images...`);
+        uploadedImages = await uploadExtractedImagesWithProgress(
+          extractionMetadata.images,
+          materialId,
+          onImageUploadProgress
+        );
+        console.log(`Successfully uploaded ${uploadedImages.length} images`);
+      } catch (error) {
+        console.error('Failed to upload extracted images:', error);
+        // Continue with placeholders if upload fails
+      }
+    }
+
+    // Helper function to create placeholder image URLs
+    const createPlaceholderImageUrl = (title: string, width = 400, height = 300): string => {
+      const text = title.substring(0, 30);
+      const svg = `
+        <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+          <rect width="100%" height="100%" fill="#4a90e2"/>
+          <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle" dominant-baseline="middle">
+            ${text}
+          </text>
+        </svg>
+      `;
+      
+      return `data:image/svg+xml;base64,${btoa(svg)}`;
+    };
+
+    // Helper function to enhance images with real URLs or placeholders
+    const enhanceImagesWithUploads = (images: any[]): { url: string; title: string }[] => {
+      const enhanced = images?.map((image, index) => {
+        // Try to find uploaded image by slide number or index
+        const uploadedImage = uploadedImages.find(uploaded => 
+          uploaded.slideNumber === image.slideNumber ||
+          uploaded.title.includes(image.title) ||
+          uploadedImages[index] // fallback to index match
+        );
+        
+        const result = {
+          url: uploadedImage?.url || 
+               (image.url && image.url.trim() ? image.url : createPlaceholderImageUrl(image.title || 'Image')),
+          title: uploadedImage?.title || image.title || image.description || 'Detected Image'
+        };
+        
+        console.log('Enhanced image with upload:', {
+          ...result,
+          url: result.url.substring(0, 100) + '...',
+          isUploaded: !!uploadedImage,
+          slideNumber: image.slideNumber
+        });
+        return result;
+      }) || [];
+      
+      console.log(`Enhanced ${enhanced.length} images for material (${uploadedImages.length} uploaded)`);
+      return enhanced;
+    };
+
+    const convertSectionWithUploads = (section: any): Section => ({
+      id: uuidv4(),
+      title: section.title,
+      content: section.content,
+      images: enhanceImagesWithUploads(section.images || []),
+      links: section.links || [],
+      subsections: section.subsections?.map(convertSubsectionWithUploads) || []
+    });
+
+    const convertSubsectionWithUploads = (subsection: any): Subsection => ({
+      id: uuidv4(),
+      title: subsection.title,
+      content: subsection.content,
+      images: enhanceImagesWithUploads(subsection.images || []),
+      links: subsection.links || [],
+      subSubsections: subsection.subSubsections?.map(convertSubSubsectionWithUploads) || []
+    });
+
+    const convertSubSubsectionWithUploads = (subSubsection: any): SubSubsection => ({
+      id: uuidv4(),
+      title: subSubsection.title,
+      content: subSubsection.content,
+      images: enhanceImagesWithUploads(subSubsection.images || []),
+      links: subSubsection.links || []
+    });
+
+    return {
+      course: courseId,
+      title: aiData.title,
+      header: aiData.header || { title: '', content: '' },
+      footer: aiData.footer || { title: '', content: '' },
+      sections: aiData.sections?.map(convertSectionWithUploads) || [],
+      author: authorId,
+      published: false,
+      scheduledTimestamp: null,
+    };
   }
 }
 

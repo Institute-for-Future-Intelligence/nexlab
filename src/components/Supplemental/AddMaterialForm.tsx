@@ -1,10 +1,11 @@
 // src/components/Supplemental/AddMaterialForm.tsx
 import React, { useState, useEffect, lazy, Suspense } from 'react';
-import { Box, TextField, Button, Snackbar, Alert, Typography, IconButton, Tooltip, ToggleButton, ToggleButtonGroup, Paper, Divider, CircularProgress } from '@mui/material';
+import { Box, TextField, Button, Snackbar, Alert, Typography, IconButton, Tooltip, ToggleButton, ToggleButtonGroup, Paper, Divider, CircularProgress, LinearProgress } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { getFirestore, collection, addDoc, updateDoc, doc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { useUser } from '../../hooks/useUser';
 import { v4 as uuidv4 } from 'uuid';
+import { convertMaterialWithImageUpload } from '../../stores/materialImportStore';
 
 import { useSearchParams } from 'react-router-dom'; // Import this at the top
 
@@ -56,7 +57,7 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData }) => {
   const [selectedSection, setSelectedSection] = useState<{ sectionIndex?: number, subsectionIndex?: number, subSubsectionIndex?: number, type?: 'header' | 'footer' }>({ sectionIndex: 0 });
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success'>('success');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success' | 'info' | 'warning'>('success');
   const [showSaveMessage, setShowSaveMessage] = useState(false);
 
   const [scheduledTimestamp, setScheduledTimestamp] = useState<Date | null>(materialData?.scheduledTimestamp?.toDate() || null);
@@ -64,6 +65,8 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData }) => {
   
   // AI Import functionality
   const [importMode, setImportMode] = useState<'manual' | 'ai'>('manual');
+  const [isAIImported, setIsAIImported] = useState(false);
+  const [imageUploadProgress, setImageUploadProgress] = useState<{ completed: number; total: number } | null>(null);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -86,7 +89,65 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData }) => {
     e.preventDefault();
   
     try {
-      if (materialId) {
+      // If this is an AI imported material and we need to upload images
+      if (isAIImported && !materialId) {
+        // First create the material to get an ID for image uploads
+        const docRef = await addDoc(collection(db, 'materials'), {
+          course,
+          title,
+          header,
+          footer,
+          sections: [], // Start with empty sections, will update after image upload
+          author: userDetails?.uid || '',
+          timestamp: serverTimestamp(),
+          published: false, // Don't publish yet, need to upload images first
+          scheduledTimestamp: null,
+        });
+        
+        const newMaterialId = docRef.id;
+        setMaterialId(newMaterialId);
+        
+        try {
+          // Convert material with image upload
+          setSnackbarMessage('Uploading images...');
+          setSnackbarSeverity('info');
+          setOpenSnackbar(true);
+          
+          const materialWithImages = await convertMaterialWithImageUpload(
+            course,
+            userDetails?.uid || '',
+            newMaterialId,
+            (completed, total) => {
+              setImageUploadProgress({ completed, total });
+              console.log(`Image upload progress: ${completed}/${total}`);
+            }
+          );
+          
+          // Update the material with uploaded images
+          await updateDoc(docRef, {
+            sections: materialWithImages.sections,
+            published: shouldPublish,
+            scheduledTimestamp: scheduleTimestamp ? Timestamp.fromDate(scheduleTimestamp) : null,
+          });
+          
+          // Update local state
+          setSections(materialWithImages.sections);
+          setIsAIImported(false); // Reset flag
+          setImageUploadProgress(null);
+          
+          setSnackbarMessage(`Material ${shouldPublish ? 'published' : 'saved'} successfully with images!`);
+        } catch (imageError) {
+          console.error('Image upload failed:', imageError);
+          // Still save the material but without uploaded images
+          await updateDoc(docRef, {
+            sections,
+            published: shouldPublish,
+            scheduledTimestamp: scheduleTimestamp ? Timestamp.fromDate(scheduleTimestamp) : null,
+          });
+          setSnackbarMessage('Material saved, but some images failed to upload');
+          setSnackbarSeverity('warning');
+        }
+      } else if (materialId) {
         // Update existing material
         const docRef = doc(db, 'materials', materialId);
         await updateDoc(docRef, {
@@ -100,7 +161,7 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData }) => {
         });
         setSnackbarMessage('Material updated successfully');
       } else {
-        // Add new material
+        // Add new manual material (no image upload needed)
         console.log('Saving material with sections:', sections.map(s => ({ 
           title: s.title, 
           imageCount: s.images?.length || 0,
@@ -383,6 +444,7 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData }) => {
     setFooter(materialData.footer);
     setSections(materialData.sections);
     setCourse(materialData.course);
+    setIsAIImported(true); // Mark as AI imported for special image handling
     
     // Switch back to manual mode for editing
     setImportMode('manual');
@@ -604,9 +666,23 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData }) => {
                   </Box>
                   <SimpleTextEditor content={footer.content} onChange={handleUpdateFooterContent} />
                 </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Tooltip title="Previous Section/Subsection (Left Arrow)" arrow>
-                    <span>
+                                  {/* Image Upload Progress */}
+                  {imageUploadProgress && (
+                    <Box sx={{ mb: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: 1, bgcolor: '#f5f5f5' }}>
+                      <Typography variant="body2" gutterBottom>
+                        Uploading images: {imageUploadProgress.completed} / {imageUploadProgress.total}
+                      </Typography>
+                      <LinearProgress 
+                        variant="determinate" 
+                        value={(imageUploadProgress.completed / imageUploadProgress.total) * 100}
+                        sx={{ height: 8, borderRadius: 1 }}
+                      />
+                    </Box>
+                  )}
+
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Tooltip title="Previous Section/Subsection (Left Arrow)" arrow>
+                      <span>
                       <IconButton
                         onClick={() => handleNavigate('prev')}
                         disabled={selectedSection.sectionIndex === 0 && selectedSection.subsectionIndex === undefined && selectedSection.type === 'header'}

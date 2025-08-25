@@ -161,15 +161,39 @@ const MaterialPreview: React.FC<MaterialPreviewProps> = ({
                     <Typography variant="subtitle2" gutterBottom>
                       📸 Images Referenced:
                     </Typography>
-                    {section.images.map((image, imgIndex) => (
-                      <Chip 
-                        key={imgIndex}
-                        label={image.title}
-                        size="small"
-                        variant="outlined"
-                        sx={{ mr: 1, mb: 1 }}
-                      />
-                    ))}
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 1 }}>
+                      {section.images.map((image, imgIndex) => (
+                        <Box key={imgIndex} sx={{ 
+                          border: '1px solid #e0e0e0', 
+                          borderRadius: 1, 
+                          p: 1,
+                          maxWidth: 200,
+                          textAlign: 'center'
+                        }}>
+                          <img 
+                            src={image.url} 
+                            alt={image.title}
+                            style={{ 
+                              width: '100%', 
+                              maxHeight: '120px', 
+                              objectFit: 'contain',
+                              marginBottom: '8px'
+                            }}
+                            onError={(e) => {
+                              console.warn(`Failed to load image: ${image.url}`);
+                              // Keep the image element but it will show broken image icon
+                            }}
+                          />
+                          <Typography variant="caption" sx={{ 
+                            display: 'block',
+                            fontSize: '0.75rem',
+                            color: 'text.secondary'
+                          }}>
+                            {image.title}
+                          </Typography>
+                        </Box>
+                      ))}
+                    </Box>
                   </Box>
                 )}
 

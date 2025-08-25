@@ -285,7 +285,7 @@ export const useMaterialImportStore = create<MaterialImportState>()(
             }];
           }
 
-          // Convert to Material format with defensive checks
+          // Convert to Material format with defensive checks (sync version for preview)
           const materialData = materialImportService.convertToMaterialFormat(
             aiResult,
             courseId,
@@ -293,22 +293,7 @@ export const useMaterialImportStore = create<MaterialImportState>()(
             extractionResult?.metadata
           );
 
-          // Defensive: Final validation of converted material
-          if (!materialData.title?.trim()) {
-            materialData.title = 'Imported Material';
-          }
-
-          if (!materialData.sections || materialData.sections.length === 0) {
-            materialData.sections = [{
-              id: 'default-section',
-              title: 'Main Content',
-              content: 'Material content imported successfully.',
-              subsections: [],
-              images: [],
-              links: []
-            }];
-          }
-
+          // Note: This is the sync version for preview, actual image upload happens during save
           set({ 
             aiExtractedData: aiResult,
             convertedMaterial: materialData,
@@ -403,6 +388,30 @@ export const useMaterialImportStatus = () => {
     aiExtractedData: store.aiExtractedData,
     convertedMaterial: store.convertedMaterial
   };
+};
+
+// Helper function to convert material with image upload
+export const convertMaterialWithImageUpload = async (
+  courseId: string,
+  authorId: string,
+  materialId: string,
+  onImageUploadProgress?: (completed: number, total: number) => void
+) => {
+  const store = useMaterialImportStore.getState();
+  const { aiExtractedData, extractionResult } = store;
+  
+  if (!aiExtractedData) {
+    throw new Error('No AI result available for conversion');
+  }
+
+  return await getMaterialImportService().convertToMaterialFormatWithImageUpload(
+    aiExtractedData,
+    courseId,
+    authorId,
+    materialId,
+    extractionResult?.metadata,
+    onImageUploadProgress
+  );
 };
 
 // Helper function to check if import is ready for AI processing

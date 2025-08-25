@@ -18,6 +18,8 @@ export interface ImageReference {
   description?: string;
   altText?: string;
   filename?: string;
+  embedId?: string; // Reference ID for finding the actual image data
+  imageBlob?: Blob; // Actual image data extracted from file
   position?: {
     x?: number;
     y?: number;
@@ -185,11 +187,56 @@ export const extractTextFromPPTX = async (file: File): Promise<TextExtractionRes
             }
           }
           
+          // Try to extract the actual image blob
+          let imageBlob: Blob | undefined;
+          try {
+            // Look for the relationship file to find the actual image path
+            const relsFile = `ppt/slides/_rels/slide${slideNumber}.xml.rels`;
+            if (zip.files[relsFile]) {
+              const relsContent = zip.files[relsFile].asText();
+              const relationshipMatch = relsContent.match(new RegExp(`Id="${embedId}"[^>]*Target="([^"]*)"`, 'i'));
+              
+              if (relationshipMatch) {
+                const imagePath = relationshipMatch[1];
+                const fullImagePath = imagePath.startsWith('../') ? 
+                  `ppt/${imagePath.substring(3)}` : 
+                  `ppt/slides/${imagePath}`;
+                
+                if (zip.files[fullImagePath]) {
+                  const imageData = zip.files[fullImagePath].asUint8Array();
+                  
+                  // Determine MIME type based on file extension
+                  let mimeType = 'image/jpeg'; // default
+                  if (fullImagePath.toLowerCase().includes('.png')) {
+                    mimeType = 'image/png';
+                  } else if (fullImagePath.toLowerCase().includes('.gif')) {
+                    mimeType = 'image/gif';
+                  } else if (fullImagePath.toLowerCase().includes('.bmp')) {
+                    mimeType = 'image/bmp';
+                  } else if (fullImagePath.toLowerCase().includes('.webp')) {
+                    mimeType = 'image/webp';
+                  }
+                  
+                  imageBlob = new Blob([imageData], { type: mimeType });
+                  console.log(`Extracted image blob for slide ${slideNumber}:`, {
+                    size: imageBlob.size,
+                    type: mimeType,
+                    path: fullImagePath
+                  });
+                }
+              }
+            }
+          } catch (blobError) {
+            console.warn(`Failed to extract image blob for ${embedId} on slide ${slideNumber}:`, blobError);
+          }
+          
           images.push({
             slideNumber,
             description: descriptionMatch?.[1] || contextualDescription,
             altText: altTextMatch?.[1] || undefined,
-            filename: embedId
+            filename: embedId,
+            embedId,
+            imageBlob
           });
         }
         
