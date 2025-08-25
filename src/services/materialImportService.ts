@@ -219,7 +219,7 @@ export class MaterialImportService {
     fileType: string,
     options?: MaterialProcessingOptions,
     onProgress?: (progress: MaterialProcessingProgress) => void,
-    extractionMetadata?: { images?: any[]; [key: string]: any }
+    _extractionMetadata?: { images?: any[]; [key: string]: any }
   ): Promise<AIExtractedMaterialInfo> {
     onProgress?.({
       stage: 'analyzing',
@@ -288,7 +288,7 @@ export class MaterialImportService {
     fileType: string,
     options?: MaterialProcessingOptions,
     extractionMetadata?: { images?: any[]; [key: string]: any },
-    useConciseMode = false
+    _useConciseMode = false
   ): string {
     const fileTypeContext = this.getFileTypeContext(fileType);
     
@@ -807,7 +807,7 @@ Return ONLY a JSON object with additional sections, images, or links:
           trimmedLine.includes('Remember to') ||
           trimmedLine.includes('This structure') ||
           (trimmedLine.length > 0 && !trimmedLine.includes('"') && !trimmedLine.includes('{') && !trimmedLine.includes('}') && !trimmedLine.includes('[') && !trimmedLine.includes(']'))) {
-        foundIncompleteSection = true;
+        // foundIncompleteSection = true;
         break;
       }
       
@@ -1001,13 +1001,13 @@ Return ONLY a JSON object with additional sections, images, or links:
     aiData: AIExtractedMaterialInfo,
     courseId: string,
     authorId: string,
-    extractionMetadata?: { images?: ImageReference[]; [key: string]: any }
+    _extractionMetadata?: { images?: ImageReference[]; [key: string]: any }
   ): Omit<Material, 'id' | 'timestamp'> {
     
     // Helper function to create placeholder image URLs
     const createPlaceholderImageUrl = (title: string, width = 400, height = 300): string => {
       // Clean the title to only include Latin1 characters to avoid btoa errors
-      const cleanTitle = title.replace(/[^\x00-\xFF]/g, '?').substring(0, 30);
+      const cleanTitle = title.replace(/[^\u0000-\u00FF]/g, '?').substring(0, 30);
       
       const svg = `
         <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
@@ -1130,7 +1130,7 @@ Return ONLY a JSON object with additional sections, images, or links:
       // Create a copy of uploaded images to track which ones we've used
       const availableImages = [...uploadedImages];
       
-      const enhanced = images?.map((image, index) => {
+      const enhanced = images?.map((image) => {
         let uploadedImage: any = null;
         
         // Strategy 1: Try to match by slide number if both have it

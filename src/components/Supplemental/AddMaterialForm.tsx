@@ -1,6 +1,6 @@
 // src/components/Supplemental/AddMaterialForm.tsx
 import React, { useState, useEffect, lazy, Suspense } from 'react';
-import { Box, TextField, Button, Snackbar, Alert, Typography, IconButton, Tooltip, ToggleButton, ToggleButtonGroup, Paper, Divider, CircularProgress, LinearProgress, Skeleton, Fade } from '@mui/material';
+import { Box, TextField, Button, Snackbar, Alert, Typography, IconButton, Tooltip, ToggleButton, ToggleButtonGroup, Paper, CircularProgress, LinearProgress, Skeleton, Fade } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { getFirestore, collection, addDoc, updateDoc, doc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { useUser } from '../../hooks/useUser';
@@ -38,7 +38,7 @@ interface SmartEditImageProps {
   title: string;
 }
 
-const SmartEditImage: React.FC<SmartEditImageProps> = ({ src, alt, title }) => {
+const SmartEditImage: React.FC<SmartEditImageProps> = ({ src, alt }) => {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
 

@@ -12,10 +12,7 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  Chip,
-  Divider,
-  IconButton,
-  Tooltip
+  Chip
 } from '@mui/material';
 import { 
   ExpandMore as ExpandMoreIcon,
@@ -179,7 +176,7 @@ const MaterialPreview: React.FC<MaterialPreviewProps> = ({
                               objectFit: 'contain',
                               marginBottom: '8px'
                             }}
-                            onError={(e) => {
+                            onError={() => {
                               console.warn(`Failed to load image: ${image.url}`);
                               // Keep the image element but it will show broken image icon
                             }}

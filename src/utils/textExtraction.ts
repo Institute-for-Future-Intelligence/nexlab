@@ -146,9 +146,7 @@ export const extractTextFromPPTX = async (file: File): Promise<TextExtractionRes
         
         // Extract image references from slide XML
         const imageMatches = slideContent.matchAll(/<a:blip[^>]*r:embed="([^"]*)"[^>]*>/g);
-        let imageCount = 0;
         for (const match of imageMatches) {
-          imageCount++;
           const embedId = match[1];
           
           // Try to find description or alt text with multiple patterns
