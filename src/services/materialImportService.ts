@@ -1006,20 +1006,28 @@ Return ONLY a JSON object with additional sections, images, or links:
     
     // Helper function to create placeholder image URLs
     const createPlaceholderImageUrl = (title: string, width = 400, height = 300): string => {
-      // Create a simple SVG placeholder that will always work
-      const text = title.substring(0, 30); // Limit text length
+      // Clean the title to only include Latin1 characters to avoid btoa errors
+      const cleanTitle = title.replace(/[^\x00-\xFF]/g, '?').substring(0, 30);
+      
       const svg = `
         <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
           <rect width="100%" height="100%" fill="#4a90e2"/>
           <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle" dominant-baseline="middle">
-            ${text}
+            ${cleanTitle}
           </text>
         </svg>
       `;
       
-      // Convert SVG to data URI
-      const dataUri = `data:image/svg+xml;base64,${btoa(svg)}`;
-      return dataUri;
+      try {
+        // Convert SVG to data URI
+        const dataUri = `data:image/svg+xml;base64,${btoa(svg)}`;
+        return dataUri;
+      } catch (error) {
+        console.error('Failed to create placeholder image URL:', error);
+        // Return a simple fallback without btoa if that fails too
+        const encodedSvg = encodeURIComponent(svg);
+        return `data:image/svg+xml,${encodedSvg}`;
+      }
     };
 
     // Helper function to enhance images with placeholder URLs (for preview)
