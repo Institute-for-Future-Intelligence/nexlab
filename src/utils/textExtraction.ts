@@ -4,9 +4,27 @@ export interface TextExtractionResult {
   text: string;
   metadata?: {
     pageCount?: number;
+    slideCount?: number;
     wordCount?: number;
     fileSize?: number;
     extractionMethod?: string;
+    images?: ImageReference[];
+  };
+}
+
+export interface ImageReference {
+  slideNumber?: number;
+  pageNumber?: number;
+  description?: string;
+  altText?: string;
+  filename?: string;
+  embedId?: string; // Reference ID for finding the actual image data
+  imageBlob?: Blob; // Actual image data extracted from file
+  position?: {
+    x?: number;
+    y?: number;
+    width?: number;
+    height?: number;
   };
 }
 
@@ -102,6 +120,195 @@ export const extractTextFromDOCX = async (file: File): Promise<TextExtractionRes
 };
 
 /**
+ * Extract text from a PowerPoint (.pptx) file using pizzip
+ */
+export const extractTextFromPPTX = async (file: File): Promise<TextExtractionResult> => {
+  try {
+    const PizZip = (await import('pizzip')).default;
+    const arrayBuffer = await file.arrayBuffer();
+    const zip = new PizZip(arrayBuffer);
+    
+    let fullText = '';
+    let slideCount = 0;
+    const images: ImageReference[] = [];
+    
+    // Extract text from slides
+    const slideFiles = Object.keys(zip.files).filter(filename => 
+      filename.startsWith('ppt/slides/slide') && filename.endsWith('.xml')
+    );
+    
+    slideCount = slideFiles.length;
+    
+    for (const slideFile of slideFiles) {
+      try {
+        const slideContent = zip.files[slideFile].asText();
+        const slideNumber = parseInt(slideFile.match(/slide(\d+)\.xml/)?.[1] || '0');
+        
+        // Extract image references from slide XML
+        const imageMatches = slideContent.matchAll(/<a:blip[^>]*r:embed="([^"]*)"[^>]*>/g);
+        for (const match of imageMatches) {
+          const embedId = match[1];
+          
+          // Try to find description or alt text with multiple patterns
+          const descriptionMatch = slideContent.match(new RegExp(`<p:cNvPr[^>]*name="([^"]*)"[^>]*>`, 'i'));
+          const altTextMatch = slideContent.match(new RegExp(`<p:cNvPr[^>]*descr="([^"]*)"[^>]*>`, 'i'));
+          
+          // Try to extract context from surrounding text
+          const slideTextContent = slideContent
+            .replace(/<a:t[^>]*>(.*?)<\/a:t>/g, '$1 ')
+            .replace(/<[^>]*>/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+          
+          // Generate better descriptions based on content context
+          let contextualDescription = `Image on slide ${slideNumber}`;
+          
+          // Look for common image-related keywords in the slide text
+          const imageKeywords = [
+            'chart', 'graph', 'diagram', 'figure', 'table', 'photo', 'image', 
+            'illustration', 'screenshot', 'logo', 'flowchart', 'timeline',
+            'comparison', 'data', 'results', 'example', 'structure', 'process'
+          ];
+          
+          const slideWords = slideTextContent.toLowerCase().split(/\s+/);
+          const foundKeywords = imageKeywords.filter(keyword => 
+            slideWords.some(word => word.includes(keyword))
+          );
+          
+          if (foundKeywords.length > 0) {
+            contextualDescription = `${foundKeywords[0].charAt(0).toUpperCase() + foundKeywords[0].slice(1)} (Slide ${slideNumber})`;
+          } else if (slideTextContent.length > 0) {
+            // Use first few words of slide as context
+            const firstWords = slideWords.slice(0, 3).join(' ');
+            if (firstWords.length > 5) {
+              contextualDescription = `Image: ${firstWords}... (Slide ${slideNumber})`;
+            }
+          }
+          
+          // Try to extract the actual image blob
+          let imageBlob: Blob | undefined;
+          try {
+            // Look for the relationship file to find the actual image path
+            const relsFile = `ppt/slides/_rels/slide${slideNumber}.xml.rels`;
+            if (zip.files[relsFile]) {
+              const relsContent = zip.files[relsFile].asText();
+              const relationshipMatch = relsContent.match(new RegExp(`Id="${embedId}"[^>]*Target="([^"]*)"`, 'i'));
+              
+              if (relationshipMatch) {
+                const imagePath = relationshipMatch[1];
+                const fullImagePath = imagePath.startsWith('../') ? 
+                  `ppt/${imagePath.substring(3)}` : 
+                  `ppt/slides/${imagePath}`;
+                
+                if (zip.files[fullImagePath]) {
+                  const imageData = zip.files[fullImagePath].asUint8Array();
+                  
+                  // Determine MIME type based on file extension
+                  let mimeType = 'image/jpeg'; // default
+                  if (fullImagePath.toLowerCase().includes('.png')) {
+                    mimeType = 'image/png';
+                  } else if (fullImagePath.toLowerCase().includes('.gif')) {
+                    mimeType = 'image/gif';
+                  } else if (fullImagePath.toLowerCase().includes('.bmp')) {
+                    mimeType = 'image/bmp';
+                  } else if (fullImagePath.toLowerCase().includes('.webp')) {
+                    mimeType = 'image/webp';
+                  }
+                  
+                  imageBlob = new Blob([imageData], { type: mimeType });
+                  console.log(`Extracted image blob for slide ${slideNumber}:`, {
+                    size: imageBlob.size,
+                    type: mimeType,
+                    path: fullImagePath
+                  });
+                }
+              }
+            }
+          } catch (blobError) {
+            console.warn(`Failed to extract image blob for ${embedId} on slide ${slideNumber}:`, blobError);
+          }
+          
+          images.push({
+            slideNumber,
+            description: descriptionMatch?.[1] || contextualDescription,
+            altText: altTextMatch?.[1] || undefined,
+            filename: embedId,
+            embedId,
+            imageBlob
+          });
+        }
+        
+        // Extract text content from XML (preserve some structure but remove most tags)
+        const textContent = slideContent
+          .replace(/<a:t[^>]*>(.*?)<\/a:t>/g, '$1 ') // Extract text from text runs
+          .replace(/<[^>]*>/g, ' ') // Remove remaining XML tags
+          .replace(/\s+/g, ' ') // Normalize whitespace
+          .trim();
+        
+        if (textContent) {
+          fullText += `\n--- Slide ${slideNumber} ---\n${textContent}\n`;
+        }
+        
+        // Add image references to text for AI processing
+        const slideImages = images.filter(img => img.slideNumber === slideNumber);
+        if (slideImages.length > 0) {
+          fullText += `\n[IMAGES ON SLIDE ${slideNumber}]: `;
+          slideImages.forEach(img => {
+            fullText += `"${img.description}"${img.altText ? ` (${img.altText})` : ''}, `;
+          });
+          fullText = fullText.slice(0, -2) + '\n'; // Remove trailing comma
+        }
+      } catch (slideError) {
+        console.warn(`Failed to extract text from ${slideFile}:`, slideError);
+      }
+    }
+    
+    // Also try to extract from notes if present
+    const notesFiles = Object.keys(zip.files).filter(filename => 
+      filename.startsWith('ppt/notesSlides/notesSlide') && filename.endsWith('.xml')
+    );
+    
+    for (const notesFile of notesFiles) {
+      try {
+        const notesContent = zip.files[notesFile].asText();
+        const textContent = notesContent
+          .replace(/<[^>]*>/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+        
+        if (textContent) {
+          const slideNumber = notesFile.match(/notesSlide(\d+)\.xml/)?.[1] || 'unknown';
+          fullText += `\n--- Notes for Slide ${slideNumber} ---\n${textContent}\n`;
+        }
+      } catch (notesError) {
+        console.warn(`Failed to extract notes from ${notesFile}:`, notesError);
+      }
+    }
+    
+    if (!fullText.trim()) {
+      throw new Error('No text content found in PowerPoint file');
+    }
+    
+    return {
+      text: fullText.trim(),
+      metadata: {
+        slideCount,
+        wordCount: fullText.trim().split(/\s+/).length,
+        fileSize: file.size,
+        extractionMethod: 'PizZip',
+        images: images.length > 0 ? images : undefined
+      }
+    };
+  } catch (error) {
+    throw {
+      message: 'Failed to extract text from PowerPoint file. Please ensure the file is not corrupted and contains text content.',
+      code: 'PPTX_EXTRACTION_ERROR',
+      originalError: error instanceof Error ? error : new Error(String(error))
+    } as TextExtractionError;
+  }
+};
+
+/**
  * Extract text from a plain text file
  */
 export const extractTextFromTXT = async (file: File): Promise<TextExtractionResult> => {
@@ -148,11 +355,16 @@ export const extractTextFromFile = async (file: File): Promise<TextExtractionRes
       fileName.endsWith('.docx')
     ) {
       return await extractTextFromDOCX(file);
+    } else if (
+      fileType === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
+      fileName.endsWith('.pptx')
+    ) {
+      return await extractTextFromPPTX(file);
     } else if (fileType === 'text/plain' || fileName.endsWith('.txt')) {
       return await extractTextFromTXT(file);
     } else {
       throw {
-        message: `Unsupported file format: ${fileType || 'unknown'}. Supported formats: PDF (.pdf), Word (.docx), Text (.txt)`,
+        message: `Unsupported file format: ${fileType || 'unknown'}. Supported formats: PDF (.pdf), Word (.docx), PowerPoint (.pptx), Text (.txt)`,
         code: 'UNSUPPORTED_FORMAT_ERROR'
       } as TextExtractionError;
     }
@@ -178,9 +390,10 @@ export const validateFileForExtraction = (file: File): { isValid: boolean; error
   const allowedTypes = [
     'application/pdf',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
     'text/plain'
   ];
-  const allowedExtensions = ['.pdf', '.docx', '.txt'];
+  const allowedExtensions = ['.pdf', '.docx', '.pptx', '.txt'];
   
   // Check file size
   if (file.size > maxFileSize) {
@@ -220,6 +433,11 @@ export const getFileTypeDescription = (file: File): string => {
     fileName.endsWith('.docx')
   ) {
     return 'Word Document';
+  } else if (
+    fileType === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
+    fileName.endsWith('.pptx')
+  ) {
+    return 'PowerPoint Presentation';
   } else if (fileType === 'text/plain' || fileName.endsWith('.txt')) {
     return 'Text File';
   } else {
@@ -241,6 +459,8 @@ export const estimateProcessingTime = (file: File): number => {
     baseTime = Math.max(2, fileSizeInMB * 0.5); // ~0.5 seconds per MB for PDFs
   } else if (fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
     baseTime = Math.max(1, fileSizeInMB * 0.3); // ~0.3 seconds per MB for DOCX
+  } else if (fileType === 'application/vnd.openxmlformats-officedocument.presentationml.presentation') {
+    baseTime = Math.max(1.5, fileSizeInMB * 0.4); // ~0.4 seconds per MB for PPTX
   } else {
     baseTime = Math.max(0.5, fileSizeInMB * 0.1); // ~0.1 seconds per MB for text
   }

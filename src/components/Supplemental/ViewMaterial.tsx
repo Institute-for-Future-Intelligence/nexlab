@@ -2,12 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
-import { Box, Typography, IconButton, Tooltip, CircularProgress, Button, LinearProgress } from '@mui/material';
+import { Box, Typography, IconButton, Tooltip, CircularProgress, Button, LinearProgress, Fade } from '@mui/material';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { Material } from '../../types/Material';
 import SideBar from './SideBar';
 import BackToAllMaterialsButton from './BackToAllMaterialsButton';
+import { useAdjacentSectionPreloader } from '../../hooks/useImagePreloader';
 
 import ImageGallery from './ImageGallery';
 import ViewLinksTable from './ViewLinksTable';
@@ -23,6 +24,19 @@ const ViewMaterial: React.FC = () => {
   const [selectedSection, setSelectedSection] = useState<{ sectionIndex?: number, subsectionIndex?: number, subSubsectionIndex?: number, type?: 'header' | 'footer' }>({ sectionIndex: 0 });
 
   const [progress, setProgress] = useState<number | null>(null);
+  const [contentKey, setContentKey] = useState(0); // Key for triggering transitions
+
+  // Preload images from adjacent sections for smooth navigation
+  useAdjacentSectionPreloader(
+    materialData?.sections || [],
+    selectedSection.sectionIndex || 0,
+    !!materialData // Only enable when material is loaded
+  );
+
+  // Trigger transition when section changes
+  useEffect(() => {
+    setContentKey(prev => prev + 1);
+  }, [selectedSection]);
 
   useEffect(() => {
     if (id) {
@@ -30,7 +44,17 @@ const ViewMaterial: React.FC = () => {
         const docRef = doc(db, 'materials', id);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          setMaterialData({ id: docSnap.id, ...docSnap.data() } as Material);
+          const docData = { id: docSnap.id, ...docSnap.data() } as Material;
+          console.log('Loaded material from database:', {
+            title: docData.title,
+            sectionsCount: docData.sections?.length || 0,
+            sectionsWithImages: docData.sections?.filter(s => s.images?.length > 0).length || 0,
+            allImages: docData.sections?.flatMap(s => s.images || []).map(img => ({ 
+              url: img.url.substring(0, 100) + '...', 
+              title: img.title 
+            }))
+          });
+          setMaterialData(docData);
         }
       };
       fetchMaterial();
@@ -190,7 +214,7 @@ const ViewMaterial: React.FC = () => {
           </Box>
           <Box sx={{ flexGrow: 1, padding: 3 }}>
             <hr /> {/* Horizontal line above the header */}
-            <Box sx={{ border: selectedSection.type === 'header' ? '2px solid blue' : 'none', borderRadius: 1, padding: 2, mb: 2 }}>
+            <Box sx={{ borderRadius: 1, padding: 2, mb: 2 }}>
               <Typography dangerouslySetInnerHTML={{ __html: materialData.header.content.replace(/\n/g, '<br />') }} />
             </Box>
             <hr /> {/* Horizontal line below the header */}
@@ -202,36 +226,37 @@ const ViewMaterial: React.FC = () => {
               {currentTitle}
             </Typography>
             {selectedSection.type !== 'header' && selectedSection.type !== 'footer' && (
-              <>
-                <Box
-                  sx={{
-                    mb: 2,
-                    border: selectedSection.sectionIndex !== undefined && selectedSection.subsectionIndex === undefined ? '2px solid blue' : selectedSection.subSubsectionIndex !== undefined ? '2px solid red' : selectedSection.subsectionIndex !== undefined ? '2px solid green' : 'none',
-                    borderRadius: 1,
-                    padding: 2,
-                  }}
-                >
-                  <Typography dangerouslySetInnerHTML={{ __html: currentContent.replace(/\n/g, '<br />') }} />
-                  <Box>
-                    {selectedSection.sectionIndex !== undefined && (
-                      <>
-                                                  {selectedSection.subSubsectionIndex !== undefined
-                            ? (materialData.sections[selectedSection.sectionIndex]?.subsections?.[selectedSection.subsectionIndex!]?.subSubsections?.[selectedSection.subSubsectionIndex]?.images?.length || 0) > 0 && (
-                            <ImageGallery images={materialData.sections[selectedSection.sectionIndex]?.subsections?.[selectedSection.subsectionIndex!]?.subSubsections?.[selectedSection.subSubsectionIndex]?.images || []} />
-                          )
-                          : selectedSection.subsectionIndex !== undefined
-                            ? (materialData.sections[selectedSection.sectionIndex]?.subsections?.[selectedSection.subsectionIndex]?.images?.length || 0) > 0 && (
-                              <ImageGallery images={materialData.sections[selectedSection.sectionIndex]?.subsections?.[selectedSection.subsectionIndex]?.images || []} />
+              <Fade key={contentKey} in={true} timeout={400}>
+                <Box>
+                  <Box
+                    sx={{
+                      mb: 2,
+                      borderRadius: 1,
+                      padding: 2,
+                    }}
+                  >
+                    <Typography dangerouslySetInnerHTML={{ __html: currentContent.replace(/\n/g, '<br />') }} />
+                    <Box>
+                      {selectedSection.sectionIndex !== undefined && (
+                        <>
+                                                    {selectedSection.subSubsectionIndex !== undefined
+                              ? (materialData.sections[selectedSection.sectionIndex]?.subsections?.[selectedSection.subsectionIndex!]?.subSubsections?.[selectedSection.subSubsectionIndex]?.images?.length || 0) > 0 && (
+                              <ImageGallery images={materialData.sections[selectedSection.sectionIndex]?.subsections?.[selectedSection.subsectionIndex!]?.subSubsections?.[selectedSection.subSubsectionIndex]?.images || []} />
                             )
-                            : (materialData.sections[selectedSection.sectionIndex]?.images?.length || 0) > 0 && (
-                              <ImageGallery images={materialData.sections[selectedSection.sectionIndex]?.images || []} />
-                            )}
-                      </>
-                    )}
+                            : selectedSection.subsectionIndex !== undefined
+                              ? (materialData.sections[selectedSection.sectionIndex]?.subsections?.[selectedSection.subsectionIndex]?.images?.length || 0) > 0 && (
+                                <ImageGallery images={materialData.sections[selectedSection.sectionIndex]?.subsections?.[selectedSection.subsectionIndex]?.images || []} />
+                              )
+                              : (materialData.sections[selectedSection.sectionIndex]?.images?.length || 0) > 0 && (
+                                <ImageGallery images={materialData.sections[selectedSection.sectionIndex]?.images || []} />
+                              )}
+                        </>
+                      )}
+                    </Box>
                   </Box>
+                  <ViewLinksTable links={currentLinks} />
                 </Box>
-                <ViewLinksTable links={currentLinks} />
-              </>
+              </Fade>
             )}
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <Tooltip title="Previous Section/Subsection (Left Arrow)" arrow>
@@ -261,7 +286,7 @@ const ViewMaterial: React.FC = () => {
               </Tooltip>
             </Box>
             <hr /> {/* Horizontal line above the footer */}
-            <Box sx={{ border: selectedSection.type === 'footer' ? '2px solid blue' : 'none', borderRadius: 1, padding: 2, mt: 2 }}>
+            <Box sx={{ borderRadius: 1, padding: 2, mt: 2 }}>
               <Typography dangerouslySetInnerHTML={{ __html: materialData.footer.content.replace(/\n/g, '<br />') }} />
             </Box>
             <hr /> {/* Horizontal line below the footer */}

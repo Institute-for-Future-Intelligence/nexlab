@@ -71,7 +71,7 @@ const SyllabusUploadZone: React.FC<SyllabusUploadZoneProps> = ({
     }
 
     try {
-      await uploadSyllabus(file, apiKey);
+      await uploadSyllabus(file);
       onUploadComplete?.(file);
     } catch (error) {
       console.error('Upload error:', error);
