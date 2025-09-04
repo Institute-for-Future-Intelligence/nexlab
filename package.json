@@ -15,7 +15,11 @@
     "preview": "vite preview",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist",
-    "type-check": "tsc --noEmit --skipLibCheck || echo 'TypeScript check completed with errors - proceeding with build'"
+    "type-check": "tsc --noEmit --skipLibCheck || echo 'TypeScript check completed with errors - proceeding with build'",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage"
   },
   "homepage": "https://institute-for-future-intelligence.github.io/nexlab/",
   "author": {
@@ -88,8 +92,12 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
     "gh-pages": "^4.0.0",
+    "jsdom": "^24.0.0",
     "typescript": "^5.4.5",
-    "vite": "^6.0.3"
+    "vite": "^6.0.3",
+    "vitest": "^1.4.0",
+    "@vitest/ui": "^1.4.0",
+    "@vitest/coverage-v8": "^1.4.0"
   },
   "eslintConfig": {
     "extends": [
