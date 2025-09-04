@@ -1,5 +1,5 @@
 // src/contexts/UserContext.tsx
-import { createContext, useState, useEffect, ReactNode, Dispatch, SetStateAction } from 'react';
+import { createContext, useState, useEffect, useRef, ReactNode, Dispatch, SetStateAction } from 'react';
 import { User as FirebaseUser } from 'firebase/auth';
 import { FirebaseTimestamp } from '../types/firebase';
 import { authService } from '../services/authService';
@@ -32,7 +32,7 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const [userDetailsUnsubscribe, setUserDetailsUnsubscribe] = useState<(() => void) | null>(null);
+  const userDetailsUnsubscribeRef = useRef<(() => void) | null>(null);
 
 
 
@@ -42,9 +42,9 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
       setError(null);
 
       // Clean up previous user details subscription
-      if (userDetailsUnsubscribe) {
-        userDetailsUnsubscribe();
-        setUserDetailsUnsubscribe(null);
+      if (userDetailsUnsubscribeRef.current) {
+        userDetailsUnsubscribeRef.current();
+        userDetailsUnsubscribeRef.current = null;
       }
 
       try {
@@ -82,7 +82,7 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
               setIsSuperAdmin(updatedDetails.isSuperAdmin || false);
             }
           });
-          setUserDetailsUnsubscribe(() => userDetailsUnsub);
+          userDetailsUnsubscribeRef.current = userDetailsUnsub;
           
         } else {
           // User signed out
@@ -105,11 +105,12 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
 
     return () => {
       unsubscribe();
-      if (userDetailsUnsubscribe) {
-        userDetailsUnsubscribe();
+      if (userDetailsUnsubscribeRef.current) {
+        userDetailsUnsubscribeRef.current();
+        userDetailsUnsubscribeRef.current = null;
       }
     };
-  }, [userDetailsUnsubscribe]);
+  }, []); // Remove userDetailsUnsubscribe from dependency array
 
   const refreshUserDetails = async () => {
     if (!user) {
