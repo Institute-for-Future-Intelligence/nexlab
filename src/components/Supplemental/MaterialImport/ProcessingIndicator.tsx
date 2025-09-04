@@ -120,7 +120,7 @@ const ProcessingIndicator: React.FC = () => {
         <Alert severity="info" sx={{ mt: 2 }}>
           <Typography variant="body2">
             <strong>AI Processing:</strong> The system is analyzing your content structure, 
-            identifying sections, and extracting educational information. This may take a moment 
+            identifying sections, and extracting educational information. This usually takes a moment 
             for larger files.
           </Typography>
         </Alert>

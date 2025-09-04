@@ -1,6 +1,7 @@
 // src/components/CourseRequests/CourseRequestsAdminPage.tsx
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Button, Snackbar, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
+import { Box, Typography, Button, Snackbar, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Tooltip } from '@mui/material';
+import { Description as SyllabusIcon, Download as DownloadIcon } from '@mui/icons-material';
 import { getFirestore, collection, getDocs, getDoc, doc, updateDoc, addDoc, writeBatch, Timestamp } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { ParsedCourseInfo, GeneratedMaterial } from '../../stores/syllabusStore';
@@ -18,6 +19,28 @@ interface CourseRequest {
   syllabusData?: {
     parsedCourseInfo: ParsedCourseInfo;
     generatedMaterials: GeneratedMaterial[];
+    additionalInfo?: {
+      contactInfo?: any;
+      policies?: any;
+      additionalResources?: any;
+      labSpecific?: any;
+      textbooks?: any[];
+      gradingPolicy?: any[];
+      assignments?: any[];
+      prerequisites?: string[];
+    };
+    syllabusFile?: {
+      url: string;
+      path: string;
+      metadata: {
+        originalFilename: string;
+        fileSize: number;
+        fileType: string;
+        uploadedAt: Date;
+        uploadedBy: string;
+        courseId?: string;
+      };
+    };
   };
 }
 
@@ -75,13 +98,39 @@ const CourseRequestsAdminPage: React.FC = () => {
     try {
       const passcode = generatePasscode();
   
-      // Create a new course document
-      const courseDocRef = await addDoc(collection(db, 'courses'), {
+      // Prepare course document data
+      const courseData: any = {
         number: currentRequestData.courseNumber,
         title: currentRequestData.courseTitle,
+        description: currentRequestData.courseDescription,
         passcode: passcode,
         courseAdmin: [currentRequestData.uid], // Initialize with primary admin as array
-      });
+        createdAt: new Date(),
+      };
+
+      // Add additional information if available from syllabus import
+      if (currentRequestData.syllabusImported && currentRequestData.syllabusData?.additionalInfo) {
+        const additionalInfo = currentRequestData.syllabusData.additionalInfo;
+        courseData.additionalInfo = {
+          contactInfo: additionalInfo.contactInfo || {},
+          policies: additionalInfo.policies || {},
+          additionalResources: additionalInfo.additionalResources || {},
+          labSpecific: additionalInfo.labSpecific || {},
+          textbooks: additionalInfo.textbooks || [],
+          gradingPolicy: additionalInfo.gradingPolicy || [],
+          assignments: additionalInfo.assignments || [],
+          prerequisites: additionalInfo.prerequisites || [],
+          lastUpdated: new Date()
+        };
+      }
+
+      // Add syllabus file reference if available
+      if (currentRequestData.syllabusImported && currentRequestData.syllabusData?.syllabusFile) {
+        courseData.syllabusFile = currentRequestData.syllabusData.syllabusFile;
+      }
+
+      // Create the course document
+      const courseDocRef = await addDoc(collection(db, 'courses'), courseData);
   
       // Update the user's document to associate them with the new course using the map structure
       const userDocRef = doc(db, 'users', currentRequestData.uid);
@@ -279,12 +328,30 @@ const CourseRequestsAdminPage: React.FC = () => {
                 <TableCell>
                   {request.syllabusImported ? (
                     <Box>
-                      <Typography variant="body2" color="primary" sx={{ fontWeight: 'bold' }}>
-                        Syllabus Import
-                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                        <Typography variant="body2" color="primary" sx={{ fontWeight: 'bold' }}>
+                          Syllabus Import
+                        </Typography>
+                        {request.syllabusData?.syllabusFile && (
+                          <Tooltip title={`Download: ${request.syllabusData.syllabusFile.metadata.originalFilename}`}>
+                            <IconButton
+                              size="small"
+                              onClick={() => window.open(request.syllabusData.syllabusFile.url, '_blank')}
+                              sx={{ color: 'primary.main' }}
+                            >
+                              <SyllabusIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                      </Box>
                       <Typography variant="caption" color="text.secondary">
                         {request.syllabusData?.generatedMaterials?.length || 0} materials
                       </Typography>
+                      {request.syllabusData?.syllabusFile && (
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                          {request.syllabusData.syllabusFile.metadata.originalFilename}
+                        </Typography>
+                      )}
                     </Box>
                   ) : (
                     <Typography variant="body2" color="text.secondary">
@@ -348,13 +415,35 @@ const CourseRequestsAdminPage: React.FC = () => {
               <>
                 Are you sure you want to approve this course request?
                 {currentRequestData?.syllabusImported && (
-                  <Box sx={{ mt: 2, p: 2, backgroundColor: 'info.light', borderRadius: 1 }}>
+                  <Box sx={{ mt: 2, p: 2, backgroundColor: '#ECF4FE', borderRadius: 1 }}>
                     <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
                       📚 Syllabus Import Detected
                     </Typography>
                     <Typography variant="body2">
                       This request includes {currentRequestData?.syllabusData?.generatedMaterials?.length || 0} auto-generated materials that will be added to the course.
                     </Typography>
+                    {currentRequestData?.syllabusData?.syllabusFile && (
+                      <Box sx={{ mt: 1 }}>
+                        <Typography variant="body2" sx={{ mb: 1 }}>
+                          <strong>Syllabus File:</strong> {currentRequestData.syllabusData.syllabusFile.metadata.originalFilename}
+                          {' '}({(currentRequestData.syllabusData.syllabusFile.metadata.fileSize / 1024 / 1024).toFixed(2)} MB)
+                        </Typography>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          startIcon={<DownloadIcon />}
+                          onClick={() => window.open(currentRequestData.syllabusData.syllabusFile.url, '_blank')}
+                          sx={{ mt: 0.5 }}
+                        >
+                          View/Download Syllabus
+                        </Button>
+                      </Box>
+                    )}
+                    {currentRequestData?.syllabusData?.additionalInfo && (
+                      <Typography variant="body2" sx={{ mt: 1 }}>
+                        <strong>Additional Info:</strong> Contact info, policies, textbooks, and other course details extracted
+                      </Typography>
+                    )}
                   </Box>
                 )}
               </>

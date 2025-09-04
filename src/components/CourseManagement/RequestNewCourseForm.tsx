@@ -82,6 +82,8 @@ const RequestNewCourseForm: React.FC = () => {
   const { 
     parsedCourseInfo, 
     generatedMaterials, 
+    aiExtractedInfo,
+    storedSyllabusFile,
     reset: resetSyllabus,
     currentStep 
   } = useSyllabusStore();
@@ -171,7 +173,24 @@ const RequestNewCourseForm: React.FC = () => {
       if (creationMode === 'syllabus' && parsedCourseInfo && generatedMaterials.length > 0) {
         const syllabusData = {
           parsedCourseInfo: parsedCourseInfo,
-          generatedMaterials: generatedMaterials.filter(m => m.published)
+          generatedMaterials: generatedMaterials.filter(m => m.published),
+          // Include additional information from AI extraction
+          additionalInfo: aiExtractedInfo ? {
+            contactInfo: aiExtractedInfo.contactInfo,
+            policies: aiExtractedInfo.policies,
+            additionalResources: aiExtractedInfo.additionalResources,
+            labSpecific: aiExtractedInfo.labSpecific,
+            textbooks: aiExtractedInfo.textbooks,
+            gradingPolicy: aiExtractedInfo.gradingPolicy,
+            assignments: aiExtractedInfo.assignments,
+            prerequisites: aiExtractedInfo.prerequisites
+          } : null,
+          // Include syllabus file reference
+          syllabusFile: storedSyllabusFile ? {
+            url: storedSyllabusFile.url,
+            path: storedSyllabusFile.path,
+            metadata: storedSyllabusFile.metadata
+          } : null
         };
         
         // Clean the syllabus data to remove any undefined values
@@ -325,6 +344,7 @@ const RequestNewCourseForm: React.FC = () => {
             <SyllabusImport
               onComplete={handleSyllabusComplete}
               onCancel={() => setCreationMode('manual')}
+              educatorUid={userDetails?.uid}
             />
           </Box>
         )}

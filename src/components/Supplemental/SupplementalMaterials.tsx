@@ -9,6 +9,7 @@ import { useUser } from '../../hooks/useUser';
 import { useSearchParams } from 'react-router-dom';
 
 import BackToAllMaterialsButton from './BackToAllMaterialsButton';
+import AdditionalCourseInfo from './AdditionalCourseInfo';
 
 const SupplementalMaterials: React.FC = () => {
   const { userDetails } = useUser();
@@ -69,6 +70,9 @@ const SupplementalMaterials: React.FC = () => {
           </Box>
 
           {/* Main Content Area */}
+          {/* Show Additional Course Information */}
+          <AdditionalCourseInfo courseId={selectedCourse} isAdmin={userDetails?.isAdmin} />
+          
           {/* Show Add Material Button for Educators & Super-Admins */}
           <Box className="supplemental-content">
             {/* Add Material Button for Admins */}
