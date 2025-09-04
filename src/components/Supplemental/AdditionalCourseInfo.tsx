@@ -368,28 +368,22 @@ const AdditionalCourseInfo: React.FC<AdditionalCourseInfoProps> = ({ courseId, i
               <AccordionDetails>
                 <List>
                   {additionalInfo.textbooks.map((book, index) => (
-                    <ListItem key={index} sx={{ px: 0 }}>
-                      <ListItemText
-                        primary={
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
-                              {book.title}
-                            </Typography>
-                            <Chip 
-                              label={book.required ? 'Required' : 'Optional'} 
-                              size="small" 
-                              color={book.required ? 'error' : 'default'}
-                            />
-                          </Box>
-                        }
-                        secondary={
-                          <Box>
-                            {book.author && <Typography variant="body2">by {book.author}</Typography>}
-                            {book.edition && <Typography variant="body2">Edition: {book.edition}</Typography>}
-                            {book.isbn && <Typography variant="body2">ISBN: {book.isbn}</Typography>}
-                          </Box>
-                        }
-                      />
+                    <ListItem key={index} sx={{ px: 0, flexDirection: 'column', alignItems: 'flex-start' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                          {book.title}
+                        </Typography>
+                        <Chip 
+                          label={book.required ? 'Required' : 'Optional'} 
+                          size="small" 
+                          color={book.required ? 'error' : 'default'}
+                        />
+                      </Box>
+                      <Box sx={{ pl: 0 }}>
+                        {book.author && <Typography variant="body2" color="text.secondary">by {book.author}</Typography>}
+                        {book.edition && <Typography variant="body2" color="text.secondary">Edition: {book.edition}</Typography>}
+                        {book.isbn && <Typography variant="body2" color="text.secondary">ISBN: {book.isbn}</Typography>}
+                      </Box>
                     </ListItem>
                   ))}
                 </List>
@@ -430,16 +424,16 @@ const AdditionalCourseInfo: React.FC<AdditionalCourseInfoProps> = ({ courseId, i
               <AccordionDetails>
                 <List>
                   {additionalInfo.gradingPolicy.map((item, index) => (
-                    <ListItem key={index} sx={{ px: 0 }}>
-                      <ListItemText
-                        primary={
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Typography variant="body1">{item.component}</Typography>
-                            <Chip label={`${item.percentage}%`} size="small" color="primary" />
-                          </Box>
-                        }
-                        secondary={item.description}
-                      />
+                    <ListItem key={index} sx={{ px: 0, flexDirection: 'column', alignItems: 'flex-start' }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', mb: item.description ? 1 : 0 }}>
+                        <Typography variant="body1">{item.component}</Typography>
+                        <Chip label={`${item.percentage}%`} size="small" color="primary" />
+                      </Box>
+                      {item.description && (
+                        <Typography variant="body2" color="text.secondary">
+                          {item.description}
+                        </Typography>
+                      )}
                     </ListItem>
                   ))}
                 </List>
