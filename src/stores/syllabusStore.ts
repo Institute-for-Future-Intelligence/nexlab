@@ -11,6 +11,10 @@ import {
   getGeminiService, 
   type AIExtractedCourseInfo 
 } from '../services/geminiService';
+import { 
+  uploadSyllabusFile,
+  type StoredSyllabusFile 
+} from '../services/syllabusFileService';
 import type { SubSubsection } from '../types/Material';
 
 // Type for extraction metadata
@@ -140,6 +144,9 @@ interface SyllabusState {
   extractedText: string;
   extractionMetadata: ExtractionMetadata | null;
   
+  // File storage
+  storedSyllabusFile: StoredSyllabusFile | null;
+  
   // AI processing
   aiExtractedInfo: AIExtractedCourseInfo | null;
   useAIProcessing: boolean;
@@ -160,6 +167,7 @@ interface SyllabusState {
   setUploadedFile: (file: File | null) => void;
   setUploadProgress: (progress: number) => void;
   setExtractedText: (text: string) => void;
+  setStoredSyllabusFile: (file: StoredSyllabusFile | null) => void;
   setAIExtractedInfo: (info: AIExtractedCourseInfo | null) => void;
   setUseAIProcessing: (use: boolean) => void;
   setParsedCourseInfo: (info: ParsedCourseInfo | null) => void;
@@ -170,7 +178,7 @@ interface SyllabusState {
   setProcessingProgress: (progress: ProcessingProgress | null) => void;
   
   // Complex actions
-  uploadSyllabus: (file: File) => Promise<void>;
+  uploadSyllabus: (file: File, educatorUid?: string) => Promise<void>;
   extractTextFromFile: () => Promise<void>;
   parseSyllabus: () => Promise<void>;
   generateMaterials: () => Promise<void>;
@@ -208,6 +216,7 @@ export const useSyllabusStore = create<SyllabusState>()(
         uploadProgress: 0,
         extractedText: '',
         extractionMetadata: null,
+        storedSyllabusFile: null,
         aiExtractedInfo: null,
         useAIProcessing: true, // Default to using AI
         parsedCourseInfo: null,
@@ -221,6 +230,7 @@ export const useSyllabusStore = create<SyllabusState>()(
         setUploadedFile: (file) => set({ uploadedFile: file }),
         setUploadProgress: (progress) => set({ uploadProgress: progress }),
         setExtractedText: (text) => set({ extractedText: text }),
+        setStoredSyllabusFile: (file) => set({ storedSyllabusFile: file }),
         setAIExtractedInfo: (info) => set({ aiExtractedInfo: info }),
         setUseAIProcessing: (use) => set({ useAIProcessing: use }),
         setParsedCourseInfo: (info) => set({ parsedCourseInfo: info }),
@@ -231,7 +241,7 @@ export const useSyllabusStore = create<SyllabusState>()(
         setProcessingProgress: (progress) => set({ processingProgress: progress }),
         
         // Complex actions
-        uploadSyllabus: async (file: File) => {
+        uploadSyllabus: async (file: File, educatorUid?: string) => {
           // Validate file before processing
           const validation = validateFileForExtraction(file);
           if (!validation.isValid) {
@@ -286,6 +296,27 @@ export const useSyllabusStore = create<SyllabusState>()(
             });
             
             await get().extractTextFromFile();
+            
+            // Upload file to storage if educator UID is provided
+            if (educatorUid) {
+              try {
+                set({
+                  processingProgress: {
+                    stage: 'uploading',
+                    percentage: 90,
+                    currentOperation: 'Storing syllabus file...'
+                  }
+                });
+                
+                const storedFile = await uploadSyllabusFile(file, educatorUid);
+                set({ storedSyllabusFile: storedFile });
+                
+                console.log('Syllabus file stored successfully:', storedFile.url);
+              } catch (storageError) {
+                console.warn('Failed to store syllabus file, continuing with processing:', storageError);
+                // Don't fail the entire process if file storage fails
+              }
+            }
             
             // Update progress for analysis phase
             set({
@@ -703,13 +734,15 @@ export const useSyllabusStore = create<SyllabusState>()(
           uploadProgress: 0,
           extractedText: '',
           extractionMetadata: null,
+          storedSyllabusFile: null,
           aiExtractedInfo: null,
           useAIProcessing: true,
           parsedCourseInfo: null,
           generatedMaterials: [],
           currentStep: 'upload',
           isProcessing: false,
-          error: null
+          error: null,
+          processingProgress: null
         })
       }),
       {
@@ -718,6 +751,7 @@ export const useSyllabusStore = create<SyllabusState>()(
           // Only persist non-file data for performance
           extractedText: state.extractedText,
           extractionMetadata: state.extractionMetadata,
+          storedSyllabusFile: state.storedSyllabusFile,
           aiExtractedInfo: state.aiExtractedInfo,
           useAIProcessing: state.useAIProcessing,
           parsedCourseInfo: state.parsedCourseInfo,

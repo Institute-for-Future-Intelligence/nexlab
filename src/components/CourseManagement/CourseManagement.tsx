@@ -17,6 +17,8 @@ import ExportToCSV from './ExportToCSV';
 import CourseSelector from './CourseSelector';
 
 import EditCourseDetails from './EditCourseDetails';
+import EditAdditionalInfo from './EditAdditionalInfo';
+import SyllabusFileDisplay from './SyllabusFileDisplay';
 import DeleteCourse from './DeleteCourse';
 import RetrieveCoursePasscode from './RetrieveCoursePasscode';
 
@@ -158,24 +160,33 @@ const CourseManagement: React.FC = () => {
 
       <Box>
         {isCourseSelected && (
-          <Box
-            sx={{
-              flex: 2,
-              display: 'flex',
-              justifyContent: 'flex-end',
-              gap: 2,
-            }}
-          >
-            <EditCourseDetails
-              selectedCourse={selectedCourse}
-              selectedCourseDetails={selectedCourseDetails}
-              onCourseUpdate={() => {}}
-            />
-            <DeleteCourse
-              selectedCourse={selectedCourse}
-              onCourseDelete={() => setSelectedCourse('')}
-            />
-          </Box>
+          <>
+            {/* Syllabus File Display */}
+            <SyllabusFileDisplay courseId={selectedCourse} />
+            
+            <Box
+              sx={{
+                flex: 2,
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: 2,
+              }}
+            >
+              <EditCourseDetails
+                selectedCourse={selectedCourse}
+                selectedCourseDetails={selectedCourseDetails}
+                onCourseUpdate={() => {}}
+              />
+              <EditAdditionalInfo
+                selectedCourse={selectedCourse}
+                onInfoUpdate={() => {}}
+              />
+              <DeleteCourse
+                selectedCourse={selectedCourse}
+                onCourseDelete={() => setSelectedCourse('')}
+              />
+            </Box>
+          </>
         )}
       </Box>
 

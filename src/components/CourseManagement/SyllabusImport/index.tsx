@@ -24,11 +24,13 @@ interface SyllabusImportProps {
     materials: GeneratedMaterial[];
   }) => void;
   onCancel?: () => void;
+  educatorUid?: string; // For file storage
 }
 
 const SyllabusImport: React.FC<SyllabusImportProps> = ({
   onComplete,
-  onCancel
+  onCancel,
+  educatorUid
 }) => {
   const {
     currentStep,
@@ -117,6 +119,7 @@ const SyllabusImport: React.FC<SyllabusImportProps> = ({
             onUploadComplete={() => {
               // Upload completion is handled by the store
             }}
+            educatorUid={educatorUid}
           />
         );
 
@@ -142,6 +145,7 @@ const SyllabusImport: React.FC<SyllabusImportProps> = ({
             onUploadComplete={() => {
               // Upload completion is handled by the store
             }}
+            educatorUid={educatorUid}
           />
         );
     }
@@ -202,8 +206,8 @@ const SyllabusImport: React.FC<SyllabusImportProps> = ({
         <Alert severity="info" sx={{ mb: 3 }}>
           <Typography variant="body2">
             {useAIProcessing ? 
-              '🤖 AI is analyzing your syllabus for enhanced data extraction... This may take 10-30 seconds.' :
-              '🔄 Processing your syllabus with pattern-based analysis... This may take a moment.'
+              '🤖 AI is analyzing your syllabus for enhanced data extraction... This usually takes 10-30 seconds.' :
+              '🔄 Processing your syllabus with pattern-based analysis... This usually takes a moment.'
             }
           </Typography>
         </Alert>
