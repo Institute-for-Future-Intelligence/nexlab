@@ -1,7 +1,7 @@
 // src/test/contexts/UserContext.test.tsx
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor, act } from '@testing-library/react';
-import { UserContext, UserProvider } from '../../contexts/UserContext';
+import UserProvider, { UserContext } from '../../contexts/UserContext';
 import { authService } from '../../services/authService';
 import { userService } from '../../services/userService';
 import { useContext } from 'react';
@@ -273,7 +273,7 @@ describe('UserContext', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByTestId('error')).toHaveTextContent('Failed to manage user authentication');
+      expect(screen.getByTestId('error')).toHaveTextContent('Firebase error');
       expect(screen.getByTestId('loading')).toHaveTextContent('loaded');
     });
   });

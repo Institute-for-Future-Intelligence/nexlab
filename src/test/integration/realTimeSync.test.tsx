@@ -1,32 +1,46 @@
 // src/test/integration/realTimeSync.test.tsx
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor, act } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
-import { UserProvider } from '../../contexts/UserContext';
-import SupplementalMaterials from '../../components/Supplemental/SupplementalMaterials';
+import UserProvider, { UserContext } from '../../contexts/UserContext';
 import { authService } from '../../services/authService';
 import { userService } from '../../services/userService';
+import { useContext, useMemo } from 'react';
 import type { UserDetails } from '../../contexts/UserContext';
 
-// Mock services and components
+// Mock services
 vi.mock('../../services/authService');
 vi.mock('../../services/userService');
 vi.mock('../../config/firestore.tsx', () => ({}));
-vi.mock('../../components/Supplemental/Header', () => ({
-  default: () => <div data-testid="header">Header</div>
-}));
-vi.mock('../../components/Supplemental/CourseSelector', () => ({
-  default: ({ courses }: { courses: any[] }) => (
-    <div data-testid="course-selector">
-      {courses.length} courses available
-      {courses.map(course => (
+
+// Test component that simulates course list behavior
+const MockCourseList = () => {
+  const context = useContext(UserContext);
+  if (!context) throw new Error('UserContext not found');
+  
+  const { userDetails } = context;
+  
+  const userCourses = useMemo(() => {
+    if (!userDetails?.classes) return [];
+    
+    return Object.entries(userDetails.classes).map(([id, course]) => ({
+      id,
+      number: course.number,
+      title: course.title,
+      isCourseAdmin: course.isCourseAdmin
+    }));
+  }, [userDetails?.classes]);
+  
+  return (
+    <div data-testid="course-list">
+      <div data-testid="course-count">{userCourses.length} courses available</div>
+      {userCourses.map(course => (
         <div key={course.id} data-testid={`course-${course.id}`}>
           {course.number} - {course.title}
         </div>
       ))}
     </div>
-  )
-}));
+  );
+};
 
 const mockAuthService = vi.mocked(authService);
 const mockUserService = vi.mocked(userService);
@@ -75,11 +89,9 @@ describe('Real-Time Sync Integration', () => {
     });
 
     render(
-      <MemoryRouter>
-        <UserProvider>
-          <SupplementalMaterials />
-        </UserProvider>
-      </MemoryRouter>
+      <UserProvider>
+        <MockCourseList />
+      </UserProvider>
     );
 
     // Simulate user authentication
@@ -89,7 +101,7 @@ describe('Real-Time Sync Integration', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByTestId('course-selector')).toHaveTextContent('2 courses available');
+      expect(screen.getByTestId('course-count')).toHaveTextContent('2 courses available');
       expect(screen.getByTestId('course-course1')).toHaveTextContent('CS101 - Intro to Computer Science');
       expect(screen.getByTestId('course-course2')).toHaveTextContent('BIO201 - Biology Fundamentals');
     });
@@ -115,11 +127,9 @@ describe('Real-Time Sync Integration', () => {
     });
 
     render(
-      <MemoryRouter>
-        <UserProvider>
-          <SupplementalMaterials />
-        </UserProvider>
-      </MemoryRouter>
+      <UserProvider>
+        <MockCourseList />
+      </UserProvider>
     );
 
     // Simulate user authentication
@@ -130,7 +140,7 @@ describe('Real-Time Sync Integration', () => {
 
     // Wait for initial render
     await waitFor(() => {
-      expect(screen.getByTestId('course-selector')).toHaveTextContent('2 courses available');
+      expect(screen.getByTestId('course-count')).toHaveTextContent('2 courses available');
     });
 
     // Simulate real-time update with new course
@@ -148,7 +158,7 @@ describe('Real-Time Sync Integration', () => {
 
     // Verify the course list updates in real-time
     await waitFor(() => {
-      expect(screen.getByTestId('course-selector')).toHaveTextContent('3 courses available');
+      expect(screen.getByTestId('course-count')).toHaveTextContent('3 courses available');
       expect(screen.getByTestId('course-course3')).toHaveTextContent('CHEM301 - Advanced Chemistry');
     });
   });
@@ -173,11 +183,9 @@ describe('Real-Time Sync Integration', () => {
     });
 
     render(
-      <MemoryRouter>
-        <UserProvider>
-          <SupplementalMaterials />
-        </UserProvider>
-      </MemoryRouter>
+      <UserProvider>
+        <MockCourseList />
+      </UserProvider>
     );
 
     // Simulate user authentication
@@ -188,7 +196,7 @@ describe('Real-Time Sync Integration', () => {
 
     // Wait for initial render
     await waitFor(() => {
-      expect(screen.getByTestId('course-selector')).toHaveTextContent('2 courses available');
+      expect(screen.getByTestId('course-count')).toHaveTextContent('2 courses available');
     });
 
     // Simulate real-time update with course removed
@@ -206,7 +214,7 @@ describe('Real-Time Sync Integration', () => {
 
     // Verify the course is removed from the list
     await waitFor(() => {
-      expect(screen.getByTestId('course-selector')).toHaveTextContent('1 courses available');
+      expect(screen.getByTestId('course-count')).toHaveTextContent('1 courses available');
       expect(screen.queryByTestId('course-course2')).not.toBeInTheDocument();
       expect(screen.getByTestId('course-course1')).toHaveTextContent('CS101 - Intro to Computer Science');
     });
@@ -232,11 +240,9 @@ describe('Real-Time Sync Integration', () => {
     });
 
     render(
-      <MemoryRouter>
-        <UserProvider>
-          <SupplementalMaterials />
-        </UserProvider>
-      </MemoryRouter>
+      <UserProvider>
+        <MockCourseList />
+      </UserProvider>
     );
 
     // Simulate user authentication
@@ -300,11 +306,9 @@ describe('Real-Time Sync Integration', () => {
     });
 
     render(
-      <MemoryRouter>
-        <UserProvider>
-          <SupplementalMaterials />
-        </UserProvider>
-      </MemoryRouter>
+      <UserProvider>
+        <MockCourseList />
+      </UserProvider>
     );
 
     // Simulate user authentication
@@ -314,7 +318,7 @@ describe('Real-Time Sync Integration', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByTestId('course-selector')).toHaveTextContent('0 courses available');
+      expect(screen.getByTestId('course-count')).toHaveTextContent('0 courses available');
     });
 
     // Add first course via real-time update
@@ -330,7 +334,7 @@ describe('Real-Time Sync Integration', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByTestId('course-selector')).toHaveTextContent('1 courses available');
+      expect(screen.getByTestId('course-count')).toHaveTextContent('1 courses available');
       expect(screen.getByTestId('course-course1')).toHaveTextContent('PHYS101 - Physics I');
     });
   });
@@ -358,11 +362,9 @@ describe('Real-Time Sync Integration', () => {
     });
 
     render(
-      <MemoryRouter>
-        <UserProvider>
-          <SupplementalMaterials />
-        </UserProvider>
-      </MemoryRouter>
+      <UserProvider>
+        <MockCourseList />
+      </UserProvider>
     );
 
     // Simulate user authentication

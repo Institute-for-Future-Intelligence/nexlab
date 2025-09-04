@@ -1,7 +1,7 @@
 // src/test/services/userService.test.ts
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { userService } from '../../services/userService';
-import { getFirestore, doc, getDoc, onSnapshot, updateDoc, setDoc } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, onSnapshot, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import type { UserDetails } from '../../contexts/UserContext';
 
 // Mock Firebase functions
@@ -13,6 +13,7 @@ const mockGetDoc = vi.mocked(getDoc);
 const mockOnSnapshot = vi.mocked(onSnapshot);
 const mockUpdateDoc = vi.mocked(updateDoc);
 const mockSetDoc = vi.mocked(setDoc);
+const mockServerTimestamp = vi.mocked(serverTimestamp);
 
 describe('UserService', () => {
   const mockDb = { _type: 'firestore' };
@@ -30,6 +31,7 @@ describe('UserService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetFirestore.mockReturnValue(mockDb as any);
+    mockServerTimestamp.mockReturnValue({ _type: 'serverTimestamp', seconds: Date.now() / 1000 } as any);
   });
 
   afterEach(() => {

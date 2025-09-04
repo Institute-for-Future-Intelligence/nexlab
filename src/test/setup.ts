@@ -1,5 +1,6 @@
 // src/test/setup.ts
 import { beforeAll, vi } from 'vitest';
+import '@testing-library/jest-dom';
 
 // Mock Firebase
 vi.mock('firebase/app', () => ({
@@ -31,7 +32,7 @@ vi.mock('firebase/firestore', () => ({
   limit: vi.fn(),
   getDocs: vi.fn(),
   writeBatch: vi.fn(),
-  serverTimestamp: vi.fn(),
+  serverTimestamp: vi.fn(() => ({ _type: 'serverTimestamp', seconds: Date.now() / 1000 })),
   setDoc: vi.fn()
 }));
 
