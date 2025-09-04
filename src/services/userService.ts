@@ -5,6 +5,8 @@ import {
   updateDoc, 
   serverTimestamp, 
   setDoc,
+  onSnapshot,
+  Unsubscribe,
   Firestore 
 } from "firebase/firestore";
 import { UserDetails } from '../contexts/UserContext';
@@ -15,6 +17,7 @@ export interface UserService {
   createUserDocument: (user: FirebaseUser) => Promise<UserDetails>;
   updateUserLogin: (uid: string) => Promise<void>;
   refreshUserDetails: (uid: string) => Promise<UserDetails | null>;
+  subscribeToUserDetails: (uid: string, callback: (details: UserDetails | null) => void) => Unsubscribe;
 }
 
 class FirestoreUserService implements UserService {
@@ -102,6 +105,28 @@ class FirestoreUserService implements UserService {
 
   async refreshUserDetails(uid: string): Promise<UserDetails | null> {
     return this.getUserDetails(uid);
+  }
+
+  subscribeToUserDetails(uid: string, callback: (details: UserDetails | null) => void): Unsubscribe {
+    this.initialize();
+    
+    const userRef = doc(this.db!, "users", uid);
+    
+    return onSnapshot(
+      userRef,
+      (docSnapshot) => {
+        if (docSnapshot.exists()) {
+          const data = docSnapshot.data() as Omit<UserDetails, 'uid'>;
+          callback({ ...data, uid });
+        } else {
+          callback(null);
+        }
+      },
+      (error) => {
+        console.error("Error in user details subscription:", error);
+        callback(null);
+      }
+    );
   }
 
   async ensurePublicCourseAccess(uid: string, existingUserDetails: UserDetails): Promise<UserDetails> {

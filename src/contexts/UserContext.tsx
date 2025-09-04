@@ -1,5 +1,5 @@
 // src/contexts/UserContext.tsx
-import { createContext, useState, useEffect, ReactNode, Dispatch, SetStateAction } from 'react';
+import { createContext, useState, useEffect, useRef, ReactNode, Dispatch, SetStateAction } from 'react';
 import { User as FirebaseUser } from 'firebase/auth';
 import { FirebaseTimestamp } from '../types/firebase';
 import { authService } from '../services/authService';
@@ -32,6 +32,7 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const userDetailsUnsubscribeRef = useRef<(() => void) | null>(null);
 
 
 
@@ -39,6 +40,12 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
     const unsubscribe = authService.onAuthStateChanged(async (authUser) => {
       setLoading(true);
       setError(null);
+
+      // Clean up previous user details subscription
+      if (userDetailsUnsubscribeRef.current) {
+        userDetailsUnsubscribeRef.current();
+        userDetailsUnsubscribeRef.current = null;
+      }
 
       try {
         if (authUser) {
@@ -58,8 +65,25 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
             details = await userService.createUserDocument(authUser);
           }
           
+          // Set initial user details
           setUserDetails(details);
           setIsSuperAdmin(details.isSuperAdmin || false);
+
+          // Set up real-time subscription for user details updates
+          const userDetailsUnsub = userService.subscribeToUserDetails(authUser.uid, (updatedDetails) => {
+            console.log('[UserContext] User details updated in real-time:', {
+              uid: updatedDetails?.uid,
+              classesCount: updatedDetails?.classes ? Object.keys(updatedDetails.classes).length : 0,
+              classes: updatedDetails?.classes ? Object.keys(updatedDetails.classes) : [],
+              timestamp: new Date().toISOString()
+            });
+            if (updatedDetails) {
+              setUserDetails(updatedDetails);
+              setIsSuperAdmin(updatedDetails.isSuperAdmin || false);
+            }
+          });
+          userDetailsUnsubscribeRef.current = userDetailsUnsub;
+          
         } else {
           // User signed out
           setUserDetails(null);
@@ -79,8 +103,14 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
       }
     });
 
-    return () => unsubscribe();
-  }, []);
+    return () => {
+      unsubscribe();
+      if (userDetailsUnsubscribeRef.current) {
+        userDetailsUnsubscribeRef.current();
+        userDetailsUnsubscribeRef.current = null;
+      }
+    };
+  }, []); // Remove userDetailsUnsubscribe from dependency array
 
   const refreshUserDetails = async () => {
     if (!user) {

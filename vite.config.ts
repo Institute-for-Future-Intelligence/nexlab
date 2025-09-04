@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -30,5 +31,23 @@ export default defineConfig(({ command }) => ({
     // Ensure the PDF worker is copied during build
     copyPublicDir: true
   },
-  publicDir: 'public' // This ensures files from public/ (including 404.html) are copied to dist/
+  publicDir: 'public', // This ensures files from public/ (including 404.html) are copied to dist/
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.ts'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      exclude: [
+        'node_modules/',
+        'src/test/',
+        '**/*.d.ts',
+        '**/*.config.*',
+        'dist/',
+        'public/',
+        '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*'
+      ]
+    }
+  }
 }))
