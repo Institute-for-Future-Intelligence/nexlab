@@ -18,13 +18,22 @@ const SupplementalMaterials: React.FC = () => {
 
   // Convert user classes object into an array for course selection, using useMemo() for performance
   const userCourses = useMemo(() => {
-    return userDetails?.classes
+    const courses = userDetails?.classes
       ? Object.entries(userDetails.classes).map(([id, course]) => ({
           id,
           number: course.number,
           title: course.title,
         }))
       : [];
+    
+    // Debug logging for course list changes
+    console.log('[SupplementalMaterials] Course list updated:', {
+      count: courses.length,
+      courses: courses.map(c => `${c.number} - ${c.title}`),
+      timestamp: new Date().toISOString()
+    });
+    
+    return courses;
   }, [userDetails?.classes]);
 
   // Find selected course data

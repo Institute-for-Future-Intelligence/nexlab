@@ -71,7 +71,12 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
 
           // Set up real-time subscription for user details updates
           const userDetailsUnsub = userService.subscribeToUserDetails(authUser.uid, (updatedDetails) => {
-            console.log('User details updated in real-time:', updatedDetails);
+            console.log('[UserContext] User details updated in real-time:', {
+              uid: updatedDetails?.uid,
+              classesCount: updatedDetails?.classes ? Object.keys(updatedDetails.classes).length : 0,
+              classes: updatedDetails?.classes ? Object.keys(updatedDetails.classes) : [],
+              timestamp: new Date().toISOString()
+            });
             if (updatedDetails) {
               setUserDetails(updatedDetails);
               setIsSuperAdmin(updatedDetails.isSuperAdmin || false);
