@@ -17,6 +17,7 @@ import {
   getFileTypeDescription 
 } from '../utils/textExtraction';
 import { Material } from '../types/Material';
+import { originalFileUploadService } from '../services/originalFileUploadService';
 
 export interface MaterialImportState {
   // Processing state
@@ -29,6 +30,10 @@ export interface MaterialImportState {
   extractedText: string | null;
   extractionResult: TextExtractionResult | null;
   
+  // Original file storage
+  originalFileUploadProgress: number | null;
+  originalFileUrl: string | null;
+  
   // AI processing results
   aiExtractedData: AIExtractedMaterialInfo | null;
   convertedMaterial: Omit<Material, 'id' | 'timestamp'> | null;
@@ -40,6 +45,8 @@ export interface MaterialImportState {
   setUploadedFile: (file: File | null) => void;
   extractTextFromFile: () => Promise<void>;
   processWithAI: (courseId: string, authorId: string, apiKey?: string) => Promise<void>;
+  uploadOriginalFile: (courseId: string, materialId?: string) => Promise<void>;
+  replaceOriginalFile: (courseId: string, materialId: string, oldFileUrl?: string) => Promise<void>;
   resetImport: () => void;
   setProcessingOptions: (options: Partial<MaterialProcessingOptions>) => void;
   setError: (error: string | null) => void;
@@ -52,6 +59,8 @@ const initialState = {
   uploadedFile: null,
   extractedText: null,
   extractionResult: null,
+  originalFileUploadProgress: null,
+  originalFileUrl: null,
   aiExtractedData: null,
   convertedMaterial: null,
   processingOptions: {
@@ -70,10 +79,24 @@ export const useMaterialImportStore = create<MaterialImportState>()(
       ...initialState,
 
       setUploadedFile: (file: File | null) => {
+        const { originalFileUrl } = get();
+        
+        // If there's an existing original file and we're setting a new file,
+        // clean up the old file from Firebase Storage
+        if (originalFileUrl && file && file.name !== originalFileUrl) {
+          originalFileUploadService.deleteOriginalFile(originalFileUrl)
+            .catch(error => {
+              console.warn('Failed to delete previous original file:', error);
+              // Don't block the process if cleanup fails
+            });
+        }
+        
         set({ 
           uploadedFile: file,
           extractedText: null,
           extractionResult: null,
+          originalFileUploadProgress: null,
+          originalFileUrl: null,
           aiExtractedData: null,
           convertedMaterial: null,
           error: null
@@ -337,6 +360,91 @@ export const useMaterialImportStore = create<MaterialImportState>()(
             isProcessing: false,
             progress: null
           });
+        }
+      },
+
+      uploadOriginalFile: async (courseId: string, materialId?: string) => {
+        const { uploadedFile } = get();
+        
+        if (!uploadedFile) {
+          set({ error: 'No file selected for upload' });
+          return;
+        }
+
+        try {
+          set({ 
+            originalFileUploadProgress: 0,
+            error: null
+          });
+
+          console.log('🚀 Starting original file upload to Firebase Storage...');
+
+          const result = await originalFileUploadService.uploadOriginalFile(
+            uploadedFile,
+            courseId,
+            materialId,
+            (progress) => {
+              set({ originalFileUploadProgress: progress });
+            }
+          );
+
+          set({ 
+            originalFileUrl: result.url,
+            originalFileUploadProgress: null
+          });
+
+          console.log('✅ Original file uploaded successfully:', result.url);
+
+        } catch (error) {
+          console.error('❌ Original file upload failed:', error);
+          set({ 
+            error: error instanceof Error ? error.message : 'Failed to upload original file',
+            originalFileUploadProgress: null
+          });
+          throw error;
+        }
+      },
+
+      replaceOriginalFile: async (courseId: string, materialId: string, oldFileUrl?: string) => {
+        const { uploadedFile } = get();
+        
+        if (!uploadedFile) {
+          set({ error: 'No file selected for replacement' });
+          return;
+        }
+
+        try {
+          set({ 
+            originalFileUploadProgress: 0,
+            error: null
+          });
+
+          console.log('🔄 Replacing original file in Firebase Storage...');
+
+          const result = await originalFileUploadService.replaceOriginalFile(
+            uploadedFile,
+            courseId,
+            materialId,
+            oldFileUrl,
+            (progress) => {
+              set({ originalFileUploadProgress: progress });
+            }
+          );
+
+          set({ 
+            originalFileUrl: result.url,
+            originalFileUploadProgress: null
+          });
+
+          console.log('✅ Original file replaced successfully:', result.url);
+
+        } catch (error) {
+          console.error('❌ Original file replacement failed:', error);
+          set({ 
+            error: error instanceof Error ? error.message : 'Failed to replace original file',
+            originalFileUploadProgress: null
+          });
+          throw error;
         }
       },
 

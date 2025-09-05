@@ -37,4 +37,12 @@ export interface Material {
   timestamp: Timestamp;
   published: boolean;
   scheduledTimestamp?: Timestamp;
+  // Original file information for AI-imported materials
+  originalFile?: {
+    name: string;
+    type: string;
+    size: number;
+    url: string; // Firebase Storage URL
+    uploadedAt: Timestamp;
+  };
 }

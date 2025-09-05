@@ -14,6 +14,7 @@ import ImageGallery from './ImageGallery';
 import ViewLinksTable from './ViewLinksTable';
 
 import { handleDownloadPDF } from '../../utils/generatePDF';
+import { GetApp as DownloadIcon, Description as FileIcon, Slideshow as SlideshowIcon } from '@mui/icons-material';
 
 const ViewMaterial: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -37,6 +38,33 @@ const ViewMaterial: React.FC = () => {
   useEffect(() => {
     setContentKey(prev => prev + 1);
   }, [selectedSection]);
+
+  // Handle original file download
+  const handleDownloadOriginalFile = async () => {
+    if (!materialData?.originalFile) {
+      return;
+    }
+
+    try {
+      console.log('🚀 Starting original file download:', materialData.originalFile.name);
+      
+      // Create a temporary anchor element to trigger download
+      const link = document.createElement('a');
+      link.href = materialData.originalFile.url;
+      link.download = materialData.originalFile.name;
+      link.target = '_blank';
+      
+      // Append to body, click, and remove
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      console.log('✅ Original file download initiated');
+      
+    } catch (error) {
+      console.error('❌ Original file download failed:', error);
+    }
+  };
 
   useEffect(() => {
     if (id) {
@@ -162,30 +190,65 @@ const ViewMaterial: React.FC = () => {
             <BackToAllMaterialsButton />
           </Box>
           <Box sx={{ width: '450px', mr: 2, mt: 2, textAlign: 'right' }}>
-            <Button
-              variant="contained"
-              onClick={async () => {
-                if (materialData) {
-                  setProgress(0);
-                  await handleDownloadPDF(materialData, setProgress);
-                  setProgress(null);
-                }
-              }}
-              sx={{
-                padding: '10px 16px',
-                backgroundColor: '#436850',
-                color: '#FBFADA',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontFamily: 'Gabarito',
-                '&:hover': { backgroundColor: '#365b40' }, // Slightly darker green on hover
-                '&:disabled': { backgroundColor: '#A8BDA8', cursor: 'not-allowed' } // Muted color when disabled
-              }}
-              disabled={progress !== null}
-            >
-              {progress !== null ? 'Generating...' : 'Download PDF'}
-            </Button>
+            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+              {/* Original File Download Button - Only show for AI-imported materials */}
+              {materialData?.originalFile && (
+                <Tooltip title={`Download original file: ${materialData.originalFile.name}`}>
+                  <Button
+                    variant="outlined"
+                    startIcon={<SlideshowIcon />}
+                    endIcon={<DownloadIcon />}
+                    onClick={handleDownloadOriginalFile}
+                    sx={{
+                      padding: '10px 16px',
+                      backgroundColor: 'transparent',
+                      color: '#436850',
+                      border: '2px solid #436850',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontFamily: 'Gabarito',
+                      '&:hover': { 
+                        backgroundColor: '#436850', 
+                        color: '#FBFADA' 
+                      },
+                    }}
+                  >
+                    PPTX
+                  </Button>
+                </Tooltip>
+              )}
+
+              {/* PDF Download Button */}
+              <Button
+                variant="outlined"
+                startIcon={<FileIcon />}
+                endIcon={<DownloadIcon />}
+                onClick={async () => {
+                  if (materialData) {
+                    setProgress(0);
+                    await handleDownloadPDF(materialData, setProgress);
+                    setProgress(null);
+                  }
+                }}
+                sx={{
+                  padding: '10px 16px',
+                  backgroundColor: 'transparent',
+                  color: '#436850',
+                  border: '2px solid #436850',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontFamily: 'Gabarito',
+                  '&:hover': { 
+                    backgroundColor: '#436850', 
+                    color: '#FBFADA' 
+                  },
+                  '&:disabled': { backgroundColor: '#A8BDA8', cursor: 'not-allowed' } // Muted color when disabled
+                }}
+                disabled={progress !== null}
+              >
+                {progress !== null ? 'Generating...' : 'PDF'}
+              </Button>
+            </Box>
 
             {progress !== null && (
               <Box sx={{ width: '100%', mt: 2 }}>

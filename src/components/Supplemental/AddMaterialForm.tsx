@@ -6,6 +6,8 @@ import { getFirestore, collection, addDoc, updateDoc, doc, serverTimestamp, Time
 import { useUser } from '../../hooks/useUser';
 import { v4 as uuidv4 } from 'uuid';
 import { convertMaterialWithImageUpload } from '../../stores/materialImportStore';
+import { useMaterialImportStore } from '../../stores/materialImportStore';
+import { serverTimestamp as getServerTimestamp } from 'firebase/firestore';
 
 import { useSearchParams } from 'react-router-dom'; // Import this at the top
 
@@ -115,6 +117,9 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData }) => {
   const navigate = useNavigate();
   const { userDetails } = useUser();
   const db = getFirestore();
+  
+  // Material import store for original file handling
+  const { uploadedFile, uploadOriginalFile, originalFileUrl, originalFileUploadProgress } = useMaterialImportStore();
 
   const [searchParams] = useSearchParams();
   const urlCourse = searchParams.get('course'); // Get course ID from URL
@@ -227,11 +232,30 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData }) => {
           const materialWithImages = await Promise.race([uploadPromise, timeoutPromise]);
           
           // Update the material with uploaded images
-          await updateDoc(docRef, {
+          // Prepare update data
+          const updateData: any = {
             sections: materialWithImages.sections,
             published: shouldPublish,
             scheduledTimestamp: scheduleTimestamp ? Timestamp.fromDate(scheduleTimestamp) : null,
-          });
+          };
+
+          // Add original file information if available (for AI-imported materials)
+          if (originalFileUrl && uploadedFile) {
+            updateData.originalFile = {
+              name: uploadedFile.name,
+              type: uploadedFile.type,
+              size: uploadedFile.size,
+              url: originalFileUrl,
+              uploadedAt: getServerTimestamp(),
+            };
+            console.log('📎 Adding original file info to material:', {
+              name: uploadedFile.name,
+              type: uploadedFile.type,
+              size: uploadedFile.size
+            });
+          }
+
+          await updateDoc(docRef, updateData);
           
           // Update local state
           setSections(materialWithImages.sections);
@@ -259,7 +283,9 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData }) => {
       } else if (materialId) {
         // Update existing material
         const docRef = doc(db, 'materials', materialId);
-        await updateDoc(docRef, {
+        
+        // Prepare update data
+        const updateData: any = {
           course,
           title,
           header,
@@ -267,7 +293,25 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData }) => {
           sections,
           published: shouldPublish,
           scheduledTimestamp: scheduleTimestamp ? Timestamp.fromDate(scheduleTimestamp) : null,
-        });
+        };
+
+        // Add original file information if available (for AI-imported materials)
+        if (originalFileUrl && uploadedFile) {
+          updateData.originalFile = {
+            name: uploadedFile.name,
+            type: uploadedFile.type,
+            size: uploadedFile.size,
+            url: originalFileUrl,
+            uploadedAt: getServerTimestamp(),
+          };
+          console.log('📎 Adding original file info to updated material:', {
+            name: uploadedFile.name,
+            type: uploadedFile.type,
+            size: uploadedFile.size
+          });
+        }
+
+        await updateDoc(docRef, updateData);
         setSnackbarMessage('Material updated successfully');
       } else {
         // Add new manual material (no image upload needed)
@@ -277,7 +321,8 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData }) => {
           images: s.images?.map(img => ({ url: img.url.substring(0, 100) + '...', title: img.title })) 
         })));
         
-        const docRef = await addDoc(collection(db, 'materials'), {
+        // Prepare material data
+        const materialData: any = {
           course,
           title,
           header,
@@ -287,7 +332,25 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData }) => {
           timestamp: serverTimestamp(),
           published: shouldPublish,
           scheduledTimestamp: scheduleTimestamp ? Timestamp.fromDate(scheduleTimestamp) : null,
-        });
+        };
+
+        // Add original file information if available (for AI-imported materials)
+        if (originalFileUrl && uploadedFile) {
+          materialData.originalFile = {
+            name: uploadedFile.name,
+            type: uploadedFile.type,
+            size: uploadedFile.size,
+            url: originalFileUrl,
+            uploadedAt: getServerTimestamp(),
+          };
+          console.log('📎 Adding original file info to new material:', {
+            name: uploadedFile.name,
+            type: uploadedFile.type,
+            size: uploadedFile.size
+          });
+        }
+
+        const docRef = await addDoc(collection(db, 'materials'), materialData);
   
         setMaterialId(docRef.id); // Store newly created document ID
         setSnackbarMessage('Material saved successfully');
@@ -546,7 +609,7 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData }) => {
   };
 
   // Handle material ready from AI import
-  const handleMaterialReady = (materialData: Omit<Material, 'id' | 'timestamp'>) => {
+  const handleMaterialReady = async (materialData: Omit<Material, 'id' | 'timestamp'>) => {
     // Populate the form with AI-generated data
     setTitle(materialData.title);
     setHeader(materialData.header);
@@ -554,6 +617,22 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData }) => {
     setSections(materialData.sections);
     setCourse(materialData.course);
     setIsAIImported(true); // Mark as AI imported for special image handling
+    
+    // Upload original file if available
+    if (uploadedFile && materialData.course) {
+      try {
+        console.log('🚀 Uploading original file for AI-imported material...');
+        await uploadOriginalFile(materialData.course);
+        console.log('✅ Original file uploaded successfully');
+      } catch (error) {
+        console.error('❌ Failed to upload original file:', error);
+        // Don't block the import process if original file upload fails
+        setSnackbarMessage('Material imported successfully, but original file upload failed. You can still save the material.');
+        setSnackbarSeverity('warning');
+        setOpenSnackbar(true);
+        return; // Exit early to avoid showing success message
+      }
+    }
     
     // Switch back to manual mode for editing
     setImportMode('manual');
