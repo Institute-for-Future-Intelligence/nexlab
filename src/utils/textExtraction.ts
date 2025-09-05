@@ -153,35 +153,63 @@ export const extractTextFromPPTX = async (file: File): Promise<TextExtractionRes
           const descriptionMatch = slideContent.match(new RegExp(`<p:cNvPr[^>]*name="([^"]*)"[^>]*>`, 'i'));
           const altTextMatch = slideContent.match(new RegExp(`<p:cNvPr[^>]*descr="([^"]*)"[^>]*>`, 'i'));
           
-          // Try to extract context from surrounding text
-          const slideTextContent = slideContent
-            .replace(/<a:t[^>]*>(.*?)<\/a:t>/g, '$1 ')
-            .replace(/<[^>]*>/g, ' ')
-            .replace(/\s+/g, ' ')
-            .trim();
+          // Extract comprehensive text content from slide with better parsing
+          const textElements = slideContent.matchAll(/<a:t[^>]*>(.*?)<\/a:t>/g);
+          const slideTexts = [];
           
-          // Generate better descriptions based on content context
+          for (const textMatch of textElements) {
+            let text = textMatch[1]
+              .replace(/&lt;/g, '<')
+              .replace(/&gt;/g, '>')
+              .replace(/&amp;/g, '&')
+              .replace(/&quot;/g, '"')
+              .trim();
+            
+            // Remove any remaining XML tags that might have been missed
+            text = text.replace(/<[^>]*>/g, '');
+            
+            if (text && text.length > 1) {
+              slideTexts.push(text);
+            }
+          }
+          
+          // Try to get slide title specifically
+          const titleMatch = slideContent.match(/<p:ph[^>]*type="title"[^>]*>[\s\S]*?<a:t[^>]*>(.*?)<\/a:t>/i) ||
+                            slideContent.match(/<p:ph[^>]*type="ctrTitle"[^>]*>[\s\S]*?<a:t[^>]*>(.*?)<\/a:t>/i);
+          
+          let slideTitle = '';
+          if (titleMatch) {
+            slideTitle = titleMatch[1]
+              .replace(/&lt;/g, '<')
+              .replace(/&gt;/g, '>')
+              .replace(/&amp;/g, '&')
+              .replace(/&quot;/g, '"')
+              .replace(/<[^>]*>/g, '') // Remove any XML tags
+              .trim();
+          }
+          
+          // Generate comprehensive description
           let contextualDescription = `Image on slide ${slideNumber}`;
           
-          // Look for common image-related keywords in the slide text
-          const imageKeywords = [
-            'chart', 'graph', 'diagram', 'figure', 'table', 'photo', 'image', 
-            'illustration', 'screenshot', 'logo', 'flowchart', 'timeline',
-            'comparison', 'data', 'results', 'example', 'structure', 'process'
-          ];
-          
-          const slideWords = slideTextContent.toLowerCase().split(/\s+/);
-          const foundKeywords = imageKeywords.filter(keyword => 
-            slideWords.some(word => word.includes(keyword))
-          );
-          
-          if (foundKeywords.length > 0) {
-            contextualDescription = `${foundKeywords[0].charAt(0).toUpperCase() + foundKeywords[0].slice(1)} (Slide ${slideNumber})`;
-          } else if (slideTextContent.length > 0) {
-            // Use first few words of slide as context
-            const firstWords = slideWords.slice(0, 3).join(' ');
-            if (firstWords.length > 5) {
-              contextualDescription = `Image: ${firstWords}... (Slide ${slideNumber})`;
+          // First try: use actual image name from PowerPoint
+          if (descriptionMatch && descriptionMatch[1] && descriptionMatch[1] !== 'Picture 1') {
+            contextualDescription = descriptionMatch[1];
+          }
+          // Second try: use alt text
+          else if (altTextMatch && altTextMatch[1]) {
+            contextualDescription = altTextMatch[1];
+          }
+          // Third try: use slide title as context
+          else if (slideTitle && slideTitle.length > 3) {
+            contextualDescription = `Image from "${slideTitle}" (Slide ${slideNumber})`;
+          }
+          // Fourth try: use first meaningful text from slide
+          else if (slideTexts.length > 0) {
+            const meaningfulText = slideTexts.find(text => text.length > 10) || slideTexts[0];
+            if (meaningfulText && meaningfulText.length <= 50) {
+              contextualDescription = `Image: ${meaningfulText} (Slide ${slideNumber})`;
+            } else if (meaningfulText) {
+              contextualDescription = `Image: ${meaningfulText.substring(0, 47)}... (Slide ${slideNumber})`;
             }
           }
           
@@ -216,10 +244,9 @@ export const extractTextFromPPTX = async (file: File): Promise<TextExtractionRes
                   } else if (pathLower.includes('.webp')) {
                     mimeType = 'image/webp';
                   } else if (pathLower.includes('.emf') || pathLower.includes('.wmf')) {
-                    // EMF/WMF files are vector formats that can't be directly displayed in browsers
-                    // Skip these for now - they need special conversion
-                    console.warn(`Skipping unsupported vector image format: ${fullImagePath}`);
-                    continue; // Skip this image entirely
+                    // EMF/WMF files are vector formats - convert to PNG for web compatibility
+                    console.log(`Converting vector image format to PNG: ${fullImagePath}`);
+                    mimeType = 'image/png'; // We'll convert EMF to PNG
                   }
                   
                   imageBlob = new Blob([imageData], { type: mimeType });
@@ -245,12 +272,74 @@ export const extractTextFromPPTX = async (file: File): Promise<TextExtractionRes
           });
         }
         
-        // Extract text content from XML (preserve some structure but remove most tags)
-        const textContent = slideContent
-          .replace(/<a:t[^>]*>(.*?)<\/a:t>/g, '$1 ') // Extract text from text runs
-          .replace(/<[^>]*>/g, ' ') // Remove remaining XML tags
-          .replace(/\s+/g, ' ') // Normalize whitespace
-          .trim();
+        // Enhanced text extraction with better structure preservation
+        const extractStructuredText = (content: string): string => {
+          // Extract slide title first
+          const titleMatch = content.match(/<p:ph[^>]*type="title"[^>]*>[\s\S]*?<a:t[^>]*>(.*?)<\/a:t>/i) ||
+                             content.match(/<p:ph[^>]*type="ctrTitle"[^>]*>[\s\S]*?<a:t[^>]*>(.*?)<\/a:t>/i);
+          
+          let slideTitle = '';
+          if (titleMatch) {
+            slideTitle = titleMatch[1]
+              .replace(/&lt;/g, '<')
+              .replace(/&gt;/g, '>')
+              .replace(/&amp;/g, '&')
+              .replace(/&quot;/g, '"')
+              .replace(/<[^>]*>/g, '') // Remove any XML tags
+              .trim();
+          }
+          
+          // Extract text runs with better structure
+          const textRuns = [];
+          const textMatches = content.matchAll(/<a:t[^>]*>(.*?)<\/a:t>/g);
+          
+          for (const match of textMatches) {
+            let text = match[1]
+              .replace(/&lt;/g, '<')
+              .replace(/&gt;/g, '>')
+              .replace(/&amp;/g, '&')
+              .replace(/&quot;/g, '"')
+              .replace(/<[^>]*>/g, '') // Remove any XML tags
+              .trim();
+            
+            if (text && text.length > 1) {
+              textRuns.push(text);
+            }
+          }
+          
+          // Try to detect bullet points and lists
+          const bulletPatterns = [
+            /^[\u2022\u2023\u25E6\u2043\u2219]\s*/,  // Various bullet characters
+            /^\d+\.\s*/,  // Numbered lists
+            /^[a-zA-Z]\.\s*/,  // Letter lists
+            /^[-*]\s*/  // Dash/asterisk bullets
+          ];
+          
+          const processedRuns = textRuns.map(text => {
+            // Check if this looks like a bullet point
+            const isBullet = bulletPatterns.some(pattern => pattern.test(text));
+            
+            if (isBullet) {
+              return `• ${text.replace(/^[\u2022\u2023\u25E6\u2043\u2219\-\*\d+\.\s*[a-zA-Z]\.\s*]/, '').trim()}`;
+            }
+            
+            return text;
+          });
+          
+          // Combine into structured output
+          let result = '';
+          if (slideTitle && slideTitle !== processedRuns[0]) {
+            result += `TITLE: ${slideTitle}\n\n`;
+          }
+          
+          if (processedRuns.length > 0) {
+            result += processedRuns.join('\n');
+          }
+          
+          return result.trim();
+        };
+        
+        const textContent = extractStructuredText(slideContent);
         
         if (textContent) {
           fullText += `\n--- Slide ${slideNumber} ---\n${textContent}\n`;
