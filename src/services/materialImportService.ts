@@ -559,29 +559,35 @@ Return ONLY a JSON object with additional sections, images, or links:
    * Sanitize JSON string content to fix common issues
    */
   private sanitizeJSONStringContent(jsonString: string): string {
-    // Fix common issues in JSON string values
-    return jsonString.replace(/"([^"]*?)"/g, (match, content) => {
-      // Skip if this is a property name (followed by colon)
-      const afterMatch = jsonString.substring(jsonString.indexOf(match) + match.length).trim();
-      if (afterMatch.startsWith(':')) {
-        return match; // This is a property name, don't modify
+    let sanitized = jsonString;
+    
+    // Fix the specific pattern: "title": "Some text: ""
+    // This happens when AI generates titles ending with double quotes
+    sanitized = sanitized.replace(/:\s*"([^"]*?:\s*)""(?=\s*[,}\]])/g, ': "$1\\"\\"');
+    
+    // Fix other patterns of trailing double quotes
+    sanitized = sanitized.replace(/:\s*"([^"]*?)""\s*(?=[,}\]])/g, ': "$1\\"');
+    
+    // Fix embedded quotes in string values (more conservative approach)
+    sanitized = sanitized.replace(/:\s*"([^"]*)"([^"]*)"([^"]*?)"/g, (match, part1, part2, part3) => {
+      // Only fix if this looks like embedded quotes, not nested JSON
+      if (part2.length > 0 && !part2.includes('{') && !part2.includes('[')) {
+        return `: "${part1}\\"${part2}\\"${part3}"`;
       }
-      
-      // This is a string value, sanitize it
-      let sanitized = content
-        // Fix unescaped quotes
-        .replace(/(?<!\\)"/g, '\\"')
-        // Fix unescaped backslashes (but not already escaped ones)
-        .replace(/(?<!\\)\\(?!["\\/bfnrt])/g, '\\\\')
-        // Fix unescaped newlines
+      return match;
+    });
+    
+    // Clean up any remaining control characters in string values
+    sanitized = sanitized.replace(/:\s*"([^"]*?)"/g, (match, content) => {
+      const cleaned = content
         .replace(/\n/g, '\\n')
         .replace(/\r/g, '\\r')
         .replace(/\t/g, '\\t')
-        // Fix control characters
         .replace(/[\x00-\x1F\x7F]/g, '');
-      
-      return `"${sanitized}"`;
+      return `: "${cleaned}"`;
     });
+    
+    return sanitized;
   }
 
   /**
@@ -652,7 +658,11 @@ Return ONLY a JSON object with additional sections, images, or links:
     jsonString = jsonString.replace(/,(\s*[}\]])/g, '$1');
     
     // Sanitize string content that might have invalid characters
+    const originalLength = jsonString.length;
     jsonString = this.sanitizeJSONStringContent(jsonString);
+    if (jsonString.length !== originalLength) {
+      console.log('JSON sanitization applied, length changed from', originalLength, 'to', jsonString.length);
+    }
     
     // Check if the JSON appears to be truncated
     const isTruncated = this.detectTruncatedJSON(jsonString);
