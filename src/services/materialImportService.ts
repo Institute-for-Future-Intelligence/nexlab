@@ -69,6 +69,7 @@ export interface MaterialProcessingProgress {
 export class MaterialImportService {
   private genAI: GoogleGenerativeAI;
   private model: any;
+  private activeBlobUrls: Set<string> = new Set();
 
   constructor(apiKey: string) {
     this.genAI = new GoogleGenerativeAI(apiKey);
@@ -81,6 +82,25 @@ export class MaterialImportService {
         maxOutputTokens: 16384,
       }
     });
+  }
+
+  /**
+   * Clean up all active blob URLs to prevent memory leaks
+   */
+  cleanupBlobUrls(): void {
+    this.activeBlobUrls.forEach(url => {
+      URL.revokeObjectURL(url);
+    });
+    this.activeBlobUrls.clear();
+  }
+
+  /**
+   * Create a blob URL and track it for cleanup
+   */
+  private createTrackedBlobUrl(blob: Blob): string {
+    const url = URL.createObjectURL(blob);
+    this.activeBlobUrls.add(url);
+    return url;
   }
 
   /**
@@ -381,8 +401,9 @@ CRITICAL JSON FORMATTING RULES:
 - Use proper HTML tags for content formatting (<p>, <h1>-<h6>, <ul>, <ol>, <li>, <strong>, <em>, <br>)
 - Preserve educational structure and hierarchy
 - Create logical sections based on content organization
-- For images: Use placeholder URLs with descriptive titles, context, and slideNumber property
+- For images: Use EMPTY STRINGS for URLs ("url": "") with descriptive titles, context, and slideNumber property
 -- IMPORTANT: Each image object MUST include "slideNumber" property matching the source slide
+-- NEVER use placeholder filenames like "placeholder_image_1.png" - always use empty strings for URLs
 - For links: Extract actual URLs when present, provide context
 - Complete ALL sections and subsections - do not use comments like "// ... continue"
 - Ensure all JSON arrays and objects are properly closed
@@ -998,7 +1019,8 @@ Return ONLY a JSON object with additional sections, images, or links:
   convertToMaterialFormat(
     aiData: AIExtractedMaterialInfo,
     courseId: string,
-    authorId: string
+    authorId: string,
+    extractionMetadata?: { images?: ImageReference[]; [key: string]: any }
   ): Omit<Material, 'id' | 'timestamp'> {
     
     // Helper function to create placeholder image URLs
@@ -1027,19 +1049,60 @@ Return ONLY a JSON object with additional sections, images, or links:
       }
     };
 
-    // Helper function to enhance images with placeholder URLs (for preview)
+    // Helper function to enhance images with actual extracted images or placeholders (for preview)
     const enhanceImages = (images: any[]): { url: string; title: string }[] => {
+      // Create a map of available extracted images by slide number
+      const extractedImageMap = new Map<number, ImageReference>();
+      if (extractionMetadata?.images) {
+        extractionMetadata.images.forEach((imgRef: ImageReference) => {
+          if (imgRef.slideNumber && imgRef.imageBlob) {
+            // Use the first image found for each slide (can be enhanced later for multiple images per slide)
+            if (!extractedImageMap.has(imgRef.slideNumber)) {
+              extractedImageMap.set(imgRef.slideNumber, imgRef);
+            }
+          }
+        });
+      }
+
       const enhanced = images?.map(image => {
-        const placeholderUrl = createPlaceholderImageUrl(image.title || 'Image');
+        let imageUrl = '';
+        
+        // Try to match with extracted image blob by slide number
+        if (image.slideNumber && extractedImageMap.has(image.slideNumber)) {
+          const extractedImage = extractedImageMap.get(image.slideNumber);
+          if (extractedImage?.imageBlob) {
+            // Create tracked blob URL for preview
+            imageUrl = this.createTrackedBlobUrl(extractedImage.imageBlob);
+            console.log(`Using extracted image blob for slide ${image.slideNumber}:`, {
+              slideNumber: image.slideNumber,
+              blobSize: extractedImage.imageBlob.size,
+              blobType: extractedImage.imageBlob.type
+            });
+          }
+        }
+        
+        // Fallback to placeholder if no extracted image or invalid URL
+        if (!imageUrl) {
+          // Check if the image has a valid data URI or HTTP URL (not placeholder text)
+          if (image.url && image.url.trim() && 
+              (image.url.startsWith('data:') || image.url.startsWith('http')) &&
+              !image.url.includes('placeholder_image')) {
+            imageUrl = image.url;
+          } else {
+            // Generate proper SVG placeholder
+            imageUrl = createPlaceholderImageUrl(image.title || 'Image');
+          }
+        }
+        
         const result = {
-          url: image.url && image.url.trim() ? image.url : placeholderUrl,
+          url: imageUrl,
           title: image.title || image.description || 'Detected Image'
         };
         console.log('Enhanced image (preview):', result);
         return result;
       }) || [];
       
-      console.log(`Enhanced ${enhanced.length} images for material preview`);
+      console.log(`Enhanced ${enhanced.length} images for material preview (${extractedImageMap.size} extracted images available)`);
       return enhanced;
     };
 
