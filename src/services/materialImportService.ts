@@ -1051,32 +1051,76 @@ Return ONLY a JSON object with additional sections, images, or links:
 
     // Helper function to enhance images with actual extracted images or placeholders (for preview)
     const enhanceImages = (images: any[]): { url: string; title: string }[] => {
-      // Create a map of available extracted images by slide number
-      const extractedImageMap = new Map<number, ImageReference>();
+      // Create a map of available extracted images by slide number (supporting multiple images per slide)
+      const extractedImageMap = new Map<number, ImageReference[]>();
       if (extractionMetadata?.images) {
         extractionMetadata.images.forEach((imgRef: ImageReference) => {
           if (imgRef.slideNumber && imgRef.imageBlob) {
-            // Use the first image found for each slide (can be enhanced later for multiple images per slide)
             if (!extractedImageMap.has(imgRef.slideNumber)) {
-              extractedImageMap.set(imgRef.slideNumber, imgRef);
+              extractedImageMap.set(imgRef.slideNumber, []);
             }
+            extractedImageMap.get(imgRef.slideNumber)!.push(imgRef);
           }
         });
       }
 
-      const enhanced = images?.map(image => {
+      // Track used images per slide to avoid duplicates
+      const usedImagesPerSlide = new Map<number, Set<string>>();
+
+      const enhanced = images?.map((image, imageIndex) => {
         let imageUrl = '';
         
         // Try to match with extracted image blob by slide number
         if (image.slideNumber && extractedImageMap.has(image.slideNumber)) {
-          const extractedImage = extractedImageMap.get(image.slideNumber);
-          if (extractedImage?.imageBlob) {
+          const slideImages = extractedImageMap.get(image.slideNumber)!;
+          
+          // Initialize tracking for this slide if not exists
+          if (!usedImagesPerSlide.has(image.slideNumber)) {
+            usedImagesPerSlide.set(image.slideNumber, new Set());
+          }
+          const usedImages = usedImagesPerSlide.get(image.slideNumber)!;
+          
+          // Find best matching image for this AI-generated image object
+          let bestMatch: ImageReference | null = null;
+          
+          // Strategy 1: Try to match by description/title similarity
+          if (image.title || image.description) {
+            const searchText = (image.title || image.description).toLowerCase();
+            bestMatch = slideImages.find(imgRef => {
+              const imgDesc = (imgRef.description || '').toLowerCase();
+              return !usedImages.has(imgRef.embedId || '') && 
+                     imgDesc.includes(searchText.split(' ')[0]); // Match first significant word
+            }) || null;
+          }
+          
+          // Strategy 2: Use first unused image from the slide
+          if (!bestMatch) {
+            bestMatch = slideImages.find(imgRef => 
+              !usedImages.has(imgRef.embedId || '')
+            ) || null;
+          }
+          
+          // Strategy 3: If all images used, cycle through them (better than showing same image)
+          if (!bestMatch && slideImages.length > 0) {
+            const cycleIndex = imageIndex % slideImages.length;
+            bestMatch = slideImages[cycleIndex];
+          }
+          
+          if (bestMatch?.imageBlob) {
+            // Mark this image as used
+            if (bestMatch.embedId) {
+              usedImages.add(bestMatch.embedId);
+            }
+            
             // Create tracked blob URL for preview
-            imageUrl = this.createTrackedBlobUrl(extractedImage.imageBlob);
-            console.log(`Using extracted image blob for slide ${image.slideNumber}:`, {
+            imageUrl = this.createTrackedBlobUrl(bestMatch.imageBlob);
+            console.log(`Using extracted image blob for slide ${image.slideNumber} (${usedImages.size}/${slideImages.length}):`, {
               slideNumber: image.slideNumber,
-              blobSize: extractedImage.imageBlob.size,
-              blobType: extractedImage.imageBlob.type
+              imageIndex,
+              embedId: bestMatch.embedId,
+              blobSize: bestMatch.imageBlob.size,
+              blobType: bestMatch.imageBlob.type,
+              matchedBy: bestMatch.description || 'position'
             });
           }
         }
@@ -1102,7 +1146,8 @@ Return ONLY a JSON object with additional sections, images, or links:
         return result;
       }) || [];
       
-      console.log(`Enhanced ${enhanced.length} images for material preview (${extractedImageMap.size} extracted images available)`);
+      const totalExtractedImages = Array.from(extractedImageMap.values()).reduce((sum, imgs) => sum + imgs.length, 0);
+      console.log(`Enhanced ${enhanced.length} images for material preview (${totalExtractedImages} extracted images available across ${extractedImageMap.size} slides)`);
       return enhanced;
     };
 
@@ -1187,41 +1232,61 @@ Return ONLY a JSON object with additional sections, images, or links:
 
     // Helper function to enhance images with real URLs or placeholders
     const enhanceImagesWithUploads = (images: any[]): { url: string; title: string }[] => {
-      // Create a copy of uploaded images to track which ones we've used
-      const availableImages = [...uploadedImages];
+      // Group uploaded images by slide number for better matching
+      const uploadedImagesBySlide = new Map<number, UploadedImage[]>();
+      uploadedImages.forEach(img => {
+        if (img.slideNumber) {
+          if (!uploadedImagesBySlide.has(img.slideNumber)) {
+            uploadedImagesBySlide.set(img.slideNumber, []);
+          }
+          uploadedImagesBySlide.get(img.slideNumber)!.push(img);
+        }
+      });
       
-      const enhanced = images?.map((image) => {
-        let uploadedImage: any = null;
+      // Track used images globally to avoid duplicates
+      const usedImageUrls = new Set<string>();
+      
+      const enhanced = images?.map((image, imageIndex) => {
+        let uploadedImage: UploadedImage | null = null;
         
-        // Strategy 1: Try to match by slide number if both have it
-        if (image.slideNumber && availableImages.length > 0) {
-          const slideMatch = availableImages.find(uploaded => uploaded.slideNumber === image.slideNumber);
-          if (slideMatch) {
-            uploadedImage = slideMatch;
-            // Remove from available to prevent reuse
-            const matchIndex = availableImages.indexOf(slideMatch);
-            availableImages.splice(matchIndex, 1);
+        // Strategy 1: Try to match by slide number with smart selection
+        if (image.slideNumber && uploadedImagesBySlide.has(image.slideNumber)) {
+          const slideImages = uploadedImagesBySlide.get(image.slideNumber)!;
+          
+          // Find first unused image from this slide
+          uploadedImage = slideImages.find(img => !usedImageUrls.has(img.url)) || null;
+          
+          // If all images from this slide are used, cycle through them
+          if (!uploadedImage && slideImages.length > 0) {
+            const cycleIndex = imageIndex % slideImages.length;
+            uploadedImage = slideImages[cycleIndex];
           }
         }
         
-        // Strategy 2: Try to match by similar title content
-        if (!uploadedImage && availableImages.length > 0) {
+        // Strategy 2: Try to match by similar title content from unused images
+        if (!uploadedImage) {
           const titleWords = (image.title || image.description || '').toLowerCase().split(' ');
-          const titleMatch = availableImages.find(uploaded => {
+          uploadedImage = uploadedImages.find(uploaded => {
+            if (usedImageUrls.has(uploaded.url)) return false;
             const uploadedWords = uploaded.title.toLowerCase().split(' ');
             return titleWords.some(word => word.length > 3 && uploadedWords.some(uWord => uWord.includes(word)));
-          });
-          
-          if (titleMatch) {
-            uploadedImage = titleMatch;
-            const matchIndex = availableImages.indexOf(titleMatch);
-            availableImages.splice(matchIndex, 1);
-          }
+          }) || null;
         }
         
-        // Strategy 3: Use next available image (sequential fallback)
-        if (!uploadedImage && availableImages.length > 0) {
-          uploadedImage = availableImages.shift(); // Take the first available
+        // Strategy 3: Use next available unused image (sequential fallback)
+        if (!uploadedImage) {
+          uploadedImage = uploadedImages.find(img => !usedImageUrls.has(img.url)) || null;
+        }
+        
+        // Strategy 4: If all images used, cycle through all images
+        if (!uploadedImage && uploadedImages.length > 0) {
+          const cycleIndex = imageIndex % uploadedImages.length;
+          uploadedImage = uploadedImages[cycleIndex];
+        }
+        
+        // Mark image as used if found
+        if (uploadedImage) {
+          usedImageUrls.add(uploadedImage.url);
         }
         
         const result = {
@@ -1234,16 +1299,19 @@ Return ONLY a JSON object with additional sections, images, or links:
           ...result,
           url: result.url.substring(0, 100) + '...',
           isUploaded: !!uploadedImage,
+          imageIndex,
           originalSlideNumber: image.slideNumber,
           matchedSlideNumber: uploadedImage?.slideNumber,
-          matchStrategy: uploadedImage ? (uploadedImage.slideNumber === image.slideNumber ? 'slideNumber' : 
-                                        result.title.includes(image.title) ? 'title' : 'sequential') : 'placeholder',
-          availableCount: availableImages.length
+          matchStrategy: uploadedImage ? 
+            (uploadedImage.slideNumber === image.slideNumber ? 'slideNumber' : 
+             result.title.includes(image.title || '') ? 'title' : 'sequential') : 'placeholder',
+          usedCount: usedImageUrls.size,
+          totalAvailable: uploadedImages.length
         });
         return result;
       }) || [];
       
-      console.log(`Enhanced ${enhanced.length} images for material (${uploadedImages.length} uploaded, ${availableImages.length} remaining)`);
+      console.log(`Enhanced ${enhanced.length} images for material (${uploadedImages.length} uploaded, ${usedImageUrls.size} used)`);
       return enhanced;
     };
 
