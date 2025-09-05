@@ -3,7 +3,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { Material, Section, Subsection, SubSubsection } from '../types/Material';
 import { v4 as uuidv4 } from 'uuid';
-import { uploadExtractedImagesWithProgress, UploadedImage } from './imageUploadService';
+import { uploadExtractedImagesWithProgress, uploadExtractedImagesWithProgressEnhanced, UploadedImage } from './imageUploadService';
 import { ImageReference } from '../utils/textExtraction';
 
 // Enhanced types for AI-extracted material data
@@ -181,8 +181,14 @@ export class MaterialImportService {
       console.log('Raw response text (first 1000 chars):', text.substring(0, 1000));
       console.log('Cleaned text (first 1000 chars):', cleanedText.substring(0, 1000));
       
-      // Detect and repair truncated JSON
-      cleanedText = this.repairTruncatedJSON(cleanedText);
+      // Apply comprehensive JSON cleaning and repair
+      try {
+        cleanedText = this.extractValidJSON(cleanedText);
+      } catch (extractionError) {
+        console.warn('Primary JSON extraction failed, trying repair:', extractionError);
+        // Fallback to repair-first approach
+        cleanedText = this.repairTruncatedJSON(cleanedText);
+      }
 
       // Parse the JSON response with enhanced error handling
       let parsedData;
@@ -192,7 +198,30 @@ export class MaterialImportService {
         console.error('JSON parsing failed:', parseError);
         console.error('Raw response text (first 1000 chars):', text.substring(0, 1000));
         console.error('Cleaned text (first 1000 chars):', cleanedText.substring(0, 1000));
-        throw new Error('AI response format invalid - unable to parse JSON');
+        
+        // Try one more fallback approach for complex JSON issues
+        try {
+          console.log('Attempting final fallback JSON repair...');
+          const fallbackCleaned = this.fallbackJSONExtraction(text);
+          parsedData = JSON.parse(fallbackCleaned);
+          console.log('Fallback JSON parsing succeeded!');
+        } catch (fallbackError) {
+          console.error('All JSON parsing attempts failed:', fallbackError);
+          
+          // Provide more detailed error information
+          if (parseError instanceof SyntaxError && parseError.message.includes('position')) {
+            const position = parseError.message.match(/position (\d+)/)?.[1];
+            if (position) {
+              const pos = parseInt(position);
+              const contextStart = Math.max(0, pos - 100);
+              const contextEnd = Math.min(cleanedText.length, pos + 100);
+              const context = cleanedText.substring(contextStart, contextEnd);
+              console.error(`JSON error context around position ${pos}:`, context);
+            }
+          }
+          
+          throw new Error('AI response format invalid - unable to parse JSON after multiple attempts');
+        }
       }
 
       // Validate JSON structure
@@ -336,18 +365,28 @@ CRITICAL IMAGE PLACEMENT INSTRUCTIONS:
 Please extract and structure this content into a comprehensive educational material format. Focus on:
 
 1. **Document Structure**: Identify main topics, subtopics, and hierarchical organization
-2. **Content Quality**: Preserve important educational information and context
-3. **Visual Elements**: Note references to images, diagrams, charts (even if not extractable)
-4. **Links and Resources**: Extract any URLs, references, or external resources mentioned
-5. **Learning Context**: Maintain educational value and logical flow
+2. **Content Preservation**: Extract ALL text content exactly as presented, including:
+   - Complete bullet points with proper indentation (• for main bullets, ○ for sub-bullets)
+   - All numerical data, dates, names, and specific details
+   - Exact titles and headings without truncation
+   - Full sentences and paragraphs without summarization
+3. **Formatting Preservation**: Maintain original structure:
+   - Bullet point hierarchy (main bullets and sub-bullets)
+   - Numbered lists with original numbering
+   - Line breaks and paragraph structure
+   - Emphasis and important details
+4. **Visual Elements**: For each detected image, use the EXACT description provided and match to appropriate content section
+5. **Complete Content**: Do not summarize or shorten any content - extract everything in full detail
 
 ${fileTypeContext === 'presentation slide deck' ? `
 SPECIAL INSTRUCTIONS FOR PRESENTATIONS:
-- Each slide should become a section or subsection
-- Preserve slide order and hierarchy
-- Note slide titles and main content points
-- Identify slide transitions and logical groupings
-- Extract speaker notes or additional context if present
+- Each slide should become a section or subsection based on its title
+- Preserve slide order and hierarchy exactly
+- Extract COMPLETE slide titles (not shortened versions)
+- Include ALL bullet points from each slide with proper indentation
+- Extract ALL text content from each slide without summarization
+- Preserve exact wording, names, dates, and specific details
+- Maintain original bullet point structure with sub-bullets where present
 ` : ''}
 
 Return ONLY a JSON object with this exact structure:
@@ -517,6 +556,35 @@ Return ONLY a JSON object with additional sections, images, or links:
   }
 
   /**
+   * Sanitize JSON string content to fix common issues
+   */
+  private sanitizeJSONStringContent(jsonString: string): string {
+    // Fix common issues in JSON string values
+    return jsonString.replace(/"([^"]*?)"/g, (match, content) => {
+      // Skip if this is a property name (followed by colon)
+      const afterMatch = jsonString.substring(jsonString.indexOf(match) + match.length).trim();
+      if (afterMatch.startsWith(':')) {
+        return match; // This is a property name, don't modify
+      }
+      
+      // This is a string value, sanitize it
+      let sanitized = content
+        // Fix unescaped quotes
+        .replace(/(?<!\\)"/g, '\\"')
+        // Fix unescaped backslashes (but not already escaped ones)
+        .replace(/(?<!\\)\\(?!["\\/bfnrt])/g, '\\\\')
+        // Fix unescaped newlines
+        .replace(/\n/g, '\\n')
+        .replace(/\r/g, '\\r')
+        .replace(/\t/g, '\\t')
+        // Fix control characters
+        .replace(/[\x00-\x1F\x7F]/g, '');
+      
+      return `"${sanitized}"`;
+    });
+  }
+
+  /**
    * Extract valid JSON from AI response, handling extra text after JSON
    */
   private extractValidJSON(text: string): string {
@@ -582,6 +650,9 @@ Return ONLY a JSON object with additional sections, images, or links:
     
     // Additional cleaning: remove any trailing commas before closing braces/brackets
     jsonString = jsonString.replace(/,(\s*[}\]])/g, '$1');
+    
+    // Sanitize string content that might have invalid characters
+    jsonString = this.sanitizeJSONStringContent(jsonString);
     
     // Check if the JSON appears to be truncated
     const isTruncated = this.detectTruncatedJSON(jsonString);
@@ -1203,7 +1274,7 @@ Return ONLY a JSON object with additional sections, images, or links:
     if (extractionMetadata?.images) {
       try {
         console.log(`Uploading ${extractionMetadata.images.length} extracted images...`);
-        uploadedImages = await uploadExtractedImagesWithProgress(
+        uploadedImages = await uploadExtractedImagesWithProgressEnhanced(
           extractionMetadata.images,
           materialId,
           onImageUploadProgress
