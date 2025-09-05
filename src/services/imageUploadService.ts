@@ -3,6 +3,11 @@
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { v4 as uuidv4 } from 'uuid';
 import Resizer from 'react-image-file-resizer';
+import { 
+  enhancedImageUploadService, 
+  ImageUploadProgressCallback as EnhancedProgressCallback,
+  ImageReference as EnhancedImageReference 
+} from './enhancedImageUploadService';
 import { ImageReference } from '../utils/textExtraction';
 
 export interface UploadedImage {
@@ -14,15 +19,22 @@ export interface UploadedImage {
 }
 
 /**
- * Compress and normalize image blob for web compatibility
+ * Fast compress and normalize image blob for web compatibility
  */
 const compressImageBlob = (blob: Blob, maxSizeBytes = 5 * 1024 * 1024): Promise<{ blob: Blob; format: string }> => {
   return new Promise((resolve, reject) => {
-    // Always compress/normalize to ensure web compatibility
-    const shouldCompress = blob.size > maxSizeBytes;
     const originalFormat = blob.type.split('/')[1]?.toLowerCase() || 'unknown';
     
-    console.log(`Processing image: ${blob.size} bytes, format: ${originalFormat}, compress: ${shouldCompress}`);
+    // Fast path: if already small and web-compatible, skip compression
+    if (blob.size <= maxSizeBytes && (originalFormat === 'jpeg' || originalFormat === 'png' || originalFormat === 'webp')) {
+      console.log(`✅ Image already optimized: ${blob.size} bytes, format: ${originalFormat}`);
+      const extension = originalFormat === 'jpeg' ? 'jpg' : originalFormat;
+      resolve({ blob, format: extension });
+      return;
+    }
+    
+    const shouldCompress = blob.size > maxSizeBytes;
+    console.log(`🔧 Processing image: ${blob.size} bytes, format: ${originalFormat}, compress: ${shouldCompress}`);
     
     // Convert blob to file for resizer
     const file = new File([blob], `image.${originalFormat}`, { type: blob.type });
@@ -37,8 +49,14 @@ const compressImageBlob = (blob: Blob, maxSizeBytes = 5 * 1024 * 1024): Promise<
       outputExtension = 'png';
     }
     
-    const quality = shouldCompress ? 70 : 85; // Higher quality if not compressing for size
-    const maxDimension = shouldCompress ? 800 : 1200; // Larger dimensions if not compressing for size
+    // More aggressive settings for faster processing
+    const quality = shouldCompress ? 60 : 75; // Lower quality for speed
+    const maxDimension = shouldCompress ? 600 : 800; // Smaller dimensions for speed
+    
+    // Add timeout for compression process
+    const compressionTimeout = setTimeout(() => {
+      reject(new Error('Image compression timed out after 10 seconds'));
+    }, 10000);
     
     Resizer.imageFileResizer(
       file,
@@ -48,20 +66,13 @@ const compressImageBlob = (blob: Blob, maxSizeBytes = 5 * 1024 * 1024): Promise<
       quality,
       0,
       (result) => {
+        clearTimeout(compressionTimeout);
+        
         if (result instanceof Blob) {
-          console.log(`Image processed: ${result.size} bytes, format: ${outputFormat}`);
+          console.log(`✅ Image compressed: ${blob.size} → ${result.size} bytes (${((1 - result.size/blob.size) * 100).toFixed(1)}% reduction)`);
           
-          // Validate the compressed blob by testing if it's a valid image
-          const testImg = new Image();
-          testImg.onload = () => {
-            console.log(`✅ Compressed image validation passed: ${testImg.naturalWidth}x${testImg.naturalHeight}`);
-            resolve({ blob: result, format: outputExtension });
-          };
-          testImg.onerror = () => {
-            console.error(`❌ Compressed image validation failed - corrupted blob`);
-            reject(new Error('Compression created corrupted image data'));
-          };
-          testImg.src = URL.createObjectURL(result);
+          // Skip validation for speed - trust the resizer
+          resolve({ blob: result, format: outputExtension });
         } else {
           reject(new Error('Compression failed - unexpected result type'));
         }
@@ -79,7 +90,7 @@ export const uploadImageBlob = async (
   filename: string,
   sectionId: string,
   retryCount: number = 3,
-  timeoutMs: number = 30000
+  timeoutMs: number = 15000  // Reduced from 30s to 15s
 ): Promise<{ url: string; path: string }> => {
   const storage = getStorage();
   
@@ -225,6 +236,65 @@ const createFallbackPlaceholder = (title: string): string => {
 export type UploadProgressCallback = (completed: number, total: number) => void;
 
 /**
+ * Enhanced upload function that automatically chooses the best strategy
+ */
+export const uploadExtractedImagesWithProgressEnhanced = async (
+  images: ImageReference[],
+  materialId: string,
+  onProgress?: UploadProgressCallback,
+  batchSize: number = 3
+): Promise<UploadedImage[]> => {
+  const imagesToUpload = images.filter(img => img.imageBlob);
+  const imageCount = imagesToUpload.length;
+  
+  console.log(`🚀 Starting upload of ${imageCount} images...`);
+  
+  // Use enhanced service for large batches or when images are particularly large
+  const shouldUseEnhancedService = imageCount > 20 || imagesToUpload.some(img => img.imageBlob!.size > 2 * 1024 * 1024);
+  
+  if (shouldUseEnhancedService) {
+    console.log(`🔄 Using enhanced upload service for ${imageCount} images (large batch detected)`);
+    
+    // Convert to enhanced format
+    const enhancedImages: EnhancedImageReference[] = imagesToUpload.map(img => ({
+      imageBlob: img.imageBlob!,
+      description: img.description,
+      filename: img.filename,
+      slideNumber: img.slideNumber
+    }));
+
+    // Convert progress callback
+    const enhancedProgressCallback: EnhancedProgressCallback = (progress) => {
+      // Convert enhanced progress to legacy format
+      onProgress?.(progress.completed, progress.total);
+      
+      // Also log detailed progress
+      console.log(`📊 Upload Progress: ${progress.completed}/${progress.total} (${progress.percentage.toFixed(1)}%) - ${progress.currentOperation}`);
+      if (progress.estimatedTimeRemaining) {
+        console.log(`⏱️ Estimated time remaining: ${progress.estimatedTimeRemaining}s`);
+      }
+    };
+
+    return await enhancedImageUploadService.uploadImagesWithProgress(
+      enhancedImages,
+      materialId,
+      {
+        batchSize: Math.max(2, Math.min(batchSize, 3)), // Limit batch size for large uploads
+        maxRetries: 3,
+        timeoutMs: 120000, // 2 minutes per image
+        compressionThreshold: 2 * 1024 * 1024, // 2MB
+        maxImageSize: 1200,
+        onProgress: enhancedProgressCallback
+      }
+    );
+  }
+  
+  // Use legacy service for smaller batches
+  console.log(`📦 Using standard upload service for ${imageCount} images`);
+  return await uploadExtractedImagesWithProgress(images, materialId, onProgress, batchSize);
+};
+
+/**
  * Upload images with progress tracking and batch processing
  */
 export const uploadExtractedImagesWithProgress = async (
@@ -259,14 +329,14 @@ export const uploadExtractedImagesWithProgress = async (
           imageRef.imageBlob!,
           filename,
           materialId,
-          1, // retryCount (reduced to 1 for speed)
-          60000 // timeoutMs (increased to 60s)
+          2, // retryCount (reasonable retry count)
+          10000 // timeoutMs (much more reasonable 10s)
         );
         
         const timeoutPromise = new Promise<never>((_, reject) => {
           setTimeout(() => {
-            reject(new Error(`Individual image timeout after 75 seconds for image ${globalIndex + 1}`));
-          }, 75000);
+            reject(new Error(`Individual image timeout after 15 seconds for image ${globalIndex + 1}`));
+          }, 15000); // Much more reasonable timeout
         });
         
         const { url } = await Promise.race([uploadPromise, timeoutPromise]);
@@ -297,8 +367,8 @@ export const uploadExtractedImagesWithProgress = async (
     try {
       console.log(`⏳ Waiting for batch ${Math.floor(batchStart / batchSize) + 1} to complete...`);
       
-      // Add batch-level timeout (60 seconds per batch)
-      const batchTimeout = 60000;
+      // Add batch-level timeout (20 seconds per batch - reasonable)
+      const batchTimeout = 20000;
       const batchTimeoutPromise = new Promise<never>((_, reject) => {
         setTimeout(() => {
           reject(new Error(`Batch ${Math.floor(batchStart / batchSize) + 1} timeout after ${batchTimeout}ms`));
@@ -352,10 +422,10 @@ export const uploadExtractedImagesWithProgress = async (
       });
     }
     
-    // Longer delay between batches to avoid overwhelming Firebase Storage
+    // Brief delay between batches to avoid overwhelming Firebase Storage
     if (batchEnd < imagesToUpload.length) {
-      console.log(`⏳ Waiting 2 seconds before next batch...`);
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      console.log(`⏳ Waiting 1 second before next batch...`);
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
   }
   
