@@ -289,7 +289,8 @@ export const useMaterialImportStore = create<MaterialImportState>()(
           const materialData = materialImportService.convertToMaterialFormat(
             aiResult,
             courseId,
-            authorId
+            authorId,
+            extractionResult?.metadata
           );
 
           // Note: This is the sync version for preview, actual image upload happens during save
@@ -340,6 +341,13 @@ export const useMaterialImportStore = create<MaterialImportState>()(
       },
 
       resetImport: () => {
+        // Clean up any active blob URLs before resetting
+        try {
+          const service = getMaterialImportService();
+          service.cleanupBlobUrls();
+        } catch (error) {
+          console.warn('Failed to cleanup blob URLs during reset:', error);
+        }
         set(initialState);
       },
 

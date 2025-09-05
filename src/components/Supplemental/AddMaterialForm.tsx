@@ -172,10 +172,20 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData }) => {
 
   const handleSubmit = async (e: React.FormEvent, shouldPublish: boolean = false, scheduleTimestamp?: Date | null) => {
     e.preventDefault();
+    
+    // Debug logging removed - fix confirmed working
   
     try {
       // If this is an AI imported material and we need to upload images
-      if (isAIImported && !materialId) {
+      // Check if images are still blob URLs (not yet uploaded to Firebase)
+      const hasUnuploadedImages = sections.some(section => 
+        section.images?.some(img => img.url.startsWith('blob:')) ||
+        section.subsections?.some(sub => 
+          sub.images?.some(img => img.url.startsWith('blob:'))
+        )
+      );
+      
+      if (isAIImported && hasUnuploadedImages) {
         // First create the material to get an ID for image uploads
         const docRef = await addDoc(collection(db, 'materials'), {
           course,
@@ -206,7 +216,7 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData }) => {
             newMaterialId,
             (completed, total) => {
               setImageUploadProgress({ completed, total });
-              console.log(`Image upload progress: ${completed}/${total}`);
+              // Image upload progress tracking
             }
           );
           
