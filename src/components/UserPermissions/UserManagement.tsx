@@ -50,6 +50,11 @@ const AssignCourse: React.FC<{ userId: string; userClasses?: Record<string, { nu
             isAdminForCourse ? ' as Course Admin.' : '.'
           }`
         );
+        // Close the dialog after successful assignment
+        setOpenAssignDialog(false);
+        // Reset form fields for better UX
+        setSelectedCourse('');
+        setIsAdminForCourse(false);
       } else {
         setMessage('Selected course not found.');
       }
