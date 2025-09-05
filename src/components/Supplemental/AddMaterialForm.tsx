@@ -182,7 +182,20 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData }) => {
   
     try {
       // If this is an AI imported material and we need to upload images
-      if (isAIImported && !materialId) {
+      // Check if images are still blob URLs (not yet uploaded to Firebase)
+      const hasUnuploadedImages = sections.some(section => 
+        section.images?.some(img => img.url.startsWith('blob:')) ||
+        section.subsections?.some(sub => 
+          sub.images?.some(img => img.url.startsWith('blob:'))
+        )
+      );
+      
+      console.log('🔍 [Save Debug] Image URL analysis:', {
+        hasUnuploadedImages,
+        sampleImageUrls: sections.flatMap(s => s.images?.map(img => ({url: img.url.substring(0, 50) + '...', isBlobUrl: img.url.startsWith('blob:')})) || []).slice(0, 3)
+      });
+      
+      if (isAIImported && hasUnuploadedImages) {
         console.log('🚀 [Save Debug] Starting AI material image upload process...');
         // First create the material to get an ID for image uploads
         const docRef = await addDoc(collection(db, 'materials'), {
