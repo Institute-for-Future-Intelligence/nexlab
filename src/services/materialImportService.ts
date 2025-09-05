@@ -821,6 +821,9 @@ Return ONLY a JSON object with additional sections, images, or links:
       repaired += ']';
     }
     
+    // Apply sanitization to fix quote issues
+    repaired = this.sanitizeJSONStringContent(repaired);
+    
     return repaired;
   }
 
@@ -934,6 +937,9 @@ Return ONLY a JSON object with additional sections, images, or links:
       repaired += '\n]';
     }
     
+    // Apply sanitization to fix quote issues
+    repaired = this.sanitizeJSONStringContent(repaired);
+    
     // Final cleanup
     repaired = repaired.replace(/,(\s*[}\]])/g, '$1');
     
@@ -1002,6 +1008,13 @@ Return ONLY a JSON object with additional sections, images, or links:
     // Add missing closing braces
     for (let i = 0; i < openBraces - closeBraces; i++) {
       repaired += '\n}';
+    }
+    
+    // Apply sanitization to fix quote issues
+    const beforeSanitization = repaired.length;
+    repaired = this.sanitizeJSONStringContent(repaired);
+    if (repaired.length !== beforeSanitization) {
+      console.log('JSON sanitization applied during repair, length changed from', beforeSanitization, 'to', repaired.length);
     }
     
     // Final cleanup
