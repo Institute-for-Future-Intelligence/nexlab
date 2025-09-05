@@ -232,16 +232,6 @@ const SyllabusImport: React.FC<SyllabusImportProps> = ({
         </Box>
       )}
 
-      {/* Development Debug Info */}
-      {process.env.NODE_ENV === 'development' && (
-        <Paper sx={{ p: 2, mt: 4, backgroundColor: 'grey.100' }}>
-          <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>
-            Debug: Step = {currentStep} | 
-            Course Info = {parsedCourseInfo ? '✓' : '✗'} | 
-            Materials = {generatedMaterials.length}
-          </Typography>
-        </Paper>
-      )}
     </Box>
   );
 };
