@@ -172,10 +172,18 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData }) => {
 
   const handleSubmit = async (e: React.FormEvent, shouldPublish: boolean = false, scheduleTimestamp?: Date | null) => {
     e.preventDefault();
+    
+    console.log('🔍 [Save Debug] handleSubmit called:', {
+      isAIImported,
+      materialId,
+      shouldPublish,
+      hasImages: sections.some(s => s.images?.length > 0 || s.subsections?.some(sub => sub.images?.length > 0))
+    });
   
     try {
       // If this is an AI imported material and we need to upload images
       if (isAIImported && !materialId) {
+        console.log('🚀 [Save Debug] Starting AI material image upload process...');
         // First create the material to get an ID for image uploads
         const docRef = await addDoc(collection(db, 'materials'), {
           course,
@@ -537,6 +545,13 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData }) => {
 
   // Handle material ready from AI import
   const handleMaterialReady = (materialData: Omit<Material, 'id' | 'timestamp'>) => {
+    console.log('🎯 [AI Import Debug] handleMaterialReady called:', {
+      title: materialData.title,
+      sectionsCount: materialData.sections?.length,
+      hasImages: materialData.sections?.some(s => s.images?.length > 0),
+      totalImages: materialData.sections?.reduce((acc, s) => acc + (s.images?.length || 0), 0)
+    });
+    
     // Populate the form with AI-generated data
     setTitle(materialData.title);
     setHeader(materialData.header);
@@ -544,6 +559,8 @@ const AddMaterialForm: React.FC<AddMaterialFormProps> = ({ materialData }) => {
     setSections(materialData.sections);
     setCourse(materialData.course);
     setIsAIImported(true); // Mark as AI imported for special image handling
+    
+    console.log('✅ [AI Import Debug] isAIImported flag set to true');
     
     // Switch back to manual mode for editing
     setImportMode('manual');
