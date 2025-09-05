@@ -21,19 +21,27 @@ interface Course {
   title: string;
 }
 
-const AssignCourse: React.FC<{ userId: string; userClasses?: Record<string, { number: string; title: string; isCourseAdmin?: boolean }>; courses: Course[] }> = ({ userId, userClasses, courses }) => {
+const AssignCourse: React.FC<{ 
+  userId: string; 
+  userClasses?: Record<string, { number: string; title: string; isCourseAdmin?: boolean }>; 
+  courses: Course[];
+  onCourseAssigned: (courseId: string, courseData: { number: string; title: string; isCourseAdmin: boolean }) => void;
+}> = ({ userId, userClasses, courses, onCourseAssigned }) => {
   const [selectedCourse, setSelectedCourse] = useState('');
   const [isAdminForCourse, setIsAdminForCourse] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [openAssignDialog, setOpenAssignDialog] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [showBlinkEffect, setShowBlinkEffect] = useState(false);
 
   const db = getFirestore();
 
   const handleAssignCourse = async () => {
     if (!userId || !selectedCourse) {
       setMessage('Please enter a User ID and select a course.');
+      setIsSuccess(false);
       setOpenSnackbar(true);
       return;
     }
@@ -50,12 +58,32 @@ const AssignCourse: React.FC<{ userId: string; userClasses?: Record<string, { nu
             isAdminForCourse ? ' as Course Admin.' : '.'
           }`
         );
+        
+        // Update parent state with new course
+        onCourseAssigned(selectedCourse, { 
+          number: courseData.number, 
+          title: courseData.title, 
+          isCourseAdmin: isAdminForCourse 
+        });
+        
+        // Trigger green blink effect
+        setShowBlinkEffect(true);
+        setTimeout(() => setShowBlinkEffect(false), 1000);
+        
+        // Close the dialog after successful assignment
+        setOpenAssignDialog(false);
+        // Reset form fields for better UX
+        setSelectedCourse('');
+        setIsAdminForCourse(false);
+        setIsSuccess(true);
       } else {
         setMessage('Selected course not found.');
+        setIsSuccess(false);
       }
     } catch (error) {
       console.error('Error assigning course:', error);
       setMessage('Error assigning course.');
+      setIsSuccess(false);
     }
     setLoading(false);
     setOpenSnackbar(true);
@@ -70,12 +98,23 @@ const AssignCourse: React.FC<{ userId: string; userClasses?: Record<string, { nu
 
   return (
     <>
-      <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+      <Box 
+        sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          mt: 2,
+          p: 2,
+          borderRadius: 2,
+          transition: 'background-color 0.3s ease',
+          backgroundColor: showBlinkEffect ? '#e8f5e8' : 'transparent',
+          border: showBlinkEffect ? '2px solid #4caf50' : '2px solid transparent',
+        }}
+      >
         <Typography variant="h6" component="h2" sx={{ mr: 2 }}>
           Current Courses:
         </Typography>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-          {userClasses
+          {userClasses && Object.keys(userClasses).length > 0
             ? Object.values(userClasses).map((c, index) => (
                 <Chip
                   key={index}
@@ -123,7 +162,7 @@ const AssignCourse: React.FC<{ userId: string; userClasses?: Record<string, { nu
       </Box>
 
       <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleCloseSnackbar}>
-        <Alert onClose={handleCloseSnackbar} severity="info">
+        <Alert onClose={handleCloseSnackbar} severity={isSuccess ? "success" : "error"}>
           {message}
         </Alert>
       </Snackbar>
@@ -320,6 +359,14 @@ const UserManagement: React.FC = () => {
     setOpenSnackbar(true);
   };
 
+  const handleCourseAssigned = (courseId: string, courseData: { number: string; title: string; isCourseAdmin: boolean }) => {
+    // Update the local userClasses state to reflect the new course assignment
+    setUserClasses(prevClasses => ({
+      ...prevClasses,
+      [courseId]: courseData
+    }));
+  };
+
   return (
     <Box sx={{ padding: 3 }}>
       <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -403,7 +450,7 @@ const UserManagement: React.FC = () => {
                     {isAdmin ? 'Revoke Educator Access' : 'Grant Educator Access'}
                   </Button>
                 </Box>
-                <AssignCourse userId={userId} userClasses={userClasses} courses={courses} />
+                <AssignCourse userId={userId} userClasses={userClasses} courses={courses} onCourseAssigned={handleCourseAssigned} />
                 <DeleteUser userId={userId} onUserDeleted={handleUserDeleted} />
               </Paper>
             )
