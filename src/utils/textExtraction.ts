@@ -205,14 +205,21 @@ export const extractTextFromPPTX = async (file: File): Promise<TextExtractionRes
                   
                   // Determine MIME type based on file extension
                   let mimeType = 'image/jpeg'; // default
-                  if (fullImagePath.toLowerCase().includes('.png')) {
+                  const pathLower = fullImagePath.toLowerCase();
+                  
+                  if (pathLower.includes('.png')) {
                     mimeType = 'image/png';
-                  } else if (fullImagePath.toLowerCase().includes('.gif')) {
+                  } else if (pathLower.includes('.gif')) {
                     mimeType = 'image/gif';
-                  } else if (fullImagePath.toLowerCase().includes('.bmp')) {
+                  } else if (pathLower.includes('.bmp')) {
                     mimeType = 'image/bmp';
-                  } else if (fullImagePath.toLowerCase().includes('.webp')) {
+                  } else if (pathLower.includes('.webp')) {
                     mimeType = 'image/webp';
+                  } else if (pathLower.includes('.emf') || pathLower.includes('.wmf')) {
+                    // EMF/WMF files are vector formats that can't be directly displayed in browsers
+                    // Skip these for now - they need special conversion
+                    console.warn(`Skipping unsupported vector image format: ${fullImagePath}`);
+                    continue; // Skip this image entirely
                   }
                   
                   imageBlob = new Blob([imageData], { type: mimeType });
@@ -386,7 +393,7 @@ export const extractTextFromFile = async (file: File): Promise<TextExtractionRes
  * Validate file before text extraction
  */
 export const validateFileForExtraction = (file: File): { isValid: boolean; error?: string } => {
-  const maxFileSize = 50 * 1024 * 1024; // 50MB limit
+  const maxFileSize = 500 * 1024 * 1024; // 500MB limit (with chunking support)
   const allowedTypes = [
     'application/pdf',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -399,7 +406,7 @@ export const validateFileForExtraction = (file: File): { isValid: boolean; error
   if (file.size > maxFileSize) {
     return {
       isValid: false,
-      error: `File size (${(file.size / 1024 / 1024).toFixed(1)}MB) exceeds the maximum limit of 50MB.`
+      error: `File size (${(file.size / 1024 / 1024).toFixed(1)}MB) exceeds the maximum limit of 500MB.`
     };
   }
   

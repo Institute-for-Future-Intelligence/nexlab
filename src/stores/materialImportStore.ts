@@ -17,7 +17,7 @@ import {
   getFileTypeDescription 
 } from '../utils/textExtraction';
 import { Material } from '../types/Material';
-import { originalFileUploadService } from '../services/originalFileUploadService';
+import { originalFileUploadService, EnhancedUploadProgressCallback } from '../services/originalFileUploadService';
 
 export interface MaterialImportState {
   // Processing state
@@ -377,7 +377,10 @@ export const useMaterialImportStore = create<MaterialImportState>()(
             error: null
           });
 
-          console.log('🚀 Starting original file upload to Firebase Storage...');
+          const isLargeFile = uploadedFile.size > 25 * 1024 * 1024; // 25MB threshold
+          const fileSizeMB = (uploadedFile.size / 1024 / 1024).toFixed(1);
+          
+          console.log(`🚀 Starting original file upload to Firebase Storage... (${fileSizeMB}MB, ${isLargeFile ? 'chunked' : 'standard'} upload)`);
 
           const result = await originalFileUploadService.uploadOriginalFile(
             uploadedFile,
@@ -393,7 +396,11 @@ export const useMaterialImportStore = create<MaterialImportState>()(
             originalFileUploadProgress: null
           });
 
-          console.log('✅ Original file uploaded successfully:', result.url);
+          console.log('✅ Original file uploaded successfully:', {
+            url: result.url,
+            size: `${fileSizeMB}MB`,
+            method: isLargeFile ? 'chunked' : 'standard'
+          });
 
         } catch (error) {
           console.error('❌ Original file upload failed:', error);
