@@ -56,7 +56,7 @@ import QuizManagementPage from '../components/Quiz/QuizManagementPage';
 
 export interface RouteConfig {
   path: string;
-  element: JSX.Element;
+  element: React.ReactElement;
   requiresAuth?: boolean;
   requiresSuperAdmin?: boolean;
 }

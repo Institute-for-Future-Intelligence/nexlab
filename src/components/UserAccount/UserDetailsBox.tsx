@@ -11,7 +11,7 @@ interface UserDetailsBoxProps {
     classes?: Record<string, { number: string; title: string; isCourseAdmin?: boolean }>;
   };
   getAccountStatus: () => string;
-  renderCourses: () => JSX.Element[] | string;
+  renderCourses: () => React.ReactElement[] | string;
 }
 
 const UserDetailsBox: React.FC<UserDetailsBoxProps> = ({ userDetails, getAccountStatus, renderCourses }) => {
