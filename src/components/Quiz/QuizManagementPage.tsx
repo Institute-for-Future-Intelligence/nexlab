@@ -41,6 +41,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuizStore } from '../../stores/quizStore';
 import { useUser } from '../../hooks/useUser';
 import QuizButton from '../QuizIntegration/QuizButton';
+import QuizSessionControls from './QuizSessionControls';
 import { getAllQuizSessions, getQuizEvents, QuizSessionDocument, QuizEventDocument } from '../../services/quizDataService';
 import { QuizDifficulty } from '../../types/quiz';
 
@@ -55,13 +56,13 @@ const QuizManagementPage: React.FC = () => {
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [selectedQuizId, setSelectedQuizId] = useState<string | null>(null);
   const [showEventDetails, setShowEventDetails] = useState(false);
+  const [selectedSession, setSelectedSession] = useState<QuizSessionDocument | null>(null);
+  const [showQuestionAnalysis, setShowQuestionAnalysis] = useState(false);
   
-  // Load quiz sessions from Firestore
-  console.log('🧩 QuizManagementPage: Loading quiz data from Firestore');
-
   useEffect(() => {
     const loadQuizData = async () => {
       try {
+        console.log('🧩 QuizManagementPage: Loading quiz data from Firestore');
         setIsLoadingData(true);
         // Load both sessions and events for super-admin view
         const [sessions, events] = await Promise.all([
@@ -78,17 +79,21 @@ const QuizManagementPage: React.FC = () => {
       }
     };
 
-    loadQuizData();
-  }, []);
+    // Only load data once on mount
+    if (userDetails?.uid) {
+      loadQuizData();
+    }
+  }, [userDetails?.uid]); // Only re-run if user changes
 
   const filteredSessions = quizSessions.filter(session => 
     difficultyFilter === 'all' || session.difficulty === difficultyFilter
   );
 
-  // Calculate statistics from loaded sessions
+  // Calculate enhanced statistics from loaded sessions
   const statistics = {
     totalQuizzes: quizSessions.length,
     completedQuizzes: quizSessions.filter(s => s.completed).length,
+    inProgressQuizzes: quizSessions.filter(s => !s.completed).length,
     averageScore: quizSessions.filter(s => s.summary).length > 0 
       ? quizSessions
           .filter(s => s.summary)
@@ -100,6 +105,31 @@ const QuizManagementPage: React.FC = () => {
       medium: quizSessions.filter(s => s.difficulty === 'medium').length,
       hard: quizSessions.filter(s => s.difficulty === 'hard').length,
     },
+    performanceBreakdown: {
+      excellent: quizSessions.filter(s => s.summary && s.summary.percent >= 90).length,
+      good: quizSessions.filter(s => s.summary && s.summary.percent >= 70 && s.summary.percent < 90).length,
+      average: quizSessions.filter(s => s.summary && s.summary.percent >= 50 && s.summary.percent < 70).length,
+      poor: quizSessions.filter(s => s.summary && s.summary.percent < 50).length,
+    },
+    questionAnalytics: (() => {
+      const questionStats: Record<string, { correct: number; incorrect: number; total: number }> = {};
+      quizSessions.forEach(session => {
+        if (session.summary?.items) {
+          Object.entries(session.summary.items).forEach(([questionId, result]) => {
+            if (!questionStats[questionId]) {
+              questionStats[questionId] = { correct: 0, incorrect: 0, total: 0 };
+            }
+            questionStats[questionId].total++;
+            if (result.verdict === 'correct') {
+              questionStats[questionId].correct++;
+            } else {
+              questionStats[questionId].incorrect++;
+            }
+          });
+        }
+      });
+      return questionStats;
+    })(),
     lastQuizDate: quizSessions.length > 0 ? quizSessions[0].startedAt.toDate().toISOString() : undefined
   };
 
@@ -113,6 +143,28 @@ const QuizManagementPage: React.FC = () => {
   const handleViewQuizDetails = (quizId: string) => {
     setSelectedQuizId(quizId);
     setShowEventDetails(true);
+  };
+
+  // Handle viewing question-level analysis
+  const handleViewQuestionAnalysis = (session: QuizSessionDocument) => {
+    setSelectedSession(session);
+    setShowQuestionAnalysis(true);
+  };
+
+  // Handle session updates from admin controls
+  const handleSessionUpdate = async (sessionId: string) => {
+    console.log('🔄 Refreshing quiz data after session update:', sessionId);
+    try {
+      const [sessions, events] = await Promise.all([
+        getAllQuizSessions(),
+        getQuizEvents()
+      ]);
+      setQuizSessions(sessions);
+      setQuizEvents(events);
+      console.log('✅ Quiz data refreshed successfully');
+    } catch (error) {
+      console.error('❌ Failed to refresh quiz data:', error);
+    }
   };
 
 
@@ -176,7 +228,7 @@ const QuizManagementPage: React.FC = () => {
 
       {/* Statistics Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={2.4}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -190,7 +242,7 @@ const QuizManagementPage: React.FC = () => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={2.4}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -204,7 +256,21 @@ const QuizManagementPage: React.FC = () => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={2.4}>
+          <Card>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <ScheduleIcon color="warning" sx={{ mr: 2 }} />
+                <Box>
+                  <Typography variant="h4">{statistics?.inProgressQuizzes || 0}</Typography>
+                  <Typography color="text.secondary">In Progress</Typography>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} sm={6} md={2.4}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -218,11 +284,11 @@ const QuizManagementPage: React.FC = () => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={2.4}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <ScheduleIcon color="warning" sx={{ mr: 2 }} />
+                <TrendingUpIcon color="secondary" sx={{ mr: 2 }} />
                 <Box>
                   <Typography variant="h6">
                     {statistics?.lastQuizDate 
@@ -272,6 +338,93 @@ const QuizManagementPage: React.FC = () => {
           </Grid>
         </CardContent>
       </Card>
+
+      {/* Performance Breakdown */}
+      <Card sx={{ mb: 4 }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            Performance Analysis
+          </Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={3}>
+              <Box sx={{ textAlign: 'center' }}>
+                <Typography variant="h4" color="success.main">
+                  {statistics?.performanceBreakdown?.excellent || 0}
+                </Typography>
+                <Chip label="Excellent (90%+)" color="success" size="small" />
+              </Box>
+            </Grid>
+            <Grid item xs={3}>
+              <Box sx={{ textAlign: 'center' }}>
+                <Typography variant="h4" color="info.main">
+                  {statistics?.performanceBreakdown?.good || 0}
+                </Typography>
+                <Chip label="Good (70-89%)" color="info" size="small" />
+              </Box>
+            </Grid>
+            <Grid item xs={3}>
+              <Box sx={{ textAlign: 'center' }}>
+                <Typography variant="h4" color="warning.main">
+                  {statistics?.performanceBreakdown?.average || 0}
+                </Typography>
+                <Chip label="Average (50-69%)" color="warning" size="small" />
+              </Box>
+            </Grid>
+            <Grid item xs={3}>
+              <Box sx={{ textAlign: 'center' }}>
+                <Typography variant="h4" color="error.main">
+                  {statistics?.performanceBreakdown?.poor || 0}
+                </Typography>
+                <Chip label="Poor (<50%)" color="error" size="small" />
+              </Box>
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Card>
+
+      {/* Question Analytics */}
+      {Object.keys(statistics?.questionAnalytics || {}).length > 0 && (
+        <Card sx={{ mb: 4 }}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              Question Performance Analysis
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Showing the most challenging questions based on answer accuracy
+            </Typography>
+            {Object.entries(statistics.questionAnalytics)
+              .sort(([,a], [,b]) => (a.incorrect / a.total) - (b.incorrect / b.total))
+              .slice(0, 5)
+              .map(([questionId, stats]) => (
+                <Box key={questionId} sx={{ mb: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: 1 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                    <Typography variant="subtitle2" fontFamily="monospace">
+                      Question: {questionId.substring(0, 20)}...
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {stats.total} attempts
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                    <Chip 
+                      label={`${stats.correct} correct`}
+                      color="success"
+                      size="small"
+                    />
+                    <Chip 
+                      label={`${stats.incorrect} incorrect`}
+                      color="error"
+                      size="small"
+                    />
+                    <Typography variant="body2" color="text.secondary">
+                      {Math.round((stats.correct / stats.total) * 100)}% accuracy
+                    </Typography>
+                  </Box>
+                </Box>
+              ))}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Quick Start Section */}
       <Card sx={{ mb: 4 }}>
@@ -347,7 +500,8 @@ const QuizManagementPage: React.FC = () => {
                     <TableCell>Status</TableCell>
                     <TableCell align="right">Score</TableCell>
                     <TableCell align="right">Performance</TableCell>
-                    <TableCell align="center">Actions</TableCell>
+                    <TableCell align="center">View Details</TableCell>
+                    <TableCell align="center">Admin Controls</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -416,14 +570,32 @@ const QuizManagementPage: React.FC = () => {
                         )}
                       </TableCell>
                       <TableCell align="center">
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          startIcon={<ViewIcon />}
-                          onClick={() => handleViewQuizDetails(session.quizId)}
-                        >
-                          View Details
-                        </Button>
+                        <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column' }}>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={<ViewIcon />}
+                            onClick={() => handleViewQuizDetails(session.quizId)}
+                          >
+                            Events
+                          </Button>
+                          {session.summary && (
+                            <Button
+                              variant="text"
+                              size="small"
+                              onClick={() => handleViewQuestionAnalysis(session)}
+                              color="info"
+                            >
+                              Questions
+                            </Button>
+                          )}
+                        </Box>
+                      </TableCell>
+                      <TableCell align="center">
+                        <QuizSessionControls
+                          session={session}
+                          onSessionUpdate={handleSessionUpdate}
+                        />
                       </TableCell>
                     </TableRow>
                   ))}
@@ -501,6 +673,84 @@ const QuizManagementPage: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setShowEventDetails(false)}>
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Question Analysis Dialog */}
+      <Dialog 
+        open={showQuestionAnalysis} 
+        onClose={() => setShowQuestionAnalysis(false)}
+        maxWidth="lg"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h6">
+              Question-Level Analysis
+            </Typography>
+            <IconButton onClick={() => setShowQuestionAnalysis(false)}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          {selectedSession && selectedSession.summary && (
+            <Box>
+              <Typography variant="subtitle1" gutterBottom>
+                Quiz ID: <code>{selectedSession.quizId.substring(0, 16)}...</code>
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                Overall Score: {selectedSession.summary.total_score}/{selectedSession.summary.total_max} 
+                ({Math.round(selectedSession.summary.percent)}%)
+              </Typography>
+              
+              {Object.entries(selectedSession.summary.items || {}).map(([questionId, result]) => (
+                <Card key={questionId} sx={{ mb: 2, border: '1px solid #e0e0e0' }}>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                      <Typography variant="subtitle2" fontFamily="monospace">
+                        Question: {questionId.substring(0, 24)}...
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                        <Chip 
+                          label={result.verdict.toUpperCase()}
+                          color={result.verdict === 'correct' ? 'success' : 'error'}
+                          size="small"
+                        />
+                        <Typography variant="body2" fontWeight="bold">
+                          {result.score}/{result.max_score}
+                        </Typography>
+                      </Box>
+                    </Box>
+                    
+                    {result.reasoning && (
+                      <Box sx={{ 
+                        backgroundColor: result.verdict === 'correct' ? 'success.50' : 'error.50', 
+                        p: 2, 
+                        borderRadius: 1,
+                        border: `1px solid ${result.verdict === 'correct' ? '#4caf50' : '#f44336'}20`
+                      }}>
+                        <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
+                          <strong>Feedback:</strong> {result.reasoning}
+                        </Typography>
+                      </Box>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+              
+              {Object.keys(selectedSession.summary.items || {}).length === 0 && (
+                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
+                  No question details available for this quiz.
+                </Typography>
+              )}
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowQuestionAnalysis(false)}>
             Close
           </Button>
         </DialogActions>
