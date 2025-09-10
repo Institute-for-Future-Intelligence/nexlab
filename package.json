@@ -31,6 +31,7 @@
     "@ckeditor/ckeditor5-build-multi-root": "^41.3.0",
     "@ckeditor/ckeditor5-editor-inline": "^41.4.2",
     "@ckeditor/ckeditor5-react": "^6.2.0",
+    "@ckeditor/ckeditor5-watchdog": "^46.0.3",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@google/generative-ai": "^0.24.1",
@@ -62,10 +63,11 @@
     "pdf-parse": "^1.1.1",
     "pdfjs-dist": "^5.4.54",
     "pizzip": "^3.2.0",
-    "rag-chatbot-interface-ifi": "^1.0.3",
-    "react": "^18.3.1",
+    "rag-chatbot-interface-ifi": "^1.0.5",
+    "rag-quiz-modal-ifi": "^1.0.1",
+    "react": "^19.0.0",
     "react-datepicker": "^7.0.0",
-    "react-dom": "^18.2.0",
+    "react-dom": "^19.0.0",
     "react-dropzone": "^14.3.8",
     "react-image-file-resizer": "^0.4.8",
     "react-router-dom": "^6.22.3",
@@ -87,6 +89,8 @@
     "@typescript-eslint/parser": "^7.8.0",
     "@vitejs/plugin-legacy": "^6.0.0",
     "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/coverage-v8": "^1.4.0",
+    "@vitest/ui": "^1.4.0",
     "eslint": "^8.57.0",
     "eslint-plugin-react": "^7.34.0",
     "eslint-plugin-react-hooks": "^4.6.0",
@@ -95,9 +99,7 @@
     "jsdom": "^24.0.0",
     "typescript": "^5.4.5",
     "vite": "^6.0.3",
-    "vitest": "^1.4.0",
-    "@vitest/ui": "^1.4.0",
-    "@vitest/coverage-v8": "^1.4.0"
+    "vitest": "^1.4.0"
   },
   "eslintConfig": {
     "extends": [

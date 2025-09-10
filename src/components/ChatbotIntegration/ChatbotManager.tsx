@@ -32,7 +32,7 @@ const ChatbotManager: React.FC = () => {
 
       if (!querySnapshot.empty) {
         const chatbot = querySnapshot.docs[0].data();
-        console.log("Found chatbot ID:", chatbot.chatbotId);
+        console.log(`🤖 Found chatbot for material ${materialId}:`, chatbot.chatbotId);
 
         // Ensure previous chatbot session ends
         if (chatbot.chatbotId !== selectedChatbotId) {
@@ -41,7 +41,7 @@ const ChatbotManager: React.FC = () => {
 
         setSelectedChatbotId(chatbot.chatbotId);
       } else {
-        console.log("No chatbot found for material, using default.");
+        console.log(`🤖 No chatbot found for material ${materialId}, using default:`, DEFAULT_CHATBOT_ID);
         setSelectedChatbotId(DEFAULT_CHATBOT_ID);
       }
     };

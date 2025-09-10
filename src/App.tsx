@@ -12,6 +12,7 @@ import DeviceVersion from './components/DeviceVersion';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import ChatbotManager from './components/ChatbotIntegration/ChatbotManager';
+import QuizManager from './components/QuizIntegration/QuizManager';
 import GlobalNotifications from './components/common/GlobalNotifications';
 
 const AppRoutes = () => {
@@ -58,6 +59,8 @@ const App = () => {
         <DeviceVersion />
         {/* Chatbot Manager */}
         {isLoggedIn && <ChatbotManager />}
+        {/* Quiz Manager */}
+        {isLoggedIn && <QuizManager />}
         {/* Global Notifications */}
         <GlobalNotifications />
       </Router>

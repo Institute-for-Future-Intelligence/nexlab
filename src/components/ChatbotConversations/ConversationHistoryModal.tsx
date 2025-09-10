@@ -11,7 +11,7 @@ import {
     IconButton,
     Tooltip,
 } from '@mui/material';
-import { styled } from '@mui/system';
+import { styled } from '@mui/material/styles';
 
 import DownloadIcon from '@mui/icons-material/Download'; // Import the download icon
 import { exportConversationData } from '../../utils/exportConversationData'; // Import utility
