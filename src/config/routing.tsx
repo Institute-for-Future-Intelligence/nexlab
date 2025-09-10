@@ -52,10 +52,11 @@ import ChatbotManagementPage from '../components/Chatbot/ChatbotManagementPage';
 import ChatbotRequestPage from '../components/Chatbot/ChatbotRequestPage';
 import ChatbotConversationsPage from '../components/ChatbotConversations/ChatbotConversationsPage';
 import SuperAdminChatbotRequestsPage from '../components/SA_Chatbot/SuperAdminChatbotRequestsPage';
+import QuizManagementPage from '../components/Quiz/QuizManagementPage';
 
 export interface RouteConfig {
   path: string;
-  element: JSX.Element;
+  element: React.ReactElement;
   requiresAuth?: boolean;
   requiresSuperAdmin?: boolean;
 }
@@ -116,6 +117,10 @@ export const createRoutes = (userDetails: any, isSuperAdmin: boolean): RouteObje
     element: <PrivateRoute element={ChatbotRequestPage} />
   },
   {
+    path: "/quiz-management",
+    element: <PrivateRoute element={QuizManagementPage} />
+  },
+  {
     path: "/request-educator-permissions",
     element: <PrivateRoute element={RequestEducatorPermissionsForm} />
   },
@@ -163,5 +168,5 @@ export const routeGroups = {
   materials: ['/add-material', '/edit-material/:id', '/view-material/:id'],
   messages: ['/add-message', '/edit-message/:id'],
   educator: ['/chatbot-management', '/course-management', '/request-chatbot', '/request-educator-permissions', '/educator-requests'],
-  superAdmin: ['/user-management', '/chatbot-conversations', '/super-admin-chatbot-requests']
+  superAdmin: ['/user-management', '/chatbot-conversations', '/super-admin-chatbot-requests', '/quiz-management']
 }; 

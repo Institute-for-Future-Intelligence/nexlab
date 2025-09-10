@@ -14,7 +14,7 @@ import {
     IconButton, 
     Tooltip
 } from '@mui/material';
-import { styled } from '@mui/system';
+import { styled } from '@mui/material/styles';
 
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';

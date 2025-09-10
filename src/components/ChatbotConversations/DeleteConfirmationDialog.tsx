@@ -10,7 +10,7 @@ import {
     Button,
     CircularProgress
 } from '@mui/material';
-import { styled } from '@mui/system';
+import { styled } from '@mui/material/styles';
 
 // Styled Button to maintain consistent size
 const FixedSizeButton = styled(Button)({

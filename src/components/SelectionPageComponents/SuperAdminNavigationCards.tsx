@@ -92,6 +92,12 @@ const SuperAdminNavigationCards: React.FC = () => {
                 onClick={() => navigate('/chatbot-conversations')}
               />
             </Box>
+            <Box sx={{ mt: 1 }}>
+              <NavigationCard
+                title="Quiz Management"
+                onClick={() => navigate('/quiz-management')}
+              />
+            </Box>
           </Box>
         </Collapse>
       </Grid>

@@ -62,12 +62,12 @@ const AdminNavigationCards: React.FC = () => {
               title="Course Management"
               onClick={() => navigate('/course-management')}
             />
-            <Box sx={{ mt: 1 }}>
-              <NavigationCard
-                title="Chatbot Management"
-                onClick={() => navigate('/chatbot-management')}
-              />
-            </Box>
+      <Box sx={{ mt: 1 }}>
+        <NavigationCard
+          title="Chatbot Management"
+          onClick={() => navigate('/chatbot-management')}
+        />
+      </Box>
           </Box>
         </Collapse>
       </Grid>
