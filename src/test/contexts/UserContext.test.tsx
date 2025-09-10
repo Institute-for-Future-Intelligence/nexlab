@@ -1,6 +1,7 @@
 // src/test/contexts/UserContext.test.tsx
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor, act } from '@testing-library/react';
+import { render, act } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/dom';
 import UserProvider, { UserContext } from '../../contexts/UserContext';
 import { authService } from '../../services/authService';
 import { userService } from '../../services/userService';
