@@ -16,9 +16,6 @@ export default defineConfig(({ command }) => ({
       'Cross-Origin-Opener-Policy': 'same-origin',
     },
   },
-  optimizeDeps: {
-    include: ['@ckeditor/ckeditor5-watchdog']
-  },
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
