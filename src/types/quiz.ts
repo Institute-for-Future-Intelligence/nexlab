@@ -144,6 +144,14 @@ export interface QuizButtonProps {
 
 // Enhanced data structures for Quiz Management Page
 
+// Course information for filtering
+export interface CourseInfo {
+  courseId: string;
+  courseTitle: string;
+  chatbotCount: number;
+  quizCount: number; // Actual number of chatbots with quizzes
+}
+
 // Chatbot with quiz information
 export interface ChatbotWithQuiz {
   chatbotId: string;
@@ -194,7 +202,8 @@ export interface EnhancedQuizSession {
   answers: Record<string, string>;
   summary?: QuizSummary;
   questionsAttempted: number;
-  timeSpent?: number; // in minutes
+  timeSpent?: number; // in seconds
+  timeSpentFormatted?: string; // formatted as "Xm Ys"
 }
 
 // Quiz analytics and insights
@@ -231,7 +240,10 @@ export interface QuizFilters {
 // Quiz Management store interface
 export interface QuizManagementState {
   // Data
+  courses: CourseInfo[];
+  selectedCourse: CourseInfo | null;
   chatbotsWithQuizzes: ChatbotWithQuiz[];
+  filteredChatbots: ChatbotWithQuiz[]; // Filtered by selected course
   selectedChatbot: ChatbotWithQuiz | null;
   quizSessions: EnhancedQuizSession[];
   quizPools: Record<string, QuizPool>; // keyed by quizId
@@ -245,6 +257,7 @@ export interface QuizManagementState {
   
   // Actions
   loadChatbotsWithQuizzes: () => Promise<void>;
+  selectCourse: (course: CourseInfo | null) => void;
   selectChatbot: (chatbot: ChatbotWithQuiz | null) => void;
   loadQuizSessions: (chatbotId?: string) => Promise<void>;
   loadQuizPool: (quizId: string) => Promise<void>;

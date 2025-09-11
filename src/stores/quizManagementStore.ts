@@ -6,7 +6,8 @@ import {
   EnhancedQuizSession,
   QuizPool,
   QuizAnalytics,
-  QuizFilters
+  QuizFilters,
+  CourseInfo
 } from '../types/quiz';
 import {
   loadChatbotsWithQuizzes,
@@ -28,7 +29,10 @@ export const useQuizManagementStore = create<QuizManagementStore>()(
     persist(
       (set, get) => ({
         // Initial state
+        courses: [],
+        selectedCourse: null,
         chatbotsWithQuizzes: [],
+        filteredChatbots: [],
         selectedChatbot: null,
         quizSessions: [],
         quizPools: {},
@@ -46,12 +50,35 @@ export const useQuizManagementStore = create<QuizManagementStore>()(
             
             const chatbots = await loadChatbotsWithQuizzes();
             
+            // Extract unique courses from chatbots
+            const courseMap = new Map<string, CourseInfo>();
+            chatbots.forEach(chatbot => {
+              if (!courseMap.has(chatbot.courseId)) {
+                courseMap.set(chatbot.courseId, {
+                  courseId: chatbot.courseId,
+                  courseTitle: chatbot.courseTitle,
+                  chatbotCount: 0,
+                  quizCount: 0
+                });
+              }
+              const course = courseMap.get(chatbot.courseId)!;
+              course.chatbotCount++;
+              // Only count chatbots that actually have quizzes
+              if (chatbot.quizId) {
+                course.quizCount++;
+              }
+            });
+            
+            const courses = Array.from(courseMap.values()).sort((a, b) => a.courseTitle.localeCompare(b.courseTitle));
+            
             set({ 
               chatbotsWithQuizzes: chatbots,
+              courses,
+              filteredChatbots: chatbots, // Initially show all
               loading: false 
             });
             
-            console.log(`✅ Loaded ${chatbots.length} chatbots with quiz information`);
+            console.log(`✅ Loaded ${chatbots.length} chatbots with quiz information from ${courses.length} courses`);
           } catch (error) {
             console.error('❌ Failed to load chatbots with quizzes:', error);
             set({ 
@@ -59,6 +86,23 @@ export const useQuizManagementStore = create<QuizManagementStore>()(
               loading: false 
             });
           }
+        },
+
+        selectCourse: (course) => {
+          console.log('🧩 Quiz Management Store: Selecting course:', course?.courseId);
+          const { chatbotsWithQuizzes } = get();
+          
+          const filteredChatbots = course 
+            ? chatbotsWithQuizzes.filter(chatbot => chatbot.courseId === course.courseId)
+            : chatbotsWithQuizzes;
+          
+          set({ 
+            selectedCourse: course,
+            filteredChatbots,
+            selectedChatbot: null, // Clear selected chatbot when changing course
+            selectedSession: null,
+            quizSessions: [] // Clear sessions
+          });
         },
 
         selectChatbot: (chatbot) => {

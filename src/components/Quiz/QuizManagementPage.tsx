@@ -37,12 +37,11 @@ import {
   Quiz as QuizIcon,
   CheckCircle as CheckCircleIcon,
   Schedule as ScheduleIcon,
-  Home as HomeIcon,
+  ArrowBack as ArrowBackIcon,
   Visibility as ViewIcon,
   Close as CloseIcon,
   Refresh as RefreshIcon,
   Download as DownloadIcon,
-  Analytics as AnalyticsIcon,
   FilterList as FilterIcon,
   School as SchoolIcon,
   QuestionAnswer as QuestionAnswerIcon
@@ -55,6 +54,7 @@ import { QuizDifficulty, ChatbotWithQuiz, EnhancedQuizSession } from '../../type
 
 // Component imports
 import {
+  CourseSelector,
   ChatbotSelector,
   QuizSessionsTable,
   QuizAnalyticsCard,
@@ -68,7 +68,10 @@ const QuizManagementPage: React.FC = () => {
   
   // Quiz Management Store
   const {
+    courses,
+    selectedCourse,
     chatbotsWithQuizzes,
+    filteredChatbots,
     selectedChatbot,
     quizSessions,
     analytics,
@@ -77,6 +80,7 @@ const QuizManagementPage: React.FC = () => {
     filters,
     selectedSession,
     loadChatbotsWithQuizzes,
+    selectCourse,
     selectChatbot,
     loadQuizSessions,
     loadQuizPool,
@@ -89,12 +93,21 @@ const QuizManagementPage: React.FC = () => {
   // Local state for UI
   const [showSessionDetails, setShowSessionDetails] = useState(false);
   const [showQuizPool, setShowQuizPool] = useState(false);
+  const [userIdFilter, setUserIdFilter] = useState<string>('');
 
   // Load initial data
   useEffect(() => {
     console.log('🧩 Enhanced Quiz Management Page: Initializing...');
     loadChatbotsWithQuizzes();
   }, [loadChatbotsWithQuizzes]);
+
+  // Handle course selection
+  const handleCourseSelect = (course: any) => {
+    selectCourse(course);
+    if (course) {
+      console.log('🧩 Selected course:', course.courseTitle, 'with', course.chatbotCount, 'chatbots');
+    }
+  };
 
   // Handle chatbot selection
   const handleChatbotSelect = (chatbot: ChatbotWithQuiz | null) => {
@@ -138,6 +151,11 @@ const QuizManagementPage: React.FC = () => {
     updateFilters({ completionStatus: status });
   };
 
+  const handleUserIdFilter = (userId: string) => {
+    setUserIdFilter(userId);
+    updateFilters({ userId: userId || undefined });
+  };
+
   if (loading && chatbotsWithQuizzes.length === 0) {
     return (
       <Box sx={{ width: '100%', mt: 2 }}>
@@ -150,41 +168,37 @@ const QuizManagementPage: React.FC = () => {
   }
 
   return (
-    <Box className="profile-container" sx={{ p: 4, maxWidth: '1400px', mx: 'auto' }}>
+    <Box className="profile-container">
       {/* Header Section */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Box>
-          <Button
-            variant="outlined"
-            startIcon={<HomeIcon />}
-            onClick={() => navigate('/')}
-            sx={{ mb: 2 }}
-          >
-            Back to Home
-          </Button>
-          <Typography variant="h4" gutterBottom>
-            Quiz Management Dashboard
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Comprehensive quiz analytics and session management
-          </Typography>
-        </Box>
+      <Box sx={{ mb: 4 }}>
+      <Button
+          variant="text" 
+          startIcon={<ArrowBackIcon />} 
+        onClick={() => navigate('/')}
+          className="profile-button"
+          sx={{ mb: 2 }}
+      >
+          Home Page
+      </Button>
+      
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box>
+            <Typography className="webpage_title">
+        Quiz Management
+      </Typography>
+            <Typography variant="body1" className="profile-text">
+              Comprehensive quiz analytics and session management
+            </Typography>
+          </Box>
         
-        <Stack direction="row" spacing={2}>
-          <Tooltip title="Refresh Data">
-            <IconButton onClick={handleRefresh} disabled={loading}>
-              <RefreshIcon />
-            </IconButton>
-          </Tooltip>
-          <Button
-            variant="contained"
-            startIcon={<AnalyticsIcon />}
-            disabled={!analytics}
-            onClick={() => {/* TODO: Open analytics modal */}}
-          >
-            View Analytics
-          </Button>
-        </Stack>
+          <Stack direction="row" spacing={2}>
+            <Tooltip title="Refresh Data">
+              <IconButton onClick={handleRefresh} disabled={loading}>
+                <RefreshIcon />
+              </IconButton>
+            </Tooltip>
+          </Stack>
+        </Box>
       </Box>
 
       {error && (
@@ -197,59 +211,163 @@ const QuizManagementPage: React.FC = () => {
         </Alert>
       )}
 
-      {/* Chatbot Selection Section */}
-      <Card sx={{ mb: 4 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      {/* Course & Chatbot Selection Section */}
+      <Card sx={{ 
+        mb: 4, 
+        backgroundColor: '#FFFFFF',
+        borderRadius: 2,
+        boxShadow: '0 1px 4px rgba(0, 0, 0, 0.1)'
+      }}>
+        <CardContent sx={{ p: 3 }}>
+          <Typography 
+            variant="h6" 
+            gutterBottom 
+            sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 1,
+              fontFamily: 'Staatliches, sans-serif',
+              color: '#0B53C0',
+              fontSize: '1.5rem'
+            }}
+          >
             <SchoolIcon color="primary" />
-            Chatbot & Quiz Selection
+            Course & Quiz Selection
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Select a chatbot to view its quiz sessions and manage quiz data. Each chatbot has an associated quiz with predefined questions.
+          <Typography 
+            variant="body2" 
+            sx={{ 
+              mb: 3,
+              fontFamily: 'Gabarito, sans-serif',
+              color: '#666666'
+            }}
+          >
+            First select a course to filter materials, then choose a specific chatbot to view its quiz sessions and manage quiz data.
           </Typography>
           
-          <ChatbotSelector
-            chatbots={chatbotsWithQuizzes}
-            selectedChatbot={selectedChatbot}
-            onSelect={handleChatbotSelect}
-            loading={loading}
-          />
+          {/* Course Selection */}
+          <Box sx={{ mb: 3 }}>
+            <CourseSelector
+              courses={courses}
+              selectedCourse={selectedCourse}
+              onSelect={handleCourseSelect}
+              loading={loading}
+            />
+          </Box>
+          
+          {/* Chatbot Selection - Only show if course is selected or show all */}
+          <Box>
+            <ChatbotSelector
+              chatbots={filteredChatbots}
+              selectedChatbot={selectedChatbot}
+              onSelect={handleChatbotSelect}
+              loading={loading}
+            />
+          </Box>
           
           {selectedChatbot && (
-            <Box sx={{ mt: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+            <Box sx={{ 
+              mt: 3, 
+              p: 2, 
+              bgcolor: '#F0F4FF', 
+              borderRadius: 2,
+              border: '1px solid #CDDAFF'
+            }}>
               <Grid container spacing={2}>
                 <Grid item xs={12} md={6}>
-                  <Typography variant="subtitle2" color="text.secondary">Material</Typography>
-                  <Typography variant="body1">{selectedChatbot.materialTitle}</Typography>
-                </Grid>
-                <Grid item xs={12} md={3}>
-                  <Typography variant="subtitle2" color="text.secondary">Course</Typography>
-                  <Typography variant="body1">{selectedChatbot.courseTitle}</Typography>
-                </Grid>
-                <Grid item xs={12} md={3}>
-                  <Typography variant="subtitle2" color="text.secondary">Quiz ID</Typography>
-                  <Typography variant="body1" fontFamily="monospace">
-                    {selectedChatbot.quizId?.substring(0, 8)}...
+                  <Typography 
+                    variant="subtitle2" 
+                    sx={{ 
+                      fontFamily: 'Gabarito, sans-serif',
+                      fontWeight: 'bold',
+                      color: '#0B53C0'
+                    }}
+                  >
+                    Material
                   </Typography>
-                </Grid>
-              </Grid>
-              
+                  <Typography 
+                    variant="body1"
+                    sx={{ fontFamily: 'Gabarito, sans-serif' }}
+                  >
+                    {selectedChatbot.materialTitle}
+                  </Typography>
+        </Grid>
+                <Grid item xs={12} md={3}>
+                  <Typography 
+                    variant="subtitle2" 
+                    sx={{ 
+                      fontFamily: 'Gabarito, sans-serif',
+                      fontWeight: 'bold',
+                      color: '#0B53C0'
+                    }}
+                  >
+                    Course
+                  </Typography>
+                  <Typography 
+                    variant="body1"
+                    sx={{ fontFamily: 'Gabarito, sans-serif' }}
+                  >
+                    {selectedChatbot.courseTitle}
+                  </Typography>
+        </Grid>
+                <Grid item xs={12} md={3}>
+                  <Typography 
+                    variant="subtitle2" 
+                    sx={{ 
+                      fontFamily: 'Gabarito, sans-serif',
+                      fontWeight: 'bold',
+                      color: '#0B53C0'
+                    }}
+                  >
+                    Quiz ID
+                  </Typography>
+                  <Typography 
+                    variant="body1" 
+                    fontFamily="monospace" 
+                    sx={{ 
+                      fontSize: '0.875rem',
+                      wordBreak: 'break-all',
+                      lineHeight: 1.2
+                    }}
+                  >
+                    {selectedChatbot.quizId || 'No Quiz ID Available'}
+                  </Typography>
+        </Grid>
+      </Grid>
+
               <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
                 <Button
                   variant="outlined"
                   startIcon={<QuestionAnswerIcon />}
                   onClick={() => selectedChatbot.quizId && handleViewQuizPool(selectedChatbot.quizId)}
                   size="small"
+                  sx={{
+                    fontFamily: 'Gabarito, sans-serif',
+                    color: '#0B53C0',
+                    borderColor: '#0B53C0',
+                    '&:hover': {
+                      backgroundColor: '#0B53C0',
+                      color: '#FFFFFF'
+                    }
+                  }}
                 >
                   View Quiz Questions
                 </Button>
                 <Badge badgeContent={quizSessions.length} color="primary">
-                  <Button variant="outlined" size="small">
+                  <Button 
+                    variant="outlined" 
+                    size="small"
+                    sx={{
+                      fontFamily: 'Gabarito, sans-serif',
+                      color: '#0B53C0',
+                      borderColor: '#0B53C0'
+                    }}
+                  >
                     Quiz Sessions
                   </Button>
                 </Badge>
               </Box>
-            </Box>
+              </Box>
           )}
         </CardContent>
       </Card>
@@ -261,30 +379,53 @@ const QuizManagementPage: React.FC = () => {
 
       {/* Quiz Sessions Section */}
       {selectedChatbot && (
-        <Card>
-          <CardContent>
+        <Card sx={{ 
+          backgroundColor: '#FFFFFF',
+          borderRadius: 2,
+          boxShadow: '0 1px 4px rgba(0, 0, 0, 0.1)'
+        }}>
+          <CardContent sx={{ p: 3 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography 
+                variant="h6" 
+                sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: 1,
+                  fontFamily: 'Staatliches, sans-serif',
+                  color: '#0B53C0',
+                  fontSize: '1.5rem'
+                }}
+              >
                 <QuizIcon color="primary" />
                 Quiz Sessions
                 <Badge badgeContent={quizSessions.length} color="primary" sx={{ ml: 1 }} />
-              </Typography>
+          </Typography>
               
               {/* Filters */}
-              <Stack direction="row" spacing={2} alignItems="center">
-                <FormControl size="small" sx={{ minWidth: 120 }}>
-                  <InputLabel>Difficulty</InputLabel>
-                  <Select
+              <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
+                <TextField
+                  size="small"
+                  label="Filter by User ID"
+                  placeholder="Enter user ID..."
+                  value={userIdFilter}
+                  onChange={(e) => handleUserIdFilter(e.target.value)}
+                  sx={{ minWidth: 200 }}
+                />
+                
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>Difficulty</InputLabel>
+              <Select
                     value={filters.difficulty || 'all'}
-                    label="Difficulty"
+                label="Difficulty"
                     onChange={(e) => handleDifficultyFilter(e.target.value as QuizDifficulty | 'all')}
-                  >
-                    <MenuItem value="all">All Levels</MenuItem>
-                    <MenuItem value="easy">Easy</MenuItem>
-                    <MenuItem value="medium">Medium</MenuItem>
-                    <MenuItem value="hard">Hard</MenuItem>
-                  </Select>
-                </FormControl>
+              >
+                <MenuItem value="all">All Levels</MenuItem>
+                <MenuItem value="easy">Easy</MenuItem>
+                <MenuItem value="medium">Medium</MenuItem>
+                <MenuItem value="hard">Hard</MenuItem>
+              </Select>
+            </FormControl>
                 
                 <FormControl size="small" sx={{ minWidth: 120 }}>
                   <InputLabel>Status</InputLabel>
@@ -307,8 +448,8 @@ const QuizManagementPage: React.FC = () => {
               onViewDetails={handleViewSessionDetails}
               onExportSession={handleExportSession}
             />
-          </CardContent>
-        </Card>
+        </CardContent>
+      </Card>
       )}
 
       {/* Session Details Modal */}

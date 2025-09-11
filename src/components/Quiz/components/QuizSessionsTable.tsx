@@ -97,7 +97,7 @@ const QuizSessionsTable: React.FC<QuizSessionsTableProps> = ({
             <TableCell>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <PersonIcon fontSize="small" />
-                Student
+                User
               </Box>
             </TableCell>
             <TableCell>
@@ -112,6 +112,7 @@ const QuizSessionsTable: React.FC<QuizSessionsTableProps> = ({
             <TableCell align="center">Time Spent</TableCell>
             <TableCell align="center">Score</TableCell>
             <TableCell align="center">Performance</TableCell>
+            <TableCell align="center">Accuracy</TableCell>
             <TableCell align="center">Actions</TableCell>
           </TableRow>
         </TableHead>
@@ -121,10 +122,10 @@ const QuizSessionsTable: React.FC<QuizSessionsTableProps> = ({
               <TableCell>
                 <Box>
                   <Typography variant="body2" fontWeight="medium">
-                    {session.userName || 'Unknown User'}
+                    {session.userName || 'Anonymous User'}
                   </Typography>
                   <Typography variant="caption" color="text.secondary" fontFamily="monospace">
-                    {session.userEmail || `${session.userId.substring(0, 12)}...`}
+                    ID: {session.userId.substring(0, 8)}...{session.userId.slice(-4)}
                   </Typography>
                 </Box>
               </TableCell>
@@ -169,10 +170,10 @@ const QuizSessionsTable: React.FC<QuizSessionsTableProps> = ({
               </TableCell>
               
               <TableCell align="center">
-                {session.timeSpent !== undefined ? (
+                {session.timeSpentFormatted ? (
                   <Box>
                     <Typography variant="body2" fontWeight="medium">
-                      {session.timeSpent}m
+                      {session.timeSpentFormatted}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       duration
@@ -209,6 +210,24 @@ const QuizSessionsTable: React.FC<QuizSessionsTableProps> = ({
                     color={getScoreColor(session.summary.percent)}
                     size="small"
                   />
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    -
+                  </Typography>
+                )}
+              </TableCell>
+              
+              <TableCell align="center">
+                {session.summary ? (
+                  <Box>
+                    <Typography variant="body2" fontWeight="medium">
+                      {Object.values(session.summary.items).filter(item => item.verdict === 'correct').length}/
+                      {Object.values(session.summary.items).length}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      correct
+                    </Typography>
+                  </Box>
                 ) : (
                   <Typography variant="body2" color="text.secondary">
                     -

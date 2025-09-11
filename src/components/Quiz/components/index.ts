@@ -1,4 +1,5 @@
 // Export all Quiz Management components
+export { default as CourseSelector } from './CourseSelector';
 export { default as ChatbotSelector } from './ChatbotSelector';
 export { default as QuizSessionsTable } from './QuizSessionsTable';
 export { default as QuizAnalyticsCard } from './QuizAnalyticsCard';

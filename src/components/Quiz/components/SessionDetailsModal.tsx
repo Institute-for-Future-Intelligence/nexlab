@@ -132,25 +132,23 @@ const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
       </DialogTitle>
 
       <DialogContent dividers>
-        {/* Student Information */}
+        {/* User Information */}
         <Card sx={{ mb: 3 }}>
           <CardContent>
             <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <PersonIcon color="primary" />
-              Student Information
+              User Information
             </Typography>
             <Grid container spacing={2}>
-              <Grid item xs={12} md={4}>
-                <Typography variant="subtitle2" color="text.secondary">Name</Typography>
-                <Typography variant="body1">{session.userName || 'Unknown'}</Typography>
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2" color="text.secondary">Display Name</Typography>
+                <Typography variant="body1">{session.userName || 'Anonymous User'}</Typography>
               </Grid>
-              <Grid item xs={12} md={4}>
-                <Typography variant="subtitle2" color="text.secondary">Email</Typography>
-                <Typography variant="body1">{session.userEmail || 'Unknown'}</Typography>
-              </Grid>
-              <Grid item xs={12} md={4}>
+              <Grid item xs={12} md={6}>
                 <Typography variant="subtitle2" color="text.secondary">User ID</Typography>
-                <Typography variant="body1" fontFamily="monospace">{session.userId}</Typography>
+                <Typography variant="body1" fontFamily="monospace" sx={{ wordBreak: 'break-all' }}>
+                  {session.userId}
+                </Typography>
               </Grid>
             </Grid>
           </CardContent>
@@ -192,6 +190,20 @@ const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
                   size="small"
                 />
               </Grid>
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2" color="text.secondary">Questions Attempted</Typography>
+                <Typography variant="body1">
+                  {session.questionsAttempted} questions answered
+                </Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2" color="text.secondary">Quiz Mode</Typography>
+                <Typography variant="body1">
+                  {session.difficulty === 'easy' ? '~5 questions (Remember/Understand focus)' :
+                   session.difficulty === 'medium' ? '~8 questions (Mixed difficulty)' :
+                   '~10 questions (Analyze/Evaluate focus)'}
+                </Typography>
+              </Grid>
             </Grid>
           </CardContent>
         </Card>
@@ -214,10 +226,10 @@ const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
                   <Typography variant="body1">{formatDate(session.submittedAt)}</Typography>
                 </Grid>
               )}
-              {session.timeSpent !== undefined && (
+              {session.timeSpentFormatted && (
                 <Grid item xs={12} md={4}>
                   <Typography variant="subtitle2" color="text.secondary">Time Spent</Typography>
-                  <Typography variant="body1">{session.timeSpent} minutes</Typography>
+                  <Typography variant="body1">{session.timeSpentFormatted}</Typography>
                 </Grid>
               )}
             </Grid>
@@ -321,12 +333,12 @@ const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
           </Card>
         )}
 
-        {/* Student Answers */}
+        {/* User Answers */}
         {Object.keys(session.answers).length > 0 && (
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                Student Answers
+                User Answers
               </Typography>
               {Object.entries(session.answers).map(([questionId, answer], index) => (
                 <Accordion key={questionId}>

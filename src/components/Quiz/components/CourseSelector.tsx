@@ -1,46 +1,45 @@
 import React from 'react';
 import {
   Box,
-  Autocomplete,
   TextField,
+  Autocomplete,
   Typography,
   Chip,
-  CircularProgress,
-  Paper
+  Paper,
+  CircularProgress
 } from '@mui/material';
 import {
   School as SchoolIcon,
-  Quiz as QuizIcon,
-  Article as ArticleIcon
+  Quiz as QuizIcon
 } from '@mui/icons-material';
-import { ChatbotWithQuiz } from '../../../types/quiz';
+import { CourseInfo } from '../../../types/quiz';
 
-interface ChatbotSelectorProps {
-  chatbots: ChatbotWithQuiz[];
-  selectedChatbot: ChatbotWithQuiz | null;
-  onSelect: (chatbot: ChatbotWithQuiz | null) => void;
+interface CourseSelectorProps {
+  courses: CourseInfo[];
+  selectedCourse: CourseInfo | null;
+  onSelect: (course: CourseInfo | null) => void;
   loading?: boolean;
 }
 
-const ChatbotSelector: React.FC<ChatbotSelectorProps> = ({
-  chatbots,
-  selectedChatbot,
+const CourseSelector: React.FC<CourseSelectorProps> = ({
+  courses,
+  selectedCourse,
   onSelect,
   loading = false
 }) => {
   return (
     <Box>
       <Autocomplete
-        value={selectedChatbot}
+        value={selectedCourse}
         onChange={(_, newValue) => onSelect(newValue)}
-        options={chatbots}
-        getOptionLabel={(option) => option.title}
+        options={courses}
+        getOptionLabel={(option) => option.courseTitle}
         loading={loading}
         renderInput={(params) => (
           <TextField
             {...params}
-            label="Select Chatbot & Material"
-            placeholder="Choose a chatbot to view its quiz data..."
+            label="Select Course"
+            placeholder="Choose a course to filter materials..."
             variant="outlined"
             sx={{
               '& .MuiOutlinedInput-root': {
@@ -82,7 +81,7 @@ const ChatbotSelector: React.FC<ChatbotSelectorProps> = ({
           return (
             <Box 
               component="li" 
-              key={option.chatbotId} 
+              key={option.courseId} 
               {...otherProps}
               sx={{
                 '&:hover': {
@@ -91,7 +90,7 @@ const ChatbotSelector: React.FC<ChatbotSelectorProps> = ({
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', p: 2 }}>
-                <QuizIcon 
+                <SchoolIcon 
                   sx={{ 
                     mr: 2, 
                     flexShrink: 0, 
@@ -110,11 +109,10 @@ const ChatbotSelector: React.FC<ChatbotSelectorProps> = ({
                       fontWeight: 'bold'
                     }}
                   >
-                    {option.title}
+                    {option.courseTitle}
                   </Typography>
                   <Typography 
                     variant="body2" 
-                    noWrap
                     sx={{
                       fontFamily: 'Gabarito, sans-serif',
                       color: '#666666',
@@ -123,28 +121,25 @@ const ChatbotSelector: React.FC<ChatbotSelectorProps> = ({
                       mt: 0.5
                     }}
                   >
-                    <ArticleIcon sx={{ fontSize: 14, mr: 0.5 }} />
-                    {option.materialTitle}
-                  </Typography>
-                  <Typography 
-                    variant="caption" 
-                    noWrap
-                    sx={{
-                      fontFamily: 'Gabarito, sans-serif',
-                      color: '#888888',
-                      display: 'flex',
-                      alignItems: 'center',
-                      mt: 0.25
-                    }}
-                  >
-                    <SchoolIcon sx={{ fontSize: 12, mr: 0.5 }} />
-                    {option.courseTitle}
+                    <QuizIcon sx={{ fontSize: 14, mr: 0.5 }} />
+                    {option.chatbotCount} material{option.chatbotCount !== 1 ? 's' : ''} • {option.quizCount} quiz{option.quizCount !== 1 ? 'zes' : ''} available
                   </Typography>
                 </Box>
                 <Box sx={{ ml: 2, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.5 }}>
-                  {option.quizId && (
+                  <Chip
+                    label={`${option.chatbotCount} Material${option.chatbotCount !== 1 ? 's' : ''}`}
+                    size="small"
+                    sx={{ 
+                      backgroundColor: '#CDDAFF',
+                      color: '#0B53C0',
+                      fontFamily: 'Gabarito, sans-serif',
+                      fontSize: '0.75rem',
+                      fontWeight: 'bold'
+                    }}
+                  />
+                  {option.quizCount > 0 && (
                     <Chip
-                      label="Quiz Available"
+                      label={`${option.quizCount} Quiz${option.quizCount !== 1 ? 'zes' : ''}`}
                       size="small"
                       sx={{ 
                         backgroundColor: '#C8E6C9',
@@ -155,30 +150,6 @@ const ChatbotSelector: React.FC<ChatbotSelectorProps> = ({
                       }}
                     />
                   )}
-                  <Typography 
-                    variant="caption" 
-                    sx={{
-                      fontFamily: 'monospace',
-                      color: option.quizId ? '#0B53C0' : '#888888',
-                      fontSize: '0.7rem',
-                      backgroundColor: option.quizId ? '#F0F4FF' : '#F5F5F5',
-                      padding: '2px 6px',
-                      borderRadius: '4px',
-                      border: `1px solid ${option.quizId ? '#CDDAFF' : '#E0E0E0'}`
-                    }}
-                  >
-                    Quiz: {option.quizId ? option.quizId.substring(0, 8) + '...' : 'N/A'}
-                  </Typography>
-                  <Typography 
-                    variant="caption" 
-                    sx={{
-                      fontFamily: 'monospace',
-                      color: '#888888',
-                      fontSize: '0.65rem'
-                    }}
-                  >
-                    ChatBot: {option.chatbotId.substring(0, 8)}...
-                  </Typography>
                 </Box>
               </Box>
             </Box>
@@ -196,25 +167,17 @@ const ChatbotSelector: React.FC<ChatbotSelectorProps> = ({
             }} 
           />
         )}
-        isOptionEqualToValue={(option, value) => option.chatbotId === value.chatbotId}
+        isOptionEqualToValue={(option, value) => option.courseId === value.courseId}
         noOptionsText={
-          loading ? "Loading chatbots..." : "No chatbots found. Create a chatbot first to see quiz data."
+          loading ? "Loading courses..." : "No courses found."
         }
         clearOnBlur
         selectOnFocus
-        handleHomeEndKeys
+        clearIcon={null}
+        isClearable
       />
-      
-      {chatbots.length === 0 && !loading && (
-        <Box sx={{ mt: 2, p: 2, bgcolor: 'info.light', borderRadius: 1 }}>
-          <Typography variant="body2" color="info.contrastText">
-            <strong>No chatbots available.</strong> You need to create chatbots first before you can manage quiz sessions. 
-            Each chatbot automatically has an associated quiz with predefined questions.
-          </Typography>
-        </Box>
-      )}
     </Box>
   );
 };
 
-export default ChatbotSelector;
+export default CourseSelector;

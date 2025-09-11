@@ -39,10 +39,35 @@ const QuizAnalyticsCard: React.FC<QuizAnalyticsCardProps> = ({ analytics }) => {
     return 'error';
   };
 
+  const formatTimeFromSeconds = (totalSeconds: number): string => {
+    if (totalSeconds === 0) return '0s';
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    if (minutes === 0) return `${seconds}s`;
+    if (seconds === 0) return `${minutes}m`;
+    return `${minutes}m ${seconds}s`;
+  };
+
   return (
-    <Card sx={{ mb: 4 }}>
-      <CardContent>
-        <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+    <Card sx={{ 
+      mb: 4,
+      backgroundColor: '#FFFFFF',
+      borderRadius: 2,
+      boxShadow: '0 1px 4px rgba(0, 0, 0, 0.1)'
+    }}>
+      <CardContent sx={{ p: 3 }}>
+        <Typography 
+          variant="h6" 
+          gutterBottom 
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 1,
+            fontFamily: 'Staatliches, sans-serif',
+            color: '#0B53C0',
+            fontSize: '1.5rem'
+          }}
+        >
           <AnalyticsIcon color="primary" />
           Quiz Analytics & Insights
         </Typography>
@@ -50,48 +75,120 @@ const QuizAnalyticsCard: React.FC<QuizAnalyticsCardProps> = ({ analytics }) => {
         {/* Key Statistics */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid item xs={12} sm={6} md={3}>
-            <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'primary.light', borderRadius: 1 }}>
-              <QuizIcon sx={{ fontSize: 40, color: 'primary.contrastText', mb: 1 }} />
-              <Typography variant="h4" color="primary.contrastText">
+            <Box sx={{ 
+              textAlign: 'center', 
+              p: 2, 
+              bgcolor: '#CDDAFF', 
+              borderRadius: 2,
+              border: '1px solid #0B53C0'
+            }}>
+              <QuizIcon sx={{ fontSize: 40, color: '#0B53C0', mb: 1 }} />
+              <Typography 
+                variant="h4" 
+                sx={{ 
+                  color: '#0B53C0',
+                  fontFamily: 'Staatliches, sans-serif'
+                }}
+              >
                 {analytics.totalSessions}
               </Typography>
-              <Typography variant="body2" color="primary.contrastText">
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  color: '#0B53C0',
+                  fontFamily: 'Gabarito, sans-serif'
+                }}
+              >
                 Total Sessions
               </Typography>
             </Box>
           </Grid>
           
           <Grid item xs={12} sm={6} md={3}>
-            <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'success.light', borderRadius: 1 }}>
-              <CheckCircleIcon sx={{ fontSize: 40, color: 'success.contrastText', mb: 1 }} />
-              <Typography variant="h4" color="success.contrastText">
+            <Box sx={{ 
+              textAlign: 'center', 
+              p: 2, 
+              bgcolor: '#C8E6C9', 
+              borderRadius: 2,
+              border: '1px solid #2E7D32'
+            }}>
+              <CheckCircleIcon sx={{ fontSize: 40, color: '#2E7D32', mb: 1 }} />
+              <Typography 
+                variant="h4" 
+                sx={{ 
+                  color: '#2E7D32',
+                  fontFamily: 'Staatliches, sans-serif'
+                }}
+              >
                 {Math.round(analytics.completionRate)}%
               </Typography>
-              <Typography variant="body2" color="success.contrastText">
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  color: '#2E7D32',
+                  fontFamily: 'Gabarito, sans-serif'
+                }}
+              >
                 Completion Rate
               </Typography>
             </Box>
           </Grid>
           
           <Grid item xs={12} sm={6} md={3}>
-            <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'info.light', borderRadius: 1 }}>
-              <TrendingUpIcon sx={{ fontSize: 40, color: 'info.contrastText', mb: 1 }} />
-              <Typography variant="h4" color="info.contrastText">
+            <Box sx={{ 
+              textAlign: 'center', 
+              p: 2, 
+              bgcolor: '#E3F2FD', 
+              borderRadius: 2,
+              border: '1px solid #1565C0'
+            }}>
+              <TrendingUpIcon sx={{ fontSize: 40, color: '#1565C0', mb: 1 }} />
+              <Typography 
+                variant="h4" 
+                sx={{ 
+                  color: '#1565C0',
+                  fontFamily: 'Staatliches, sans-serif'
+                }}
+              >
                 {Math.round(analytics.averageScore)}%
               </Typography>
-              <Typography variant="body2" color="info.contrastText">
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  color: '#1565C0',
+                  fontFamily: 'Gabarito, sans-serif'
+                }}
+              >
                 Average Score
               </Typography>
             </Box>
           </Grid>
           
           <Grid item xs={12} sm={6} md={3}>
-            <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'warning.light', borderRadius: 1 }}>
-              <ScheduleIcon sx={{ fontSize: 40, color: 'warning.contrastText', mb: 1 }} />
-              <Typography variant="h4" color="warning.contrastText">
-                {Math.round(analytics.averageTimeSpent)}m
+            <Box sx={{ 
+              textAlign: 'center', 
+              p: 2, 
+              bgcolor: '#FFF3E0', 
+              borderRadius: 2,
+              border: '1px solid #F57C00'
+            }}>
+              <ScheduleIcon sx={{ fontSize: 40, color: '#F57C00', mb: 1 }} />
+              <Typography 
+                variant="h4" 
+                sx={{ 
+                  color: '#F57C00',
+                  fontFamily: 'Staatliches, sans-serif'
+                }}
+              >
+                {formatTimeFromSeconds(analytics.averageTimeSpent)}
               </Typography>
-              <Typography variant="body2" color="warning.contrastText">
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  color: '#F57C00',
+                  fontFamily: 'Gabarito, sans-serif'
+                }}
+              >
                 Avg. Time Spent
               </Typography>
             </Box>

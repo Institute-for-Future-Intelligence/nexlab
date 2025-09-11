@@ -60,11 +60,32 @@ export const loadChatbotsWithQuizzes = async (): Promise<ChatbotWithQuiz[]> => {
         courseTitle: data.courseId?.title || 'Unknown Course',
         createdBy: data.createdBy || '',
         timestamp: data.timestamp || new Date().toISOString(),
-        quizId: data.chatbotId, // Quiz ID is typically the same as chatbot ID
+        quizId: null, // Will be populated from quiz sessions
         hasQuiz: true // Assuming all chatbots have quizzes as per your requirements
       };
       
       chatbots.push(chatbotWithQuiz);
+    }
+    
+    // Now populate quiz IDs from quiz sessions
+    for (const chatbot of chatbots) {
+      try {
+        // Get the first quiz session for this chatbot to extract the quiz ID
+        const quizSessionQuery = query(
+          collection(db, COLLECTIONS.QUIZ_SESSIONS),
+          where('chatbotId', '==', chatbot.chatbotId),
+          limit(1)
+        );
+        
+        const quizSessionSnapshot = await getDocs(quizSessionQuery);
+        if (!quizSessionSnapshot.empty) {
+          const sessionData = quizSessionSnapshot.docs[0].data();
+          chatbot.quizId = sessionData.quizId || null;
+        }
+      } catch (error) {
+        console.warn(`⚠️ Could not fetch quiz ID for chatbot ${chatbot.chatbotId}:`, error);
+        chatbot.quizId = null;
+      }
     }
     
     console.log(`✅ Loaded ${chatbots.length} chatbots with quiz information`);
@@ -134,34 +155,32 @@ export const loadEnhancedQuizSessions = async (
     for (const docSnapshot of querySnapshot.docs) {
       const sessionData = docSnapshot.data() as QuizSessionDocument;
       
-      // Get user information (with caching to avoid duplicate requests)
+      // Since we don't collect user profile data, just use the user ID
       let userInfo = userCache.get(sessionData.userId);
       if (!userInfo) {
-        try {
-          const userDoc = await getDoc(doc(db, COLLECTIONS.USERS, sessionData.userId));
-          if (userDoc.exists()) {
-            const userData = userDoc.data();
-            userInfo = {
-              email: userData.email,
-              displayName: userData.displayName || userData.name
-            };
-          } else {
-            userInfo = { email: 'Unknown User', displayName: 'Unknown User' };
-          }
-          userCache.set(sessionData.userId, userInfo);
-        } catch (error) {
-          console.warn(`Failed to load user data for ${sessionData.userId}:`, error);
-          userInfo = { email: 'Unknown User', displayName: 'Unknown User' };
-          userCache.set(sessionData.userId, userInfo);
-        }
+        // Format user ID for display - use first 8 characters + last 4 for better identification
+        const userIdShort = sessionData.userId.length > 12 
+          ? `${sessionData.userId.substring(0, 8)}...${sessionData.userId.slice(-4)}`
+          : sessionData.userId.substring(0, 12);
+        
+        userInfo = { 
+          email: userIdShort, 
+          displayName: `User ${userIdShort}` 
+        };
+        userCache.set(sessionData.userId, userInfo);
       }
       
       // Calculate time spent if both start and submit times are available
       let timeSpent: number | undefined;
+      let timeSpentFormatted: string | undefined;
       if (sessionData.startedAt && sessionData.submittedAt) {
         const startTime = sessionData.startedAt.toMillis();
         const endTime = sessionData.submittedAt.toMillis();
-        timeSpent = Math.round((endTime - startTime) / (1000 * 60)); // Convert to minutes
+        const totalSeconds = Math.round((endTime - startTime) / 1000);
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        timeSpent = totalSeconds; // Store total seconds for calculations
+        timeSpentFormatted = `${minutes}m ${seconds}s`;
       }
       
       // Count questions attempted
@@ -182,7 +201,8 @@ export const loadEnhancedQuizSessions = async (
         answers: sessionData.finalAnswers || {},
         summary: sessionData.summary,
         questionsAttempted,
-        timeSpent
+        timeSpent,
+        timeSpentFormatted
       };
       
       sessions.push(enhancedSession);
@@ -281,7 +301,7 @@ export const generateQuizAnalytics = (sessions: EnhancedQuizSession[]): QuizAnal
       : 0;
     
     const averageTimeSpent = sessions.filter(s => s.timeSpent).length > 0
-      ? sessions.filter(s => s.timeSpent).reduce((sum, s) => sum + (s.timeSpent || 0), 0) / sessions.filter(s => s.timeSpent).length
+      ? Math.round(sessions.filter(s => s.timeSpent).reduce((sum, s) => sum + (s.timeSpent || 0), 0) / sessions.filter(s => s.timeSpent).length)
       : 0;
     
     // Difficulty distribution
@@ -290,15 +310,38 @@ export const generateQuizAnalytics = (sessions: EnhancedQuizSession[]): QuizAnal
       difficultyDistribution[session.difficulty] = (difficultyDistribution[session.difficulty] || 0) + 1;
     });
     
-    // Category performance (placeholder - would need actual question data)
-    const categoryPerformance: Record<string, { averageScore: number, totalAttempts: number, successRate: number }> = {
-      'Remember': { averageScore: 85, totalAttempts: completedSessions.length, successRate: 78 },
-      'Understand': { averageScore: 72, totalAttempts: completedSessions.length, successRate: 65 },
-      'Apply': { averageScore: 68, totalAttempts: completedSessions.length, successRate: 58 },
-      'Analyze': { averageScore: 61, totalAttempts: completedSessions.length, successRate: 45 },
-      'Evaluate': { averageScore: 58, totalAttempts: completedSessions.length, successRate: 42 },
-      'Create': { averageScore: 55, totalAttempts: completedSessions.length, successRate: 38 }
-    };
+    // Category performance - calculate from actual quiz data
+    const categoryPerformance: Record<string, { averageScore: number, totalAttempts: number, successRate: number }> = {};
+    
+    // Analyze quiz summaries to extract category performance
+    completedSessions.forEach(session => {
+      if (session.summary?.items) {
+        Object.values(session.summary.items).forEach(item => {
+          // Note: We would need question category data from the quiz API to properly categorize
+          // For now, we'll extract what we can from the available data
+          const category = 'Mixed Questions'; // Placeholder until we get actual category data
+          
+          if (!categoryPerformance[category]) {
+            categoryPerformance[category] = { averageScore: 0, totalAttempts: 0, successRate: 0 };
+          }
+          
+          categoryPerformance[category].totalAttempts += 1;
+          categoryPerformance[category].averageScore += item.score;
+          if (item.verdict === 'correct') {
+            categoryPerformance[category].successRate += 1;
+          }
+        });
+      }
+    });
+    
+    // Calculate averages
+    Object.keys(categoryPerformance).forEach(category => {
+      const data = categoryPerformance[category];
+      if (data.totalAttempts > 0) {
+        data.averageScore = (data.averageScore / data.totalAttempts);
+        data.successRate = (data.successRate / data.totalAttempts) * 100;
+      }
+    });
     
     // Time-based statistics (placeholder implementation)
     const timeBasedStats = {
