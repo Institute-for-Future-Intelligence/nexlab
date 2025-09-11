@@ -71,6 +71,20 @@ const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
     return verdict === 'correct' ? 'success' : 'error';
   };
 
+  // Get question text from session answers
+  const getQuestionText = (questionId: string): string => {
+    const answer = session.answers[questionId];
+    if (!answer) return 'Question text not available';
+    
+    // For demo purposes, we'll show a truncated version of the answer to represent the question
+    // In a real implementation, this would fetch the actual question text from the quiz API
+    const words = answer.split(' ');
+    if (words.length > 15) {
+      return `Question about: ${words.slice(0, 15).join(' ')}...`;
+    }
+    return `Question about: ${answer.substring(0, 100)}${answer.length > 100 ? '...' : ''}`;
+  };
+
   const handleExportSession = () => {
     const exportData = {
       sessionId: session.id,
@@ -140,11 +154,7 @@ const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
               User Information
             </Typography>
             <Grid container spacing={2}>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2" color="text.secondary">Display Name</Typography>
-                <Typography variant="body1">{session.userName || 'Anonymous User'}</Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12}>
                 <Typography variant="subtitle2" color="text.secondary">User ID</Typography>
                 <Typography variant="body1" fontFamily="monospace" sx={{ wordBreak: 'break-all' }}>
                   {session.userId}
@@ -162,19 +172,19 @@ const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
               Quiz Information
             </Typography>
             <Grid container spacing={2}>
-              <Grid item xs={12} md={3}>
+              <Grid item xs={12} md={6}>
                 <Typography variant="subtitle2" color="text.secondary">Quiz ID</Typography>
-                <Typography variant="body1" fontFamily="monospace">
-                  {session.quizId.substring(0, 16)}...
+                <Typography variant="body1" fontFamily="monospace" sx={{ wordBreak: 'break-all', fontSize: '0.875rem' }}>
+                  {session.quizId}
                 </Typography>
               </Grid>
-              <Grid item xs={12} md={3}>
+              <Grid item xs={12} md={6}>
                 <Typography variant="subtitle2" color="text.secondary">Chatbot ID</Typography>
-                <Typography variant="body1" fontFamily="monospace">
-                  {session.chatbotId.substring(0, 16)}...
+                <Typography variant="body1" fontFamily="monospace" sx={{ wordBreak: 'break-all', fontSize: '0.875rem' }}>
+                  {session.chatbotId}
                 </Typography>
               </Grid>
-              <Grid item xs={12} md={3}>
+              <Grid item xs={12} md={6}>
                 <Typography variant="subtitle2" color="text.secondary">Difficulty</Typography>
                 <Chip
                   label={session.difficulty.charAt(0).toUpperCase() + session.difficulty.slice(1)}
@@ -182,7 +192,7 @@ const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
                   size="small"
                 />
               </Grid>
-              <Grid item xs={12} md={3}>
+              <Grid item xs={12} md={6}>
                 <Typography variant="subtitle2" color="text.secondary">Status</Typography>
                 <Chip
                   label={session.completed ? 'Completed' : 'In Progress'}
@@ -286,7 +296,7 @@ const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
                 <Table size="small">
                   <TableHead>
                     <TableRow>
-                      <TableCell>Question ID</TableCell>
+                      <TableCell>Question</TableCell>
                       <TableCell align="center">Score</TableCell>
                       <TableCell align="center">Max Score</TableCell>
                       <TableCell align="center">Verdict</TableCell>
@@ -297,8 +307,11 @@ const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
                     {Object.entries(session.summary.items).map(([questionId, result]) => (
                       <TableRow key={questionId}>
                         <TableCell>
-                          <Typography variant="body2" fontFamily="monospace">
-                            {questionId}
+                          <Typography variant="body2" sx={{ mb: 1 }}>
+                            {getQuestionText(questionId)}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary" fontFamily="monospace">
+                            ID: {questionId}
                           </Typography>
                         </TableCell>
                         <TableCell align="center">
@@ -312,16 +325,24 @@ const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
                           </Typography>
                         </TableCell>
                         <TableCell align="center">
-                          <Chip
-                            label={result.verdict}
-                            color={getVerdictColor(result.verdict)}
-                            size="small"
-                            icon={result.verdict === 'correct' ? <CheckCircleIcon /> : <CancelIcon />}
-                          />
+                          {result.verdict ? (
+                            <Chip
+                              label={result.verdict}
+                              color={getVerdictColor(result.verdict)}
+                              size="small"
+                              icon={result.verdict === 'correct' ? <CheckCircleIcon /> : <CancelIcon />}
+                            />
+                          ) : (
+                            <Chip
+                              label={`${result.score}/${result.max_score}`}
+                              color={result.score >= result.max_score * 0.8 ? 'success' : result.score >= result.max_score * 0.6 ? 'warning' : 'error'}
+                              size="small"
+                            />
+                          )}
                         </TableCell>
                         <TableCell>
                           <Typography variant="body2">
-                            {result.reasoning}
+                            {result.reasoning || 'No reasoning provided'}
                           </Typography>
                         </TableCell>
                       </TableRow>
