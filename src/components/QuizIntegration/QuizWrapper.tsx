@@ -60,7 +60,13 @@ const QuizWrapper = forwardRef<QuizModalRef, QuizWrapperProps>(
       
       // Save to Firestore (non-blocking)
       if (userDetails?.uid) {
-        saveAnswerChangeEvent(event, userDetails.uid).catch(error => {
+        // Ensure chatbotId is included in the event (external package may not provide it)
+        const eventWithChatbotId: QuizAnswerChangeEvent = {
+          ...event,
+          chatbotId: event.chatbotId || chatbotId
+        };
+        
+        saveAnswerChangeEvent(eventWithChatbotId, userDetails.uid).catch(error => {
           console.warn('Failed to save answer change event:', error);
         });
       }
@@ -69,7 +75,7 @@ const QuizWrapper = forwardRef<QuizModalRef, QuizWrapperProps>(
       if (eventHandlers?.onAnswerChange) {
         eventHandlers.onAnswerChange(event);
       }
-    }, [updateAnswers, eventHandlers, userDetails?.uid]);
+    }, [updateAnswers, eventHandlers, userDetails?.uid, chatbotId]);
 
     // Handle quiz submission - simple logging like documentation
     const handleQuizSubmit = useCallback((result: QuizSubmissionResult) => {

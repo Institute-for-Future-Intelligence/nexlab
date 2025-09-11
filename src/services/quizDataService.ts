@@ -7,7 +7,8 @@ import {
   where, 
   orderBy, 
   Timestamp,
-  updateDoc
+  updateDoc,
+  limit
 } from 'firebase/firestore';
 import { 
   QuizStartData, 
@@ -34,6 +35,13 @@ export interface QuizSessionDocument {
   closedAt?: Timestamp;
   completed: boolean;
   difficulty: string;
+  
+  // Selection object from quiz start (matches documentation)
+  selection?: {
+    mode: string;
+    target: number;
+    finalCount: number;
+  };
   
   // Quiz performance data
   finalAnswers?: Record<string, string>;
@@ -77,6 +85,34 @@ export const saveQuizStartEvent = async (
   try {
     const now = Timestamp.now();
     
+    // Check if there's already an active session with the same startedAt timestamp
+    // This prevents duplicate sessions from the same quiz attempt, but allows multiple attempts
+    const sameStartTime = Timestamp.fromDate(new Date(data.startedAt));
+    const timeBuffer = 5 * 1000; // 5 seconds buffer for timing differences
+    const startTimeMin = Timestamp.fromMillis(sameStartTime.toMillis() - timeBuffer);
+    const startTimeMax = Timestamp.fromMillis(sameStartTime.toMillis() + timeBuffer);
+    
+    const existingSessionQuery = query(
+      collection(db, COLLECTIONS.QUIZ_SESSIONS),
+      where('quizId', '==', data.quizId),
+      where('userId', '==', userId),
+      where('startedAt', '>=', startTimeMin),
+      where('startedAt', '<=', startTimeMax),
+      limit(1)
+    );
+    
+    const existingSessions = await getDocs(existingSessionQuery);
+    
+    if (!existingSessions.empty) {
+      console.log('⚠️ Quiz session with same start time already exists, skipping duplicate:', {
+        quizId: data.quizId,
+        startedAt: data.startedAt,
+        userId: userId.substring(0, 8) + '...',
+        existingSessionId: existingSessions.docs[0].id
+      });
+      return; // Don't create duplicate session
+    }
+    
     // Create quiz session document with unique session ID
     const sessionDoc: QuizSessionDocument = {
       quizId: data.quizId,
@@ -85,6 +121,11 @@ export const saveQuizStartEvent = async (
       startedAt: Timestamp.fromDate(new Date(data.startedAt)),
       completed: false,
       difficulty: data.selection.mode,
+      selection: {
+        mode: data.selection.mode,
+        target: data.selection.target,
+        finalCount: data.selection.finalCount
+      },
       createdAt: now,
       updatedAt: now
     };
@@ -125,18 +166,32 @@ export const saveAnswerChangeEvent = async (
   userId: string
 ): Promise<void> => {
   try {
+    const now = Timestamp.now();
+    
+    // Create quiz event document (matches documentation format)
     const eventDoc: QuizEventDocument = {
       quizId: event.quizId,
-      chatbotId: event.quizId, // Use quizId as fallback since chatbotId may not be in event
+      chatbotId: event.chatbotId,
       userId,
       eventType: 'answer_changed',
-      timestamp: Timestamp.now(),
-      data: event,
-      createdAt: Timestamp.now()
+      timestamp: now,
+      data: {
+        quizId: event.quizId,
+        chatbotId: event.chatbotId,
+        questionId: event.questionId,
+        value: event.value,
+        answers: event.answers
+      },
+      createdAt: now
     };
     
     await addDoc(collection(db, COLLECTIONS.QUIZ_EVENTS), eventDoc);
-    console.log('✅ Answer change event saved to Firestore:', event.questionId);
+    
+    console.log('✅ Answer change event saved to Firestore:', {
+      quizId: event.quizId,
+      questionId: event.questionId,
+      userId: userId.substring(0, 8) + '...'
+    });
   } catch (error) {
     console.error('❌ Error saving answer change event:', error);
     // Don't throw - answer changes are frequent and shouldn't break the quiz
