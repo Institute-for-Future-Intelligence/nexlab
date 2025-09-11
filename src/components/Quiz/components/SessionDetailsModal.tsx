@@ -325,20 +325,12 @@ const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
                           </Typography>
                         </TableCell>
                         <TableCell align="center">
-                          {result.verdict ? (
-                            <Chip
-                              label={result.verdict}
-                              color={getVerdictColor(result.verdict)}
-                              size="small"
-                              icon={result.verdict === 'correct' ? <CheckCircleIcon /> : <CancelIcon />}
-                            />
-                          ) : (
-                            <Chip
-                              label={`${result.score}/${result.max_score}`}
-                              color={result.score >= result.max_score * 0.8 ? 'success' : result.score >= result.max_score * 0.6 ? 'warning' : 'error'}
-                              size="small"
-                            />
-                          )}
+                          <Chip
+                            label={result.verdict || (result.score >= result.max_score * 0.7 ? 'correct' : 'incorrect')}
+                            color={getVerdictColor(result.verdict || (result.score >= result.max_score * 0.7 ? 'correct' : 'incorrect'))}
+                            size="small"
+                            icon={(result.verdict || (result.score >= result.max_score * 0.7 ? 'correct' : 'incorrect')) === 'correct' ? <CheckCircleIcon /> : <CancelIcon />}
+                          />
                         </TableCell>
                         <TableCell>
                           <Typography variant="body2">
