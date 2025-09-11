@@ -30,6 +30,7 @@ export interface QuizStartData {
 // Answer change event data
 export interface QuizAnswerChangeEvent {
   quizId: string;
+  chatbotId: string;
   questionId: string;
   value: string;
   answers: Record<string, string>;

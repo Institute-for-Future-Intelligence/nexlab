@@ -142,12 +142,13 @@ export const saveAnswerChangeEvent = async (
     // Create quiz event document (matches documentation format)
     const eventDoc: QuizEventDocument = {
       quizId: event.quizId,
-      chatbotId: event.chatbotId || event.quizId, // Use chatbotId if available, fallback to quizId
+      chatbotId: event.chatbotId,
       userId,
       eventType: 'answer_changed',
       timestamp: now,
       data: {
         quizId: event.quizId,
+        chatbotId: event.chatbotId,
         questionId: event.questionId,
         value: event.value,
         answers: event.answers
