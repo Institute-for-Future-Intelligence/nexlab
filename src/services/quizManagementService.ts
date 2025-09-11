@@ -230,61 +230,63 @@ export const loadQuizPool = async (quizId: string): Promise<QuizPool> => {
   try {
     console.log('🧩 Loading quiz pool for quiz:', quizId);
     
-    // TODO: Replace with actual API call to quiz service
-    // This is a placeholder implementation showing available questions from the quiz pool
-    const mockQuestions: QuizQuestion[] = [
-      {
-        questionId: 'q001',
-        question: 'What is the primary function of mitochondria in cellular metabolism?',
-        category: 'Biology Fundamentals',
-        difficulty: 'medium',
+    // Query quiz sessions to extract real question IDs
+    const sessionsQuery = query(
+      collection(db, COLLECTIONS.QUIZ_SESSIONS),
+      where('quizId', '==', quizId),
+      orderBy('startedAt', 'desc'),
+      limit(50) // Get recent sessions to extract question IDs
+    );
+    
+    const sessionsSnapshot = await getDocs(sessionsQuery);
+    const questionIds = new Set<string>();
+    const questionAnswers = new Map<string, string>();
+    
+    // Extract unique question IDs from all sessions
+    for (const docSnapshot of sessionsSnapshot.docs) {
+      const sessionData = docSnapshot.data() as QuizSessionDocument;
+      
+      // Get question IDs from summary.items
+      if (sessionData.summary?.items) {
+        Object.keys(sessionData.summary.items).forEach(questionId => {
+          questionIds.add(questionId);
+        });
+      }
+      
+      // Get question IDs from finalAnswers and store sample answers
+      if (sessionData.finalAnswers) {
+        Object.entries(sessionData.finalAnswers).forEach(([questionId, answer]) => {
+          questionIds.add(questionId);
+          if (!questionAnswers.has(questionId)) {
+            questionAnswers.set(questionId, answer);
+          }
+        });
+      }
+    }
+    
+    // Convert to QuizQuestion array with real question IDs
+    const realQuestions: QuizQuestion[] = Array.from(questionIds).map(questionId => {
+      const answer = questionAnswers.get(questionId) || '';
+      
+      // Generate question text from answer (placeholder approach)
+      const questionText = answer.length > 0 
+        ? `Question about: ${answer.split(' ').slice(0, 10).join(' ')}${answer.split(' ').length > 10 ? '...' : ''}`
+        : 'Question text not available';
+      
+      return {
+        questionId,
+        question: questionText,
+        category: 'Biology Fundamentals', // Placeholder category
+        difficulty: 'medium' as const,
         maxScore: 100
-      },
+      };
+    });
+    
+    // If no real questions found, show message
+    const questions: QuizQuestion[] = realQuestions.length > 0 ? realQuestions : [
       {
-        questionId: 'q002',
-        question: 'Explain the process of cellular respiration and its main stages.',
-        category: 'Biology Fundamentals',
-        difficulty: 'medium',
-        maxScore: 100
-      },
-      {
-        questionId: 'q003',
-        question: 'Describe the structure and function of the cell membrane.',
-        category: 'Biology Fundamentals',
-        difficulty: 'medium',
-        maxScore: 100
-      },
-      {
-        questionId: 'q004',
-        question: 'What are the key differences between prokaryotic and eukaryotic cells?',
-        category: 'Biology Fundamentals',
-        difficulty: 'medium',
-        maxScore: 100
-      },
-      {
-        questionId: 'q005',
-        question: 'Analyze the relationship between photosynthesis and cellular respiration.',
-        category: 'Biology Fundamentals',
-        difficulty: 'medium',
-        maxScore: 100
-      },
-      {
-        questionId: 'q006',
-        question: 'Explain the role of enzymes in biochemical reactions.',
-        category: 'Biology Fundamentals',
-        difficulty: 'medium',
-        maxScore: 100
-      },
-      {
-        questionId: 'q007',
-        question: 'Describe the process of protein synthesis from DNA to functional protein.',
-        category: 'Biology Fundamentals',
-        difficulty: 'medium',
-        maxScore: 100
-      },
-      {
-        questionId: 'q008',
-        question: 'What is the significance of ATP in cellular energy transfer?',
+        questionId: 'no-sessions-found',
+        question: 'No quiz sessions found for this quiz ID. Question IDs will appear here once students take quizzes.',
         category: 'Biology Fundamentals',
         difficulty: 'medium',
         maxScore: 100
@@ -295,7 +297,7 @@ export const loadQuizPool = async (quizId: string): Promise<QuizPool> => {
     const categoryCounts: Record<string, number> = {};
     const difficultyBreakdown: Record<string, number> = { easy: 0, medium: 0, hard: 0 };
     
-    mockQuestions.forEach(question => {
+    questions.forEach(question => {
       categoryCounts[question.category] = (categoryCounts[question.category] || 0) + 1;
       difficultyBreakdown[question.difficulty] = (difficultyBreakdown[question.difficulty] || 0) + 1;
     });
@@ -303,14 +305,14 @@ export const loadQuizPool = async (quizId: string): Promise<QuizPool> => {
     const quizPool: QuizPool = {
       quizId,
       chatbotId: quizId, // Assuming quiz ID matches chatbot ID
-      questions: mockQuestions,
+      questions,
       categoryCounts,
       difficultyBreakdown: difficultyBreakdown as any,
-      totalQuestions: mockQuestions.length,
+      totalQuestions: questions.length,
       lastUpdated: new Date().toISOString()
     };
     
-    console.log('✅ Loaded quiz pool with', mockQuestions.length, 'questions');
+    console.log(`✅ Loaded quiz pool with ${questions.length} real question IDs from ${sessionsSnapshot.docs.length} sessions`);
     return quizPool;
   } catch (error) {
     console.error('❌ Error loading quiz pool:', error);
