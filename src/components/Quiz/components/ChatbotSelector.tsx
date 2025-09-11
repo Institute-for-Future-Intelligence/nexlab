@@ -201,7 +201,6 @@ const ChatbotSelector: React.FC<ChatbotSelectorProps> = ({
           loading ? "Loading chatbots..." : "No chatbots found. Create a chatbot first to see quiz data."
         }
         clearOnBlur
-        selectOnFocus
         handleHomeEndKeys
       />
       

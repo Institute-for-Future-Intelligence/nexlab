@@ -173,8 +173,6 @@ const CourseSelector: React.FC<CourseSelectorProps> = ({
         }
         clearOnBlur
         selectOnFocus
-        clearIcon={null}
-        isClearable
       />
     </Box>
   );

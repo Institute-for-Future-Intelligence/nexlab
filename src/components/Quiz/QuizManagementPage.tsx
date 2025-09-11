@@ -193,9 +193,11 @@ const QuizManagementPage: React.FC = () => {
         
           <Stack direction="row" spacing={2}>
             <Tooltip title="Refresh Data">
-              <IconButton onClick={handleRefresh} disabled={loading}>
-                <RefreshIcon />
-              </IconButton>
+              <span>
+                <IconButton onClick={handleRefresh} disabled={loading}>
+                  <RefreshIcon />
+                </IconButton>
+              </span>
             </Tooltip>
           </Stack>
         </Box>
@@ -253,17 +255,17 @@ const QuizManagementPage: React.FC = () => {
               onSelect={handleCourseSelect}
               loading={loading}
             />
-          </Box>
+              </Box>
           
           {/* Chatbot Selection - Only show if course is selected or show all */}
-          <Box>
+                <Box>
             <ChatbotSelector
               chatbots={filteredChatbots}
               selectedChatbot={selectedChatbot}
               onSelect={handleChatbotSelect}
               loading={loading}
             />
-          </Box>
+                </Box>
           
           {selectedChatbot && (
             <Box sx={{ 

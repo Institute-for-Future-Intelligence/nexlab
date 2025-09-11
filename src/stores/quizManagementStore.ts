@@ -268,7 +268,11 @@ export const useQuizManagementStore = create<QuizManagementStore>()(
           ...currentState,
           ...(persistedState || {}),
           // Always start with clean data state
+          courses: [],
+          selectedCourse: null,
           chatbotsWithQuizzes: [],
+          filteredChatbots: [],
+          selectedChatbot: null,
           quizSessions: [],
           quizPools: {},
           analytics: null,
