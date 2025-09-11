@@ -325,12 +325,28 @@ const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
                           </Typography>
                         </TableCell>
                         <TableCell align="center">
-                          <Chip
-                            label={result.verdict || (result.score >= result.max_score * 0.7 ? 'correct' : 'incorrect')}
-                            color={getVerdictColor(result.verdict || (result.score >= result.max_score * 0.7 ? 'correct' : 'incorrect'))}
-                            size="small"
-                            icon={(result.verdict || (result.score >= result.max_score * 0.7 ? 'correct' : 'incorrect')) === 'correct' ? <CheckCircleIcon /> : <CancelIcon />}
-                          />
+                          {(() => {
+                            // Normalize verdict to match documentation (only 'correct' or 'incorrect')
+                            let normalizedVerdict: 'correct' | 'incorrect';
+                            
+                            if (result.verdict === 'correct') {
+                              normalizedVerdict = 'correct';
+                            } else if (result.verdict === 'incorrect') {
+                              normalizedVerdict = 'incorrect';
+                            } else {
+                              // Handle any other values (like 'partially_correct') based on score
+                              normalizedVerdict = result.score >= result.max_score * 0.7 ? 'correct' : 'incorrect';
+                            }
+                            
+                            return (
+                              <Chip
+                                label={normalizedVerdict}
+                                color={getVerdictColor(normalizedVerdict)}
+                                size="small"
+                                icon={normalizedVerdict === 'correct' ? <CheckCircleIcon /> : <CancelIcon />}
+                              />
+                            );
+                          })()}
                         </TableCell>
                         <TableCell>
                           <Typography variant="body2">

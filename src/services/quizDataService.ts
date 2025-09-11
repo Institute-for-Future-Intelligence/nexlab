@@ -7,7 +7,8 @@ import {
   where, 
   orderBy, 
   Timestamp,
-  updateDoc
+  updateDoc,
+  limit
 } from 'firebase/firestore';
 import { 
   QuizStartData, 
@@ -83,6 +84,34 @@ export const saveQuizStartEvent = async (
 ): Promise<void> => {
   try {
     const now = Timestamp.now();
+    
+    // Check if there's already an active session with the same startedAt timestamp
+    // This prevents duplicate sessions from the same quiz attempt, but allows multiple attempts
+    const sameStartTime = Timestamp.fromDate(new Date(data.startedAt));
+    const timeBuffer = 5 * 1000; // 5 seconds buffer for timing differences
+    const startTimeMin = Timestamp.fromMillis(sameStartTime.toMillis() - timeBuffer);
+    const startTimeMax = Timestamp.fromMillis(sameStartTime.toMillis() + timeBuffer);
+    
+    const existingSessionQuery = query(
+      collection(db, COLLECTIONS.QUIZ_SESSIONS),
+      where('quizId', '==', data.quizId),
+      where('userId', '==', userId),
+      where('startedAt', '>=', startTimeMin),
+      where('startedAt', '<=', startTimeMax),
+      limit(1)
+    );
+    
+    const existingSessions = await getDocs(existingSessionQuery);
+    
+    if (!existingSessions.empty) {
+      console.log('⚠️ Quiz session with same start time already exists, skipping duplicate:', {
+        quizId: data.quizId,
+        startedAt: data.startedAt,
+        userId: userId.substring(0, 8) + '...',
+        existingSessionId: existingSessions.docs[0].id
+      });
+      return; // Don't create duplicate session
+    }
     
     // Create quiz session document with unique session ID
     const sessionDoc: QuizSessionDocument = {
