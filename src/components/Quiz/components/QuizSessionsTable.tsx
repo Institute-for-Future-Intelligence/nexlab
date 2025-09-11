@@ -96,8 +96,14 @@ const QuizSessionsTable: React.FC<QuizSessionsTableProps> = ({
           <TableRow>
             <TableCell>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <QuizIcon fontSize="small" />
+                Session ID
+              </Box>
+            </TableCell>
+            <TableCell>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <PersonIcon fontSize="small" />
-                User
+                User ID
               </Box>
             </TableCell>
             <TableCell>
@@ -119,14 +125,14 @@ const QuizSessionsTable: React.FC<QuizSessionsTableProps> = ({
           {sessions.map((session) => (
             <TableRow key={session.id} hover>
               <TableCell>
-                <Box>
-                  <Typography variant="body2" fontWeight="medium">
-                    {session.userName || 'Anonymous User'}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary" fontFamily="monospace">
-                    ID: {session.userId.substring(0, 8)}...{session.userId.slice(-4)}
-                  </Typography>
-                </Box>
+                <Typography variant="body2" fontFamily="monospace" sx={{ wordBreak: 'break-all', fontSize: '0.875rem' }}>
+                  {session.id}
+                </Typography>
+              </TableCell>
+              <TableCell>
+                <Typography variant="body2" fontFamily="monospace" sx={{ wordBreak: 'break-all', fontSize: '0.875rem' }}>
+                  {session.userId}
+                </Typography>
               </TableCell>
               
               <TableCell>
