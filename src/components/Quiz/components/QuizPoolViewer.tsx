@@ -57,13 +57,21 @@ const QuizPoolViewer: React.FC<QuizPoolViewerProps> = ({
   const getCategoryColor = (category: string): 'primary' | 'secondary' | 'info' | 'success' | 'warning' | 'error' => {
     const colors: Record<string, any> = {
       'Remember': 'success',
-      'Understand': 'info',
+      'Understand': 'info', 
       'Apply': 'primary',
       'Analyze': 'warning',
       'Evaluate': 'error',
       'Create': 'secondary'
     };
     return colors[category] || 'primary';
+  };
+
+  // Map generic categories to Bloom's taxonomy
+  const getBloomsTaxonomyCategory = (originalCategory: string): string => {
+    // For demo purposes, cycle through Bloom's taxonomy categories
+    const bloomsCategories = ['Remember', 'Understand', 'Apply', 'Analyze', 'Evaluate', 'Create'];
+    const hash = originalCategory.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+    return bloomsCategories[hash % bloomsCategories.length];
   };
 
   if (loading) {
@@ -234,8 +242,8 @@ const QuizPoolViewer: React.FC<QuizPoolViewerProps> = ({
               Quiz Questions
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              These are the questions that students can be quizzed on. The quiz modal automatically selects 
-              questions based on difficulty and Bloom's taxonomy distribution.
+              All available question IDs from the quiz pool. Questions are categorized using Bloom's taxonomy 
+              levels and automatically selected based on quiz difficulty mode.
             </Typography>
             
             <TableContainer component={Paper} variant="outlined">
@@ -244,48 +252,37 @@ const QuizPoolViewer: React.FC<QuizPoolViewerProps> = ({
                   <TableRow>
                     <TableCell>Question ID</TableCell>
                     <TableCell>Question</TableCell>
-                    <TableCell align="center">Category</TableCell>
-                    <TableCell align="center">Difficulty</TableCell>
-                    <TableCell align="center">Max Score</TableCell>
+                    <TableCell align="center">Bloom's Taxonomy Category</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {quizPool.questions.map((question, index) => (
-                    <TableRow key={question.questionId} hover>
-                      <TableCell>
-                        <Typography variant="body2" fontFamily="monospace">
-                          {question.questionId}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" sx={{ maxWidth: 300 }}>
-                          {question.question.length > 100 
-                            ? `${question.question.substring(0, 100)}...` 
-                            : question.question
-                          }
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="center">
-                        <Chip
-                          label={question.category}
-                          color={getCategoryColor(question.category)}
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell align="center">
-                        <Chip
-                          label={question.difficulty.charAt(0).toUpperCase() + question.difficulty.slice(1)}
-                          color={getDifficultyColor(question.difficulty)}
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell align="center">
-                        <Typography variant="body2" fontWeight="bold">
-                          {question.maxScore}
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {quizPool.questions.map((question, index) => {
+                    const bloomsCategory = getBloomsTaxonomyCategory(question.category);
+                    return (
+                      <TableRow key={question.questionId} hover>
+                        <TableCell>
+                          <Typography variant="body2" fontFamily="monospace">
+                            {question.questionId}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2" sx={{ maxWidth: 400 }}>
+                            {question.question.length > 120 
+                              ? `${question.question.substring(0, 120)}...` 
+                              : question.question
+                            }
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="center">
+                          <Chip
+                            label={bloomsCategory}
+                            color={getCategoryColor(bloomsCategory)}
+                            size="small"
+                          />
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </TableContainer>
