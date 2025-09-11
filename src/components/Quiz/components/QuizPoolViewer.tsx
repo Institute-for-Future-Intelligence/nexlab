@@ -45,17 +45,17 @@ const QuizPoolViewer: React.FC<QuizPoolViewerProps> = ({
   const { quizPools, loading } = useQuizManagementStore();
   const quizPool = quizPools[quizId];
 
-  const getDifficultyColor = (difficulty: QuizDifficulty): 'success' | 'warning' | 'error' => {
-    switch (difficulty) {
-      case 'easy': return 'success';
-      case 'medium': return 'warning';
-      case 'hard': return 'error';
-      default: return 'warning';
-    }
-  };
+  // const getDifficultyColor = (difficulty: QuizDifficulty): 'success' | 'warning' | 'error' => {
+  //   switch (difficulty) {
+  //     case 'easy': return 'success';
+  //     case 'medium': return 'warning';
+  //     case 'hard': return 'error';
+  //     default: return 'warning';
+  //   }
+  // };
 
   const getCategoryColor = (category: string): 'primary' | 'secondary' | 'info' | 'success' | 'warning' | 'error' => {
-    const colors: Record<string, any> = {
+    const colors: Record<string, 'primary' | 'secondary' | 'info' | 'success' | 'warning' | 'error'> = {
       'Remember': 'success',
       'Understand': 'info', 
       'Apply': 'primary',
@@ -199,7 +199,7 @@ const QuizPoolViewer: React.FC<QuizPoolViewerProps> = ({
           <CardContent>
             <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <CategoryIcon color="primary" />
-              Bloom's Taxonomy Categories
+              Bloom&apos;s Taxonomy Categories
             </Typography>
             <Grid container spacing={2}>
               {Object.entries(quizPool.categoryCounts).map(([category, count]) => {
@@ -242,7 +242,7 @@ const QuizPoolViewer: React.FC<QuizPoolViewerProps> = ({
               Quiz Questions
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              All available question IDs from the quiz pool. Questions are categorized using Bloom's taxonomy 
+              All available question IDs from the quiz pool. Questions are categorized using Bloom&apos;s taxonomy 
               levels and automatically selected based on quiz difficulty mode.
             </Typography>
             
@@ -252,7 +252,7 @@ const QuizPoolViewer: React.FC<QuizPoolViewerProps> = ({
                   <TableRow>
                     <TableCell>Question ID</TableCell>
                     <TableCell>Question</TableCell>
-                    <TableCell align="center">Bloom's Taxonomy Category</TableCell>
+                    <TableCell align="center">Bloom&apos;s Taxonomy Category</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>

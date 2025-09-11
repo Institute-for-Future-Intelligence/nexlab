@@ -108,7 +108,7 @@ export const loadEnhancedQuizSessions = async (
     console.log('🧩 Loading enhanced quiz sessions with filters:', filters);
     
     // Build query based on filters
-    let baseQuery = collection(db, COLLECTIONS.QUIZ_SESSIONS);
+    const baseQuery = collection(db, COLLECTIONS.QUIZ_SESSIONS);
     const constraints: any[] = [];
     
     // Filter by chatbot ID

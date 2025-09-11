@@ -78,7 +78,7 @@ const ChatbotSelector: React.FC<ChatbotSelectorProps> = ({
           />
         )}
         renderOption={(props, option) => {
-          const { key, ...otherProps } = props;
+          const { ...otherProps } = props;
           return (
             <Box 
               component="li" 

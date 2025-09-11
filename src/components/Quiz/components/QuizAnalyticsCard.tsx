@@ -243,7 +243,7 @@ const QuizAnalyticsCard: React.FC<QuizAnalyticsCardProps> = ({ analytics }) => {
           <Grid item xs={12} md={6}>
             <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <SchoolIcon color="primary" />
-              Bloom's Taxonomy Performance
+              Bloom&apos;s Taxonomy Performance
             </Typography>
             <Box sx={{ mt: 2 }}>
               {Object.entries(analytics.categoryPerformance).map(([category, performance]) => (
