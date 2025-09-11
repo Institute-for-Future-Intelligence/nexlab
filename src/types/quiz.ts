@@ -141,3 +141,119 @@ export interface QuizButtonProps {
   disabled?: boolean;
   children?: React.ReactNode;
 }
+
+// Enhanced data structures for Quiz Management Page
+
+// Chatbot with quiz information
+export interface ChatbotWithQuiz {
+  chatbotId: string;
+  title: string;
+  materialTitle: string;
+  materialId: string;
+  courseId: string;
+  courseTitle: string;
+  createdBy: string;
+  timestamp: string;
+  quizId?: string; // Quiz ID associated with this chatbot
+  hasQuiz: boolean;
+}
+
+// Quiz question information from the quiz API
+export interface QuizQuestion {
+  questionId: string;
+  question: string;
+  category: string; // Bloom's taxonomy category
+  difficulty: QuizDifficulty;
+  maxScore: number;
+}
+
+// Quiz pool information
+export interface QuizPool {
+  quizId: string;
+  chatbotId: string;
+  questions: QuizQuestion[];
+  categoryCounts: Record<string, number>; // Count of questions per category
+  difficultyBreakdown: Record<QuizDifficulty, number>;
+  totalQuestions: number;
+  lastUpdated: string;
+}
+
+// Enhanced quiz session with detailed user information
+export interface EnhancedQuizSession {
+  id: string;
+  quizId: string;
+  chatbotId: string;
+  userId: string;
+  userEmail?: string;
+  userName?: string;
+  difficulty: QuizDifficulty;
+  startedAt: string;
+  submittedAt?: string;
+  closedAt?: string;
+  completed: boolean;
+  answers: Record<string, string>;
+  summary?: QuizSummary;
+  questionsAttempted: number;
+  timeSpent?: number; // in minutes
+}
+
+// Quiz analytics and insights
+export interface QuizAnalytics {
+  totalSessions: number;
+  completionRate: number;
+  averageScore: number;
+  averageTimeSpent: number;
+  difficultyDistribution: Record<QuizDifficulty, number>;
+  categoryPerformance: Record<string, {
+    averageScore: number;
+    totalAttempts: number;
+    successRate: number;
+  }>;
+  timeBasedStats: {
+    daily: Record<string, number>;
+    weekly: Record<string, number>;
+    monthly: Record<string, number>;
+  };
+}
+
+// Quiz Management Page filters
+export interface QuizFilters {
+  chatbotId?: string;
+  difficulty?: QuizDifficulty | 'all';
+  dateRange?: {
+    start: string;
+    end: string;
+  };
+  completionStatus?: 'all' | 'completed' | 'incomplete';
+  userId?: string;
+}
+
+// Quiz Management store interface
+export interface QuizManagementState {
+  // Data
+  chatbotsWithQuizzes: ChatbotWithQuiz[];
+  selectedChatbot: ChatbotWithQuiz | null;
+  quizSessions: EnhancedQuizSession[];
+  quizPools: Record<string, QuizPool>; // keyed by quizId
+  analytics: QuizAnalytics | null;
+  
+  // UI State
+  loading: boolean;
+  error: string | null;
+  filters: QuizFilters;
+  selectedSession: EnhancedQuizSession | null;
+  
+  // Actions
+  loadChatbotsWithQuizzes: () => Promise<void>;
+  selectChatbot: (chatbot: ChatbotWithQuiz | null) => void;
+  loadQuizSessions: (chatbotId?: string) => Promise<void>;
+  loadQuizPool: (quizId: string) => Promise<void>;
+  updateFilters: (filters: Partial<QuizFilters>) => void;
+  selectSession: (session: EnhancedQuizSession | null) => void;
+  generateAnalytics: () => void;
+  exportSessionData: (sessionId: string) => Promise<void>;
+  
+  // Utility actions
+  clearError: () => void;
+  reset: () => void;
+}

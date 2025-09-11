@@ -7,6 +7,33 @@ export default defineConfig(({ command }) => ({
   // Use base path only for production build, not for local development
   base: command === 'build' ? '/nexlab/' : '/',
   plugins: [react()],
+  optimizeDeps: {
+    include: [
+      '@emotion/react',
+      '@emotion/styled',
+      '@mui/material',
+      '@mui/icons-material',
+      '@mui/system',
+      '@mui/material/styles',
+      '@mui/styled-engine',
+      '@mui/base'
+    ],
+    force: true,
+    esbuildOptions: {
+      target: 'es2020'
+    }
+  },
+  define: {
+    global: 'globalThis',
+  },
+  esbuild: {
+    logOverride: { 'this-is-undefined-in-esm': 'silent' }
+  },
+  resolve: {
+    alias: {
+      '@mui/styled-engine': '@mui/styled-engine',
+    }
+  },
   server: {
     open: true,
     port: 3001,
