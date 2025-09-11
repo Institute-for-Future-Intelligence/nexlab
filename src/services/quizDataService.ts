@@ -35,6 +35,13 @@ export interface QuizSessionDocument {
   completed: boolean;
   difficulty: string;
   
+  // Selection object from quiz start (matches documentation)
+  selection?: {
+    mode: string;
+    target: number;
+    finalCount: number;
+  };
+  
   // Quiz performance data
   finalAnswers?: Record<string, string>;
   summary?: {
@@ -85,6 +92,11 @@ export const saveQuizStartEvent = async (
       startedAt: Timestamp.fromDate(new Date(data.startedAt)),
       completed: false,
       difficulty: data.selection.mode,
+      selection: {
+        mode: data.selection.mode,
+        target: data.selection.target,
+        finalCount: data.selection.finalCount
+      },
       createdAt: now,
       updatedAt: now
     };
@@ -125,18 +137,31 @@ export const saveAnswerChangeEvent = async (
   userId: string
 ): Promise<void> => {
   try {
+    const now = Timestamp.now();
+    
+    // Create quiz event document (matches documentation format)
     const eventDoc: QuizEventDocument = {
       quizId: event.quizId,
-      chatbotId: event.quizId, // Use quizId as fallback since chatbotId may not be in event
+      chatbotId: event.chatbotId || event.quizId, // Use chatbotId if available, fallback to quizId
       userId,
       eventType: 'answer_changed',
-      timestamp: Timestamp.now(),
-      data: event,
-      createdAt: Timestamp.now()
+      timestamp: now,
+      data: {
+        quizId: event.quizId,
+        questionId: event.questionId,
+        value: event.value,
+        answers: event.answers
+      },
+      createdAt: now
     };
     
     await addDoc(collection(db, COLLECTIONS.QUIZ_EVENTS), eventDoc);
-    console.log('✅ Answer change event saved to Firestore:', event.questionId);
+    
+    console.log('✅ Answer change event saved to Firestore:', {
+      quizId: event.quizId,
+      questionId: event.questionId,
+      userId: userId.substring(0, 8) + '...'
+    });
   } catch (error) {
     console.error('❌ Error saving answer change event:', error);
     // Don't throw - answer changes are frequent and shouldn't break the quiz
