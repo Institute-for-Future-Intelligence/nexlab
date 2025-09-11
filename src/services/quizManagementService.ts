@@ -231,27 +231,62 @@ export const loadQuizPool = async (quizId: string): Promise<QuizPool> => {
     console.log('🧩 Loading quiz pool for quiz:', quizId);
     
     // TODO: Replace with actual API call to quiz service
-    // This is a placeholder implementation
+    // This is a placeholder implementation showing available questions from the quiz pool
     const mockQuestions: QuizQuestion[] = [
       {
-        questionId: 'q1',
-        question: 'What is the primary function of mitochondria?',
-        category: 'Remember',
-        difficulty: 'easy',
-        maxScore: 100
-      },
-      {
-        questionId: 'q2',
-        question: 'Explain the process of cellular respiration.',
-        category: 'Understand',
+        questionId: 'q001',
+        question: 'What is the primary function of mitochondria in cellular metabolism?',
+        category: 'Biology Fundamentals',
         difficulty: 'medium',
         maxScore: 100
       },
       {
-        questionId: 'q3',
+        questionId: 'q002',
+        question: 'Explain the process of cellular respiration and its main stages.',
+        category: 'Biology Fundamentals',
+        difficulty: 'medium',
+        maxScore: 100
+      },
+      {
+        questionId: 'q003',
+        question: 'Describe the structure and function of the cell membrane.',
+        category: 'Biology Fundamentals',
+        difficulty: 'medium',
+        maxScore: 100
+      },
+      {
+        questionId: 'q004',
+        question: 'What are the key differences between prokaryotic and eukaryotic cells?',
+        category: 'Biology Fundamentals',
+        difficulty: 'medium',
+        maxScore: 100
+      },
+      {
+        questionId: 'q005',
         question: 'Analyze the relationship between photosynthesis and cellular respiration.',
-        category: 'Analyze',
-        difficulty: 'hard',
+        category: 'Biology Fundamentals',
+        difficulty: 'medium',
+        maxScore: 100
+      },
+      {
+        questionId: 'q006',
+        question: 'Explain the role of enzymes in biochemical reactions.',
+        category: 'Biology Fundamentals',
+        difficulty: 'medium',
+        maxScore: 100
+      },
+      {
+        questionId: 'q007',
+        question: 'Describe the process of protein synthesis from DNA to functional protein.',
+        category: 'Biology Fundamentals',
+        difficulty: 'medium',
+        maxScore: 100
+      },
+      {
+        questionId: 'q008',
+        question: 'What is the significance of ATP in cellular energy transfer?',
+        category: 'Biology Fundamentals',
+        difficulty: 'medium',
         maxScore: 100
       }
     ];

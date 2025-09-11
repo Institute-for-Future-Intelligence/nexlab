@@ -297,12 +297,12 @@ const QuizPoolViewer: React.FC<QuizPoolViewerProps> = ({
         {/* Pool Information */}
         <Box sx={{ p: 2, bgcolor: 'info.light', borderRadius: 1 }}>
           <Typography variant="body2" color="info.contrastText">
-            <strong>Note:</strong> This question pool is managed by the quiz service. 
-            When students take a quiz, questions are automatically selected based on the chosen difficulty level:
+            <strong>Quiz Question Pool:</strong> This shows the available questions that can be selected for quizzes. 
+            When students take a quiz, questions are automatically chosen from this pool based on the selected difficulty mode:
             Easy (~5 questions), Medium (~8 questions), Hard (~10 questions).
           </Typography>
           <Typography variant="caption" color="info.contrastText" sx={{ mt: 1, display: 'block' }}>
-            Last Updated: {new Date(quizPool.lastUpdated).toLocaleDateString()}
+            <strong>Note:</strong> This is placeholder data for demonstration. Actual questions will be loaded from the quiz API.
           </Typography>
         </Box>
       </DialogContent>

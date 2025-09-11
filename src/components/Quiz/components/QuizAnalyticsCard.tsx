@@ -281,44 +281,6 @@ const QuizAnalyticsCard: React.FC<QuizAnalyticsCardProps> = ({ analytics }) => {
           </Grid>
         </Grid>
 
-        {/* Time-based Statistics Summary */}
-        <Divider sx={{ my: 3 }} />
-        
-        <Typography variant="h6" gutterBottom>
-          Activity Summary
-        </Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={4}>
-            <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
-              <Typography variant="h6" color="primary">
-                {Object.keys(analytics.timeBasedStats.daily).length}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Active Days
-              </Typography>
-            </Box>
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
-              <Typography variant="h6" color="primary">
-                {Object.keys(analytics.timeBasedStats.weekly).length}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Active Weeks
-              </Typography>
-            </Box>
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
-              <Typography variant="h6" color="primary">
-                {Object.keys(analytics.timeBasedStats.monthly).length}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Active Months
-              </Typography>
-            </Box>
-          </Grid>
-        </Grid>
       </CardContent>
     </Card>
   );

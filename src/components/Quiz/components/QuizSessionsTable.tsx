@@ -112,7 +112,6 @@ const QuizSessionsTable: React.FC<QuizSessionsTableProps> = ({
             <TableCell align="center">Time Spent</TableCell>
             <TableCell align="center">Score</TableCell>
             <TableCell align="center">Performance</TableCell>
-            <TableCell align="center">Accuracy</TableCell>
             <TableCell align="center">Actions</TableCell>
           </TableRow>
         </TableHead>
@@ -210,24 +209,6 @@ const QuizSessionsTable: React.FC<QuizSessionsTableProps> = ({
                     color={getScoreColor(session.summary.percent)}
                     size="small"
                   />
-                ) : (
-                  <Typography variant="body2" color="text.secondary">
-                    -
-                  </Typography>
-                )}
-              </TableCell>
-              
-              <TableCell align="center">
-                {session.summary ? (
-                  <Box>
-                    <Typography variant="body2" fontWeight="medium">
-                      {Object.values(session.summary.items).filter(item => item.verdict === 'correct').length}/
-                      {Object.values(session.summary.items).length}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      correct
-                    </Typography>
-                  </Box>
                 ) : (
                   <Typography variant="body2" color="text.secondary">
                     -
