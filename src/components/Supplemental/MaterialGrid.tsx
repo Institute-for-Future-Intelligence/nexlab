@@ -11,6 +11,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import DeleteMaterialDialog from './DeleteMaterialDialog';
 import UnpublishButton from './UnpublishButton';
 import UnpublishMaterial from './UnpublishMaterial';
+import MaterialsTabs from './MaterialsTabs';
+
 
 const MaterialGrid: React.FC<{ initialCourse?: string | null }> = ({ initialCourse }) => {
   const { userDetails } = useUser();
@@ -285,4 +287,17 @@ const MaterialItem: React.FC<{
   );
 };
 
-export default MaterialGrid;
+const CoursePage: React.FC = () => {
+  const courseId = "myCourse123"; 
+
+  return (
+    <Box sx={{ p: 3 }}>
+      <Typography variant="h4" gutterBottom>
+        Course Materials
+      </Typography>
+      <MaterialsTabs courseId={courseId} />
+    </Box>
+  );
+};
+
+export default CoursePage;
