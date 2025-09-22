@@ -12,7 +12,6 @@ const TextEditor: React.FC<StandardTextEditorProps> = ({ content, onChange }) =>
   // ReactQuill modules configuration - standard toolbar
   const modules = {
     toolbar: [
-      ['undo', 'redo'],
       [{ 'header': [1, 2, 3, false] }],
       ['bold', 'italic'],
       ['blockquote', { 'list': 'ordered'}, { 'list': 'bullet' }],
@@ -24,7 +23,7 @@ const TextEditor: React.FC<StandardTextEditorProps> = ({ content, onChange }) =>
   const formats = [
     'header',
     'bold', 'italic',
-    'blockquote', 'list', 'bullet',
+    'blockquote', 'list',
     'link'
   ];
 

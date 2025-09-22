@@ -22,7 +22,7 @@ const SimpleTextEditor: React.FC<SimpleTextEditorProps> = ({ content, onChange }
   const formats = [
     'header',
     'bold', 'italic',
-    'blockquote', 'list', 'bullet',
+    'blockquote', 'list',
     'link'
   ];
 
