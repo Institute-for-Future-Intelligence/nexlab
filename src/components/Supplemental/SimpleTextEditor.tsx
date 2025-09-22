@@ -1,33 +1,43 @@
-// src/components/SimpleTextEditor.tsx
 import React from 'react';
-import { CKEditor } from '@ckeditor/ckeditor5-react';
-import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 
-
-interface SimpleTextEditorProps {
-  content: string;
-  onChange: (content: string) => void;
-}
+import { SimpleTextEditorProps } from '../../types/textEditor';
 
 const SimpleTextEditor: React.FC<SimpleTextEditorProps> = ({ content, onChange }) => {
-  const handleChange = (event: any, editor: any) => {
-    const data = editor.getData();
-    onChange(data);
+  const handleChange = (value: string) => {
+    onChange(value);
   };
 
-  return (
-    <CKEditor
-      editor={ClassicEditor as any}
-      data={content}
-      onChange={handleChange}
-      config={{
-        toolbar: [
-          'heading', '|', 
-          'bold', 'italic', '|', 
-          'blockQuote', 'numberedList', 'bulletedList', '|',
-          'link'
-        ],
+  // ReactQuill modules configuration - minimal toolbar
+  const modules = {
+    toolbar: [
+      [{ 'header': [1, 2, 3, false] }],
+      ['bold', 'italic'],
+      ['blockquote', { 'list': 'ordered'}, { 'list': 'bullet' }],
+      ['link']
+    ],
+  };
 
+  const formats = [
+    'header',
+    'bold', 'italic',
+    'blockquote', 'list', 'bullet',
+    'link'
+  ];
+
+  return (
+    <ReactQuill
+      value={content}
+      onChange={handleChange}
+      modules={modules}
+      formats={formats}
+      theme="snow"
+      placeholder="Start writing..."
+      style={{
+        backgroundColor: 'white',
+        borderRadius: '4px',
+        minHeight: '120px'
       }}
     />
   );

@@ -1,33 +1,45 @@
-// src/components/TextEditor.tsx
 import React from 'react';
-import { CKEditor } from '@ckeditor/ckeditor5-react';
-import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 
+import { StandardTextEditorProps } from '../../types/textEditor';
 
-interface TextEditorProps {
-  content: string;
-  onChange: (content: string) => void;
-}
-
-const TextEditor: React.FC<TextEditorProps> = ({ content, onChange }) => {
-  const handleChange = (event: any, editor: any) => {
-    const data = editor.getData();
-    onChange(data);
+const TextEditor: React.FC<StandardTextEditorProps> = ({ content, onChange }) => {
+  const handleChange = (value: string) => {
+    onChange(value);
   };
 
+  // ReactQuill modules configuration - standard toolbar
+  const modules = {
+    toolbar: [
+      ['undo', 'redo'],
+      [{ 'header': [1, 2, 3, false] }],
+      ['bold', 'italic'],
+      ['blockquote', { 'list': 'ordered'}, { 'list': 'bullet' }],
+      ['link'],
+      ['clean']
+    ],
+  };
+
+  const formats = [
+    'header',
+    'bold', 'italic',
+    'blockquote', 'list', 'bullet',
+    'link'
+  ];
+
   return (
-    <CKEditor
-      editor={ClassicEditor as any}
-      data={content}
+    <ReactQuill
+      value={content}
       onChange={handleChange}
-      config={{
-        toolbar: [
-          'undo', 'redo', '|',
-          'heading', '|',
-          'bold', 'italic', '|', 
-          'blockQuote', 'numberedList', 'bulletedList', '|',
-          'insertTable', 'link', '|' // Exclude 'imageUpload' from the array
-        ],
+      modules={modules}
+      formats={formats}
+      theme="snow"
+      placeholder="Start writing..."
+      style={{
+        backgroundColor: 'white',
+        borderRadius: '4px',
+        minHeight: '150px'
       }}
     />
   );

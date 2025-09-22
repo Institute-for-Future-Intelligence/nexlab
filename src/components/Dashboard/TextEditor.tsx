@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { CKEditor } from '@ckeditor/ckeditor5-react';
-import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 import DOMPurify from 'dompurify';
 
 import Select, { SelectChangeEvent } from '@mui/material/Select';
@@ -10,19 +10,19 @@ import InputLabel from '@mui/material/InputLabel';
 import Box from '@mui/material/Box';
 
 import { 
-  TextEditorProps
-} from '../../types/ckeditor'; // Import proper types
+  TextEditorProps,
+  QuillInstance
+} from '../../types/textEditor';
 
 const TextEditor: React.FC<TextEditorProps> = ({ onChange, initialValue }) => {
   const [editorData, setEditorData] = useState<string>(DOMPurify.sanitize(initialValue || ''));
-  const isMounted = useRef(false); // ref to track component mounting
-  const editorRef = useRef<any>(null);
+  const isMounted = useRef(false);
+  const quillRef = useRef<ReactQuill>(null);
 
   const [selectedSymbol, setSelectedSymbol] = useState<string>("");
   
   // Effect for initializing and responding to changes in initialValue
   useEffect(() => {
-    // Run only when initialValue changes and after the first render
     if (isMounted.current) {
       setEditorData(DOMPurify.sanitize(initialValue || ''));
     } else {
@@ -30,29 +30,35 @@ const TextEditor: React.FC<TextEditorProps> = ({ onChange, initialValue }) => {
     }
   }, [initialValue]);
 
-  const handleEditorChange = (event: any, editor: any) => {
-    const data = editor.getData();
-    const cleanData = DOMPurify.sanitize(data); // Sanitize the data from CKEditor
-    setEditorData(cleanData); // Update internal state with sanitized data
-    // console.log({ event, editor, data: cleanData }); // Log the sanitized data
-    onChange(cleanData); // Pass sanitized data to the parent component
+  const handleEditorChange = (content: string, delta: any, source: string, editor: any) => {
+    const cleanData = DOMPurify.sanitize(content);
+    setEditorData(cleanData);
+    onChange(cleanData);
   };
 
   const insertSymbol = (symbol: string) => {
-    if (!editorRef.current) {
+    if (!quillRef.current) {
       console.warn("Editor not initialized");
       return;
     }
     
-    // Get the editor instance
-    const editor = editorRef.current;
-
-    // Insert the symbol at the current cursor position
-    editor.model.change((writer) => {
-      const position = editor.model.document.selection.getFirstPosition();
-      writer.insertText(symbol, position);
-    });
-    setSelectedSymbol(""); // Reset the dropdown after inserting symbol
+    const editor = quillRef.current.getEditor() as QuillInstance;
+    const selection = editor.getSelection();
+    
+    if (selection) {
+      // Insert at current cursor position
+      editor.insertText(selection.index, symbol);
+      // Move cursor after the inserted symbol
+      editor.setSelection(selection.index + symbol.length);
+    } else {
+      // If no selection, append to the end
+      const length = editor.getText().length;
+      editor.insertText(length, symbol);
+      editor.setSelection(length + symbol.length);
+    }
+    
+    setSelectedSymbol("");
+    editor.focus();
   };
 
   const handleSymbolChange = (event: SelectChangeEvent<string>) => {
@@ -68,6 +74,27 @@ const TextEditor: React.FC<TextEditorProps> = ({ onChange, initialValue }) => {
     '°', '+', '-', '=', '~', '≥', '≤', '≠', '>', '<', '*', '/', '%'
   ];
 
+  // ReactQuill modules configuration
+  const modules = {
+    toolbar: [
+      ['undo', 'redo'],
+      [{ 'header': [1, 2, 3, false] }],
+      ['bold', 'italic'],
+      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      ['blockquote', { 'indent': '-1'}, { 'indent': '+1' }],
+      ['link'],
+      ['clean']
+    ],
+  };
+
+  const formats = [
+    'header',
+    'bold', 'italic',
+    'list', 'bullet',
+    'blockquote', 'indent',
+    'link'
+  ];
+
   return (
     <div>
       <Box sx={{
@@ -75,6 +102,7 @@ const TextEditor: React.FC<TextEditorProps> = ({ onChange, initialValue }) => {
         justifyContent: 'flex-end',
         alignItems: 'center',
         width: '100%',
+        marginBottom: 2,
       }}>
         <InputLabel id="insert-symbols-label" sx={{ fontSize: '0.8rem' }}>Insert Symbols: </InputLabel>
         <FormControl variant="standard" sx={{ m: 1, minWidth: 40 }}>
@@ -106,41 +134,21 @@ const TextEditor: React.FC<TextEditorProps> = ({ onChange, initialValue }) => {
           </Select>
         </FormControl>
       </Box>
-      {/* CKEditor instance */}
-      <CKEditor
-        editor={ClassicEditor as any}
-        data={editorData}
-        onReady={(editor) => {
-          editorRef.current = editor as any; // Use ref to manage the editor instance
+      
+      {/* ReactQuill instance */}
+      <ReactQuill
+        ref={quillRef}
+        value={editorData}
+        onChange={handleEditorChange}
+        modules={modules}
+        formats={formats}
+        theme="snow"
+        placeholder="Start writing..."
+        style={{
+          backgroundColor: 'white',
+          borderRadius: '4px',
+          minHeight: '200px'
         }}
-        config={{
-          toolbar: [
-            'undo', 'redo', '|',
-            'heading', 'bold', 'italic', '|', 
-            'bulletedList', 'numberedList', 'blockQuote', 'indent', 'outdent', '|',
-            'link', 'insertTable', '|' // Exclude 'imageUpload' from the array
-          ],
-        }}
-        // onReady={editor => {
-        //   console.log('Editor is ready to use!', editor);
-  
-        //   // Access the available plugins from the editor instance
-        //   const availablePlugins = editor.plugins._availablePlugins;
-
-        //   // Log the names of the available plugins
-        //   if (availablePlugins instanceof Map) {
-        //       console.log('Available plugins:', Array.from(availablePlugins.keys()));
-        //   } else {
-        //       console.log('Available plugins data structure has changed or is not accessible.');
-        //   }
-        // }}         
-        onChange={handleEditorChange} // Use the handleEditorChange function here
-        // onBlur={(event, editor) => {
-        //   console.log('Blur.', editor);
-        // }}
-        // onFocus={(event, editor) => {
-        //   console.log('Focus.', editor);
-        // }}
       />
     </div>
   );
