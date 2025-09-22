@@ -9,6 +9,7 @@ import { Material } from '../../types/Material';
 import SideBar from './SideBar';
 import BackToAllMaterialsButton from './BackToAllMaterialsButton';
 import { useAdjacentSectionPreloader } from '../../hooks/useImagePreloader';
+import { v4 as uuidv4 } from 'uuid';
 
 import ImageGallery from './ImageGallery';
 import ViewLinksTable from './ViewLinksTable';
@@ -73,6 +74,53 @@ const ViewMaterial: React.FC = () => {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           const docData = { id: docSnap.id, ...docSnap.data() } as Material;
+          
+          // Debug: Log the material data structure
+          console.log('Material data from Firestore:', docData);
+          console.log('Sections type:', typeof docData.sections);
+          console.log('Sections value:', docData.sections);
+          
+          // Ensure sections is an array
+          if (!Array.isArray(docData.sections)) {
+            console.warn('Sections is not an array, initializing as empty array. Original value:', docData.sections);
+            docData.sections = [];
+          }
+          
+          // Ensure all nested arrays are properly initialized
+          docData.sections = docData.sections.map(section => {
+            const processedSection = {
+              id: section.id || uuidv4(),
+              title: section.title || 'Untitled Section',
+              content: section.content || '',
+              images: Array.isArray(section.images) ? section.images.map(image => ({ 
+                ...image, 
+                title: image.title || '' 
+              })) : [],
+              links: Array.isArray(section.links) ? section.links : [],
+              subsections: Array.isArray(section.subsections) ? section.subsections.map(subsection => ({
+                id: subsection.id || uuidv4(),
+                title: subsection.title || 'Untitled Subsection',
+                content: subsection.content || '',
+                images: Array.isArray(subsection.images) ? subsection.images.map(image => ({ 
+                  ...image, 
+                  title: image.title || '' 
+                })) : [],
+                links: Array.isArray(subsection.links) ? subsection.links : [],
+                subSubsections: Array.isArray(subsection.subSubsections) ? subsection.subSubsections.map(subSubsection => ({
+                  id: subSubsection.id || uuidv4(),
+                  title: subSubsection.title || 'Untitled Sub-subsection',
+                  content: subSubsection.content || '',
+                  images: Array.isArray(subSubsection.images) ? subSubsection.images.map(image => ({ 
+                    ...image, 
+                    title: image.title || '' 
+                  })) : [],
+                  links: Array.isArray(subSubsection.links) ? subSubsection.links : [],
+                })) : [],
+              })) : [],
+            };
+            return processedSection;
+          });
+          
           console.log('Loaded material from database:', {
             title: docData.title,
             sectionsCount: docData.sections?.length || 0,
@@ -204,7 +252,7 @@ const ViewMaterial: React.FC = () => {
                       backgroundColor: 'transparent',
                       color: '#436850',
                       border: '2px solid #436850',
-                      borderRadius: '8px',
+                      borderRadius: '12px', // More rounded corners
                       cursor: 'pointer',
                       fontFamily: 'Gabarito',
                       '&:hover': { 

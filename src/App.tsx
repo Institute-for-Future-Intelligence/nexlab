@@ -43,7 +43,13 @@ const App = () => {
   return (
     <ThemeProvider theme={appTheme}>
       <CssBaseline />
-      <Router basename={basename}>
+      <Router 
+        basename={basename}
+        future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true
+        }}
+      >
         {/* Conditionally render the Header based on stable login state */}
         {isLoggedIn && <Header />}
         <div className="content">

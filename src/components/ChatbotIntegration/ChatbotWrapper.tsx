@@ -60,7 +60,7 @@ const ChatbotWrapper = forwardRef<{ endConversation: () => void }, ChatbotWrappe
       }}>
         {/* Chat Container */}
         <Box sx={{
-          background: isOpen ? 'rgba(255, 255, 255, 0.95)' : '#00695c',
+          background: isOpen ? 'rgba(255, 255, 255, 0.95)' : '#0B53C0',
           borderRadius: 4,
           boxShadow: isOpen 
             ? '0 8px 32px rgba(0, 0, 0, 0.12)' 
@@ -76,12 +76,12 @@ const ChatbotWrapper = forwardRef<{ endConversation: () => void }, ChatbotWrappe
             variant="text"
             onClick={() => setIsOpen(!isOpen)}
             sx={{
-              background: isOpen ? '#00695c !important' : 'transparent !important',
-              backgroundColor: isOpen ? '#00695c !important' : 'transparent !important',
+              background: isOpen ? '#0B53C0 !important' : 'transparent !important',
+              backgroundColor: isOpen ? '#0B53C0 !important' : 'transparent !important',
               color: 'white !important',
               px: 2.5,
               py: 1.5,
-              borderRadius: isOpen ? '16px 16px 0 0' : 3,
+              borderRadius: isOpen ? '16px 16px 0 0' : '12px', // More rounded corners
               textTransform: 'none',
               display: 'flex',
               alignItems: 'center',
@@ -90,27 +90,27 @@ const ChatbotWrapper = forwardRef<{ endConversation: () => void }, ChatbotWrappe
               width: '100%',
               justifyContent: 'flex-start',
               '&:hover': {
-                background: '#004d40 !important',
-                backgroundColor: '#004d40 !important',
-                boxShadow: isOpen ? 'none' : '0px 4px 12px rgba(0, 105, 92, 0.3)',
+                background: '#064a9e !important',
+                backgroundColor: '#064a9e !important',
+                boxShadow: isOpen ? 'none' : '0px 4px 12px rgba(11, 83, 192, 0.3)',
               },
               '&:active': {
-                background: '#004d40 !important',
-                backgroundColor: '#004d40 !important',
+                background: '#064a9e !important',
+                backgroundColor: '#064a9e !important',
               },
               '&:focus': {
-                background: isOpen ? '#00695c !important' : '#004d40 !important',
-                backgroundColor: isOpen ? '#00695c !important' : '#004d40 !important',
+                background: isOpen ? '#0B53C0 !important' : '#064a9e !important',
+                backgroundColor: isOpen ? '#0B53C0 !important' : '#064a9e !important',
               },
               '&.Mui-focusVisible': {
-                background: isOpen ? '#00695c !important' : '#004d40 !important',
-                backgroundColor: isOpen ? '#00695c !important' : '#004d40 !important',
+                background: isOpen ? '#0B53C0 !important' : '#064a9e !important',
+                backgroundColor: isOpen ? '#0B53C0 !important' : '#064a9e !important',
               },
               transition: 'all 0.2s ease-in-out'
             }}
           >
             {/* Chat Icon */}
-            <ChatIcon sx={{ fontSize: '1.5rem' }} />
+            <ChatIcon sx={{ fontSize: '1.5rem', color: 'white !important' }} />
             
             {/* Text Content */}
             <Box sx={{ 
@@ -127,7 +127,8 @@ const ChatbotWrapper = forwardRef<{ endConversation: () => void }, ChatbotWrappe
                   fontSize: '1rem',
                   fontWeight: 'bold',
                   mb: 0,
-                  lineHeight: 1.1
+                  lineHeight: 1.1,
+                  color: 'white !important'
                 }}
               >
                 Chat with PAT
@@ -139,7 +140,8 @@ const ChatbotWrapper = forwardRef<{ endConversation: () => void }, ChatbotWrappe
                   fontSize: '0.75rem',
                   opacity: 0.9,
                   lineHeight: 1,
-                  mt: 0.2
+                  mt: 0.2,
+                  color: 'white !important'
                 }}
               >
                 AI Tutor
@@ -147,7 +149,7 @@ const ChatbotWrapper = forwardRef<{ endConversation: () => void }, ChatbotWrappe
             </Box>
 
             {/* Expand/Collapse Icon */}
-            {isOpen ? <ExpandLess sx={{ fontSize: '1.2rem' }} /> : <ExpandMore sx={{ fontSize: '1.2rem' }} />}
+            {isOpen ? <ExpandLess sx={{ fontSize: '1.2rem', color: 'white !important' }} /> : <ExpandMore sx={{ fontSize: '1.2rem', color: 'white !important' }} />}
           </Button>
 
           {/* Chatbot Interface */}

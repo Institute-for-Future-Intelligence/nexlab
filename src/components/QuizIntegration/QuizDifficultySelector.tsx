@@ -80,7 +80,7 @@ const QuizDifficultySelector: React.FC<QuizDifficultySelectorProps> = ({
           fontWeight: 'bold',
           px: 3,
           py: 1.5,
-          borderRadius: 3,
+          borderRadius: '12px', // More rounded corners
           textTransform: 'none',
           '&:hover': {
             background: '#064a9e',

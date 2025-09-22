@@ -12,9 +12,7 @@ const rootElement = document.getElementById('root')!;
 const root = ReactDOM.createRoot(rootElement);
 
 root.render(
-  <React.StrictMode>
-    <UserProvider>
-      <App />
-    </UserProvider>
-  </React.StrictMode>
+  <UserProvider>
+    <App />
+  </UserProvider>
 );

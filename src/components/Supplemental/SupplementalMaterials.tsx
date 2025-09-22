@@ -3,7 +3,7 @@ import React, { useMemo } from 'react';
 import { Box, Chip } from '@mui/material';
 import Header from './Header';
 import AddMaterialButton from './AddMaterialButton';
-import MaterialGrid from './MaterialGrid';
+import MaterialGridModern from './MaterialGridModern';
 import CourseSelector from './CourseSelector';
 import { useUser } from '../../hooks/useUser';
 import { useSearchParams } from 'react-router-dom';
@@ -88,7 +88,7 @@ const SupplementalMaterials: React.FC = () => {
             {userDetails?.isAdmin && <AddMaterialButton selectedCourse={selectedCourse} />}
 
             {/* Show the Material Grid for the selected course */}
-            <MaterialGrid initialCourse={selectedCourse} />
+            <MaterialGridModern initialCourse={selectedCourse} />
           </Box>
         </Box>
       )}
