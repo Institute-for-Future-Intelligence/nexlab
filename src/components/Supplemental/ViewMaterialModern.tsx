@@ -13,7 +13,6 @@ import {
   Fade,
   Container,
   Paper,
-  Divider,
   Chip,
 } from '@mui/material';
 import {
@@ -22,7 +21,6 @@ import {
   GetApp as DownloadIcon,
   Description as FileIcon,
   Slideshow as SlideshowIcon,
-  Visibility as ViewIcon,
 } from '@mui/icons-material';
 import { Material } from '../../types/Material';
 import SideBarModern from './SideBarModern';
@@ -281,7 +279,7 @@ const ViewMaterialModern: React.FC = () => {
               color: designSystemTheme.palette.text.secondary,
             }}
           >
-            The requested material could not be found or you don't have permission to view it.
+            The requested material could not be found or you don&apos;t have permission to view it.
           </Typography>
         </Box>
       </Container>

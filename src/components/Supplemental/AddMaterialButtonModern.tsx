@@ -73,7 +73,7 @@ const AddMaterialButtonModern: React.FC<AddMaterialButtonModernProps> = ({
               mb: 2,
             }}
           >
-            Choose how you'd like to create your material
+            Choose how you&apos;d like to create your material
           </Typography>
 
           <Box sx={{ display: 'flex', gap: 2 }}>
