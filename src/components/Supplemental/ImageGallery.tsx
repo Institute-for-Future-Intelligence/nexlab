@@ -1,36 +1,59 @@
 // src/components/Supplemental/ImageGallery.tsx
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Skeleton, Fade } from '@mui/material';
-import { styled } from '@mui/material/styles';
 
 interface ImageGalleryProps {
   images: { url: string; title: string }[];
 }
 
 // Styled components for smooth transitions
-const ImageContainer = styled(Box)(({ theme }) => ({
-  marginBottom: theme.spacing(4),
-  textAlign: 'center',
-  position: 'relative'
-}));
+const ImageContainer = ({ children, ...props }: any) => (
+  <Box
+    {...props}
+    sx={{
+      marginBottom: 4,
+      textAlign: 'center',
+      position: 'relative'
+    }}
+  >
+    {children}
+  </Box>
+);
 
-const StyledImage = styled('img')(({ theme }) => ({
-  maxWidth: '100%',
-  maxHeight: '500px',
-  marginBottom: theme.spacing(1),
-  borderRadius: theme.spacing(1),
-  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-  transition: 'all 0.3s ease-in-out',
-  '&:hover': {
-    transform: 'scale(1.02)',
-    boxShadow: '0 8px 24px rgba(0,0,0,0.15)'
-  }
-}));
+const StyledImage = ({ src, alt, ...props }: any) => (
+  <img
+    src={src}
+    alt={alt}
+    {...props}
+    style={{
+      maxWidth: '100%',
+      maxHeight: '500px',
+      marginBottom: 8,
+      borderRadius: 8,
+      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+      transition: 'all 0.3s ease-in-out',
+      ...props.style
+    }}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.transform = 'scale(1.02)';
+      e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.15)';
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.transform = 'scale(1)';
+      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+    }}
+  />
+);
 
-const ImageSkeleton = styled(Skeleton)(({ theme }) => ({
-  borderRadius: theme.spacing(1),
-  marginBottom: theme.spacing(1)
-}));
+const ImageSkeleton = (props: any) => (
+  <Skeleton
+    {...props}
+    sx={{
+      borderRadius: 1,
+      marginBottom: 1
+    }}
+  />
+);
 
 interface SmartImageProps {
   src: string;

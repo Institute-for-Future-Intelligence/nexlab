@@ -12,4 +12,11 @@ export default muiStyled;
 // Ensure the styled function is available globally if needed
 if (typeof window !== 'undefined') {
   (window as any).styled_default = muiStyled;
+  (window as any).styled = muiStyled;
+}
+
+// Also ensure it's available in the global scope for module resolution
+if (typeof global !== 'undefined') {
+  (global as any).styled_default = muiStyled;
+  (global as any).styled = muiStyled;
 }

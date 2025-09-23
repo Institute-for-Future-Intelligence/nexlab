@@ -2,7 +2,6 @@ import React from 'react';
 import { Box, TextField, TextFieldProps, Paper, Typography, Chip } from '@mui/material';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { styled } from '@mui/material/styles';
 import { designSystemTheme, borderRadius } from '../../config/designSystem';
 import { Schedule as ScheduleIcon } from '@mui/icons-material';
 
@@ -11,26 +10,36 @@ interface DateTimePickerComponentProps {
   onChange: (date: Date | null) => void;
 }
 
-const CustomTextField = styled(TextField)(({ theme }) => ({
-  width: '100%',
-  '& .MuiOutlinedInput-root': {
-    borderRadius: borderRadius.xl,
-    backgroundColor: designSystemTheme.palette.background.paper,
-    '&:hover .MuiOutlinedInput-notchedOutline': {
-      borderColor: designSystemTheme.palette.primary.main,
-    },
-    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-      borderColor: designSystemTheme.palette.primary.main,
-      borderWidth: 2,
-    },
-  },
-  '& .MuiInputLabel-root': {
-    color: designSystemTheme.palette.text.secondary,
-    '&.Mui-focused': {
-      color: designSystemTheme.palette.primary.main,
-    },
-  },
-}));
+const CustomTextField = (props: TextFieldProps) => (
+  <TextField
+    {...props}
+    sx={{
+      width: '100%',
+      '& .MuiOutlinedInput-root': {
+        borderRadius: borderRadius.xl,
+        backgroundColor: designSystemTheme.palette.background.paper,
+        '&:hover .MuiOutlinedInput-notchedOutline': {
+          borderColor: designSystemTheme.palette.primary.main,
+        },
+        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+          borderColor: designSystemTheme.palette.primary.main,
+          borderWidth: 2,
+        },
+      },
+      '& .MuiInputBase-input': {
+        color: designSystemTheme.palette.text.primary,
+        fontSize: '1rem',
+        padding: '12px 14px',
+      },
+      '& .MuiInputLabel-root': {
+        color: designSystemTheme.palette.text.secondary,
+        '&.Mui-focused': {
+          color: designSystemTheme.palette.primary.main,
+        },
+      },
+    }}
+  />
+);
 
 const CustomInput = React.forwardRef<HTMLInputElement, TextFieldProps>((props, ref) => (
   <CustomTextField {...props} inputRef={ref} fullWidth />
