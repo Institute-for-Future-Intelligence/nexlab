@@ -329,7 +329,7 @@ const ViewMaterialModern: React.FC = () => {
         }}
       >
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <BackToAllMaterialsButton />
+          <BackToAllMaterialsButton courseId={materialData.course} />
           
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
             {/* Material Status */}

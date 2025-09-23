@@ -6,19 +6,23 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 interface BackToAllMaterialsButtonProps {
   returnToSelection?: boolean; // New prop: true = back to selection, false = back to course materials
+  courseId?: string; // Course ID for navigation context
 }
 
-const BackToAllMaterialsButton: React.FC<BackToAllMaterialsButtonProps> = ({ returnToSelection = false }) => {
+const BackToAllMaterialsButton: React.FC<BackToAllMaterialsButtonProps> = ({ returnToSelection = false, courseId }) => {
   const navigate = useNavigate();
 
   const [searchParams] = useSearchParams();
   const selectedCourse = searchParams.get('course'); // Retrieve course ID from URL
 
   const handleClick = () => {
-    if (returnToSelection || !selectedCourse) {
+    // Use courseId prop if provided, otherwise fall back to URL param
+    const effectiveCourseId = courseId || selectedCourse;
+    
+    if (returnToSelection || !effectiveCourseId) {
       navigate('/supplemental-materials'); // Go to course selection page
     } else {
-      navigate(`/supplemental-materials?course=${selectedCourse}`); // Go back to course materials
+      navigate(`/supplemental-materials?course=${effectiveCourseId}`); // Go back to course materials
     }
   };
 

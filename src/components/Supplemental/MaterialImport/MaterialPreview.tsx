@@ -12,7 +12,8 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  Chip
+  Chip,
+  LinearProgress
 } from '@mui/material';
 import { 
   ExpandMore as ExpandMoreIcon,
@@ -30,13 +31,17 @@ interface MaterialPreviewProps {
   convertedMaterial: Omit<Material, 'id' | 'timestamp'> | null;
   onMaterialReady?: (materialData: any) => void;
   onCancel?: () => void;
+  imageUploadProgress?: { completed: number; total: number } | null;
+  isSaving?: boolean;
 }
 
 const MaterialPreview: React.FC<MaterialPreviewProps> = ({
   extractedText,
   convertedMaterial,
   onMaterialReady,
-  onCancel
+  onCancel,
+  imageUploadProgress,
+  isSaving = false
 }) => {
   const [activeTab, setActiveTab] = useState(0);
   const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({});
@@ -297,6 +302,39 @@ const MaterialPreview: React.FC<MaterialPreviewProps> = ({
         {activeTab === 1 && renderStructuredPreview()}
       </Box>
 
+      {/* Image Upload Progress */}
+      {imageUploadProgress && (
+        <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
+          <Paper
+            elevation={1}
+            sx={{
+              p: 2,
+              backgroundColor: 'primary.50',
+              borderRadius: 2,
+              border: '1px solid',
+              borderColor: 'primary.200',
+            }}
+          >
+            <Typography variant="body2" sx={{ mb: 1, color: 'primary.main', fontWeight: 'medium' }}>
+              📸 Uploading images... ({imageUploadProgress.completed} of {imageUploadProgress.total})
+            </Typography>
+            <LinearProgress
+              variant="determinate"
+              value={(imageUploadProgress.completed / imageUploadProgress.total) * 100}
+              sx={{
+                borderRadius: 2,
+                height: 8,
+                backgroundColor: 'primary.100',
+                '& .MuiLinearProgress-bar': {
+                  borderRadius: 2,
+                  backgroundColor: 'primary.main',
+                },
+              }}
+            />
+          </Paper>
+        </Box>
+      )}
+
       {/* Actions */}
       {convertedMaterial && (
         <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider', display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
@@ -304,6 +342,7 @@ const MaterialPreview: React.FC<MaterialPreviewProps> = ({
             variant="outlined"
             onClick={onCancel}
             startIcon={<CancelIcon />}
+            disabled={isSaving}
           >
             Cancel
           </Button>
@@ -312,8 +351,9 @@ const MaterialPreview: React.FC<MaterialPreviewProps> = ({
             onClick={handleSaveMaterial}
             startIcon={<SaveIcon />}
             color="success"
+            disabled={isSaving}
           >
-            Save Material
+            {isSaving ? 'Saving...' : 'Save Material'}
           </Button>
         </Box>
       )}

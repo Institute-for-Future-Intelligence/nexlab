@@ -2,7 +2,7 @@
 import React, { useMemo } from 'react';
 import { Box, Chip } from '@mui/material';
 import Header from './Header';
-import AddMaterialButton from './AddMaterialButton';
+import AddMaterialButtonModern from './AddMaterialButtonModern';
 import MaterialGridModern from './MaterialGridModern';
 import CourseSelector from './CourseSelector';
 import { useUser } from '../../hooks/useUser';
@@ -85,7 +85,7 @@ const SupplementalMaterials: React.FC = () => {
           {/* Show Add Material Button for Educators & Super-Admins */}
           <Box className="supplemental-content">
             {/* Add Material Button for Admins */}
-            {userDetails?.isAdmin && <AddMaterialButton selectedCourse={selectedCourse} />}
+            {userDetails?.isAdmin && <AddMaterialButtonModern selectedCourse={selectedCourse} />}
 
             {/* Show the Material Grid for the selected course */}
             <MaterialGridModern initialCourse={selectedCourse} />

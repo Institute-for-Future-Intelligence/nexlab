@@ -9,6 +9,8 @@ interface MaterialImportWrapperProps {
   onMaterialReady: (materialData: Omit<Material, 'id' | 'timestamp'>) => void;
   onCancel: () => void;
   onError: (error: Error, errorInfo: React.ErrorInfo) => void;
+  imageUploadProgress?: { completed: number; total: number } | null;
+  isSaving?: boolean;
 }
 
 const MaterialImportWrapper: React.FC<MaterialImportWrapperProps> = ({
@@ -16,7 +18,9 @@ const MaterialImportWrapper: React.FC<MaterialImportWrapperProps> = ({
   authorId,
   onMaterialReady,
   onCancel,
-  onError
+  onError,
+  imageUploadProgress,
+  isSaving = false
 }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -107,6 +111,8 @@ const MaterialImportWrapper: React.FC<MaterialImportWrapperProps> = ({
         authorId={authorId}
         onMaterialReady={onMaterialReady}
         onCancel={onCancel}
+        imageUploadProgress={imageUploadProgress}
+        isSaving={isSaving}
       />
     </MaterialImportErrorBoundary>
   );

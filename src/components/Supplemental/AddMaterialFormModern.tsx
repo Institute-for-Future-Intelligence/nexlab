@@ -27,8 +27,7 @@ import { useNavigate } from 'react-router-dom';
 import { getFirestore, collection, addDoc, updateDoc, doc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { useUser } from '../../hooks/useUser';
 import { v4 as uuidv4 } from 'uuid';
-import { convertMaterialWithImageUpload } from '../../stores/materialImportStore';
-import { useMaterialImportStore } from '../../stores/materialImportStore';
+import { convertMaterialWithImageUpload, useMaterialImportStore } from '../../stores/materialImportStore';
 import { useSearchParams } from 'react-router-dom';
 import { Material, Section } from '../../types/Material';
 import { designSystemTheme, borderRadius } from '../../config/designSystem';
@@ -54,8 +53,6 @@ import {
 // Import other components
 import BackToAllMaterialsButton from './BackToAllMaterialsButton';
 import ImageManager from './ImageManager';
-import DeleteIcon from '@mui/icons-material/Delete';
-import ImageTitle from './ImageTitle';
 import LinkManager from './LinkManager';
 import TextEditor from './TextEditor';
 import { useAdjacentSectionPreloader } from '../../hooks/useImagePreloader';
@@ -109,6 +106,7 @@ const AddMaterialFormModern: React.FC<AddMaterialFormModernProps> = ({ materialD
   const [importMode, setImportMode] = useState<'manual' | 'ai'>(mode as 'manual' | 'ai');
   const [isAIImported, setIsAIImported] = useState(false);
   const [imageUploadProgress, setImageUploadProgress] = useState<{ completed: number; total: number } | null>(null);
+  const [isSavingMaterial, setIsSavingMaterial] = useState(false);
   const [imageUploadError, setImageUploadError] = useState<string | null>(null);
   const [isRetryingUpload, setIsRetryingUpload] = useState(false);
 
@@ -146,6 +144,8 @@ const AddMaterialFormModern: React.FC<AddMaterialFormModernProps> = ({ materialD
       );
       
       if (isAIImported && hasUnuploadedImages) {
+        console.log('🚀 Starting AI material creation with image upload...');
+        
         // Create material first to get ID for image uploads
         const docRef = await addDoc(collection(db, 'materials'), {
           course,
@@ -159,18 +159,22 @@ const AddMaterialFormModern: React.FC<AddMaterialFormModernProps> = ({ materialD
           scheduledTimestamp: scheduleTimestamp ? Timestamp.fromDate(scheduleTimestamp) : null,
         });
 
+        console.log('📄 Material created with ID:', docRef.id);
         setMaterialId(docRef.id);
 
         // Upload images and update material
+        console.log('🖼️ Starting image upload process...');
         const updatedSections = await convertMaterialWithImageUpload(
           course,
           userDetails?.uid || '',
           docRef.id,
           (completed, total) => {
+            console.log(`📤 Image upload progress: ${completed}/${total}`);
             setImageUploadProgress({ completed, total });
           }
         );
 
+        console.log('✅ Image upload complete, updating material...');
         await updateDoc(docRef, {
           sections: updatedSections,
           published: shouldPublish,
@@ -178,6 +182,12 @@ const AddMaterialFormModern: React.FC<AddMaterialFormModernProps> = ({ materialD
         });
 
         setImageUploadProgress(null);
+        setIsAIImported(false); // Reset AI import flag to prevent duplicate processing
+        
+        // Reset the material import store to clear any cached data
+        const { resetImport } = useMaterialImportStore.getState();
+        resetImport();
+        
         const message = shouldPublish 
           ? 'Material published successfully!' 
           : scheduleTimestamp 
@@ -460,7 +470,7 @@ const AddMaterialFormModern: React.FC<AddMaterialFormModernProps> = ({ materialD
         }}
       >
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'stretch', md: 'center' }, mb: 3, gap: 2 }}>
-          <BackToAllMaterialsButton />
+          <BackToAllMaterialsButton courseId={materialData?.course || course} />
           
           <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, alignItems: 'center', width: { xs: '100%', md: 'auto' } }}>
             {/* Mode Toggle */}
@@ -623,12 +633,81 @@ const AddMaterialFormModern: React.FC<AddMaterialFormModernProps> = ({ materialD
               <MaterialImportWrapper
                 courseId={course}
                 authorId={userDetails?.uid || ''}
-                onMaterialReady={(material) => {
-                  setTitle(material.title);
-                  setHeader(material.header);
-                  setFooter(material.footer);
-                  setSections(material.sections);
-                  setIsAIImported(true);
+                imageUploadProgress={imageUploadProgress}
+                isSaving={isSavingMaterial}
+                onMaterialReady={async (material) => {
+                  console.log('🎯 AI Material ready callback triggered:', material);
+                  
+                  try {
+                    setIsSavingMaterial(true);
+                    setImageUploadProgress({ completed: 0, total: 1 }); // Initialize progress
+                    // Generate a temporary material ID for image upload (will be replaced with Firestore ID)
+                    const tempMaterialId = uuidv4();
+                    
+                    // Convert AI data to Material format with image upload
+                    const materialWithImages = await convertMaterialWithImageUpload(
+                      course,
+                      userDetails?.uid || '',
+                      tempMaterialId,
+                      (completed, total) => {
+                        console.log(`📸 Image upload progress: ${completed}/${total}`);
+                        setImageUploadProgress({ completed, total });
+                      }
+                    );
+                    
+                    console.log('🎯 Material with images converted:', materialWithImages);
+                    
+                    // Ensure sections is an array
+                    const sanitizedMaterial = {
+                      ...materialWithImages,
+                      sections: Array.isArray(materialWithImages.sections) 
+                        ? materialWithImages.sections 
+                        : []
+                    };
+                    
+                    // Save the material to Firestore (without the id field - let Firestore generate it)
+                    const materialRef = await addDoc(collection(db, 'materials'), {
+                      ...sanitizedMaterial,
+                      timestamp: serverTimestamp(),
+                      scheduledTimestamp: null
+                    });
+                    
+                    console.log('🎯 Material saved to Firestore with ID:', materialRef.id);
+                    
+                    // Update the material to include the Firestore document ID
+                    await updateDoc(materialRef, {
+                      id: materialRef.id
+                    });
+                    
+                    console.log('🎯 Material updated with correct ID:', materialRef.id);
+                    
+                    // Show success message
+                    setSnackbarMessage('AI-imported material saved successfully!');
+                    setSnackbarSeverity('success');
+                    setOpenSnackbar(true);
+                    
+                    // Reset AI import state and close import window
+                    setIsAIImported(false);
+                    useMaterialImportStore.getState().resetImport();
+                    setImportMode('manual'); // Close AI import window
+                    
+                    // Clean up progress state
+                    setIsSavingMaterial(false);
+                    setImageUploadProgress(null);
+                    
+                    // Navigate to edit mode of the saved material
+                    navigate(`/edit-material/${materialRef.id}`);
+                    
+                  } catch (error) {
+                    console.error('❌ Failed to save AI material:', error);
+                    setSnackbarMessage('Failed to save AI-imported material. Please try again.');
+                    setSnackbarSeverity('error');
+                    setOpenSnackbar(true);
+                    
+                    // Clean up progress state
+                    setIsSavingMaterial(false);
+                    setImageUploadProgress(null);
+                  }
                 }}
                 onCancel={() => setImportMode('manual')}
                 onError={(error, errorInfo) => {
@@ -714,6 +793,38 @@ const AddMaterialFormModern: React.FC<AddMaterialFormModernProps> = ({ materialD
                     value={scheduledTimestamp}
                     onChange={setScheduledTimestamp}
                   />
+                </Box>
+              )}
+
+              {/* Image Upload Progress */}
+              {imageUploadProgress && (
+                <Box sx={{ mb: 3 }}>
+                  <Paper
+                    elevation={1}
+                    sx={{
+                      p: 2,
+                      backgroundColor: designSystemTheme.palette.background.paper,
+                      borderRadius: borderRadius.xl,
+                      border: `1px solid ${designSystemTheme.palette.divider}`,
+                    }}
+                  >
+                    <Typography variant="body2" sx={{ mb: 1, color: designSystemTheme.palette.text.secondary }}>
+                      Uploading images... ({imageUploadProgress.completed} of {imageUploadProgress.total})
+                    </Typography>
+                    <LinearProgress
+                      variant="determinate"
+                      value={(imageUploadProgress.completed / imageUploadProgress.total) * 100}
+                      sx={{
+                        borderRadius: borderRadius.xl,
+                        height: 8,
+                        backgroundColor: designSystemTheme.palette.grey[200],
+                        '& .MuiLinearProgress-bar': {
+                          borderRadius: borderRadius.xl,
+                          backgroundColor: designSystemTheme.palette.primary.main,
+                        },
+                      }}
+                    />
+                  </Paper>
                 </Box>
               )}
 
