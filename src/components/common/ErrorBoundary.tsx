@@ -1,125 +1,72 @@
-import { Component, ErrorInfo, ReactNode } from 'react';
-import { Box, Typography, Button, Paper, Alert } from '@mui/material';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-import RefreshIcon from '@mui/icons-material/Refresh';
+// src/components/common/ErrorBoundary.tsx
+import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Box, Typography, Button, Paper } from '@mui/material';
+import { Refresh as RefreshIcon } from '@mui/icons-material';
 
 interface Props {
   children: ReactNode;
-  fallbackComponent?: ReactNode;
-  showDetails?: boolean;
-  onError?: (error: Error, errorInfo: ErrorInfo) => void;
+  fallback?: ReactNode;
 }
 
 interface State {
   hasError: boolean;
   error?: Error;
-  errorInfo?: ErrorInfo;
 }
 
 class ErrorBoundary extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = { hasError: false };
-  }
+  public state: State = {
+    hasError: false,
+  };
 
-  static getDerivedStateFromError(error: Error): State {
-    // Update state so the next render will show the fallback UI
+  public static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // Log error details
+  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('ErrorBoundary caught an error:', error, errorInfo);
-    
-    // Update state with error details
-    this.setState({
-      error,
-      errorInfo
-    });
-
-    // Call optional error handler
-    if (this.props.onError) {
-      this.props.onError(error, errorInfo);
-    }
   }
 
-  handleRetry = () => {
-    this.setState({ hasError: false, error: undefined, errorInfo: undefined });
-  };
-
-  render() {
+  public render() {
     if (this.state.hasError) {
-      // Custom fallback component
-      if (this.props.fallbackComponent) {
-        return this.props.fallbackComponent;
+      if (this.props.fallback) {
+        return this.props.fallback;
       }
 
-      // Default error UI
       return (
-        <Paper 
-          elevation={3} 
-          sx={{ 
-            p: 4, 
-            m: 2, 
-            textAlign: 'center',
-            backgroundColor: '#fafafa',
-            border: '1px solid #e0e0e0'
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '50vh',
+            p: 4,
           }}
         >
-          <ErrorOutlineIcon 
-            color="error" 
-            sx={{ fontSize: 48, mb: 2 }} 
-          />
-          
-          <Typography variant="h5" gutterBottom color="error">
-            Something went wrong
-          </Typography>
-          
-          <Typography variant="body1" sx={{ mb: 3, color: 'text.secondary' }}>
-            We encountered an unexpected error. Please try refreshing the page or contact support if the problem persists.
-          </Typography>
-
-          <Box sx={{ mb: 3 }}>
+          <Paper
+            elevation={2}
+            sx={{
+              p: 4,
+              textAlign: 'center',
+              maxWidth: 500,
+              width: '100%',
+            }}
+          >
+            <Typography variant="h5" color="error" gutterBottom>
+              Something went wrong
+            </Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+              An error occurred while loading this component. Please try refreshing the page.
+            </Typography>
             <Button
               variant="contained"
-              color="primary"
               startIcon={<RefreshIcon />}
-              onClick={this.handleRetry}
-              sx={{ mr: 2 }}
-            >
-              Try Again
-            </Button>
-            
-            <Button
-              variant="outlined"
-              color="primary"
               onClick={() => window.location.reload()}
             >
               Refresh Page
             </Button>
-          </Box>
-
-          {this.props.showDetails && this.state.error && (
-            <Alert severity="error" sx={{ textAlign: 'left', mt: 2 }}>
-              <Typography variant="subtitle2" gutterBottom>
-                Error Details:
-              </Typography>
-              <Typography variant="body2" component="pre" sx={{ 
-                whiteSpace: 'pre-wrap', 
-                fontSize: '0.75rem',
-                fontFamily: 'monospace'
-              }}>
-                {this.state.error.message}
-                {this.state.errorInfo?.componentStack && (
-                  <>
-                    {'\n\nComponent Stack:'}
-                    {this.state.errorInfo.componentStack}
-                  </>
-                )}
-              </Typography>
-            </Alert>
-          )}
-        </Paper>
+          </Paper>
+        </Box>
       );
     }
 
@@ -127,4 +74,4 @@ class ErrorBoundary extends Component<Props, State> {
   }
 }
 
-export default ErrorBoundary; 
+export default ErrorBoundary;

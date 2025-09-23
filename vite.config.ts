@@ -15,8 +15,7 @@ export default defineConfig(({ command }) => ({
       '@mui/icons-material',
       '@mui/system',
       '@mui/material/styles',
-      '@mui/styled-engine',
-      '@mui/base'
+      '@mui/styled-engine'
     ],
     force: true,
     esbuildOptions: {

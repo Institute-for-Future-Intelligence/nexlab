@@ -306,7 +306,14 @@ export const uploadExtractedImagesWithProgress = async (
   const imagesToUpload = images.filter(img => img.imageBlob);
   const results: UploadedImage[] = [];
   
-  console.log(`Starting batch upload of ${imagesToUpload.length} images (batch size: ${batchSize})`);
+  console.log(`🚀 Starting batch upload of ${imagesToUpload.length} images (batch size: ${batchSize})`);
+  console.log('📋 Images to upload:', imagesToUpload.map((img, index) => ({
+    index: index + 1,
+    slideNumber: img.slideNumber,
+    description: img.description,
+    blobSize: img.imageBlob?.size,
+    blobType: img.imageBlob?.type
+  })));
   
   // Process images in batches
   for (let batchStart = 0; batchStart < imagesToUpload.length; batchStart += batchSize) {

@@ -1198,22 +1198,36 @@ Return ONLY a JSON object with additional sections, images, or links:
     onImageUploadProgress?: (completed: number, total: number) => void
   ): Promise<Omit<Material, 'id' | 'timestamp'>> {
     
-    // Upload extracted images to Firebase Storage
-    let uploadedImages: UploadedImage[] = [];
-    if (extractionMetadata?.images) {
-      try {
-        console.log(`Uploading ${extractionMetadata.images.length} extracted images...`);
-        uploadedImages = await uploadExtractedImagesWithProgress(
-          extractionMetadata.images,
-          materialId,
-          onImageUploadProgress
-        );
-        console.log(`Successfully uploaded ${uploadedImages.length} images`);
-      } catch (error) {
-        console.error('Failed to upload extracted images:', error);
-        // Continue with placeholders if upload fails
+      // Upload extracted images to Firebase Storage
+      let uploadedImages: UploadedImage[] = [];
+      if (extractionMetadata?.images) {
+        try {
+          console.log(`🚀 Starting image upload process for ${extractionMetadata.images.length} extracted images...`);
+          console.log('📋 Image metadata:', extractionMetadata.images.map(img => ({
+            slideNumber: img.slideNumber,
+            description: img.description,
+            hasBlob: !!img.imageBlob,
+            blobSize: img.imageBlob?.size
+          })));
+          
+          uploadedImages = await uploadExtractedImagesWithProgress(
+            extractionMetadata.images,
+            materialId,
+            onImageUploadProgress
+          );
+          console.log(`✅ Successfully uploaded ${uploadedImages.length} images to Firebase Storage`);
+          console.log('📸 Uploaded image URLs:', uploadedImages.map(img => ({
+            title: img.title,
+            url: img.url.substring(0, 100) + '...',
+            slideNumber: img.slideNumber
+          })));
+        } catch (error) {
+          console.error('❌ Failed to upload extracted images:', error);
+          // Continue with placeholders if upload fails
+        }
+      } else {
+        console.log('ℹ️ No images to upload - extractionMetadata.images is empty or undefined');
       }
-    }
 
     // Helper function to create placeholder image URLs
     const createPlaceholderImageUrl = (title: string, width = 400, height = 300): string => {

@@ -1,9 +1,26 @@
 // src/components/Supplemental/LinkManager.tsx
 import React from 'react';
-import { Box, TextField, Button, IconButton, Typography } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
-
-import LinkIcon from '@mui/icons-material/Link';
+import { 
+  Box, 
+  TextField, 
+  Button, 
+  IconButton, 
+  Typography, 
+  Card, 
+  CardContent, 
+  CardActions,
+  Chip,
+  Grid,
+  Tooltip,
+  Divider
+} from '@mui/material';
+import { 
+  Delete as DeleteIcon,
+  Add as AddIcon,
+  Link as LinkIcon,
+  OpenInNew as OpenInNewIcon,
+} from '@mui/icons-material';
+import { designSystemTheme, borderRadius } from '../../config/designSystem';
 
 interface Link {
   title: string;
@@ -27,54 +44,163 @@ const LinkManager: React.FC<LinkManagerProps> = ({ links, onLinksChange }) => {
     onLinksChange(updatedLinks);
   };
 
+  const handleLinkChange = (index: number, field: keyof Link, value: string) => {
+    const updatedLinks = [...links];
+    updatedLinks[index][field] = value;
+    onLinksChange(updatedLinks);
+  };
+
+  const isValidUrl = (url: string) => {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   return (
     <Box>
-      <Box sx={{ mt: 2, display: 'flex', alignItems: 'center' }}>
-        <LinkIcon sx={{ mr: 1 }} />
-        <Typography variant="h6">Links</Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+        <LinkIcon sx={{ mr: 1, color: designSystemTheme.palette.primary.main }} />
+        <Typography variant="h6" sx={{ fontWeight: 600, color: designSystemTheme.palette.text.primary }}>
+          Links
+        </Typography>
+        <Chip 
+          label={`${links.length} link${links.length !== 1 ? 's' : ''}`} 
+          size="small" 
+          sx={{ ml: 2 }}
+        />
       </Box>
-      <Box sx={{ mt: 1 }}>
-        {links.map((link, index) => (
-          <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-            <TextField
-              label="Title"
-              value={link.title}
-              onChange={(e) => {
-                const updatedLinks = [...links];
-                updatedLinks[index].title = e.target.value;
-                onLinksChange(updatedLinks);
-              }}
-              sx={{ flexBasis: '20%', mr: 1 }}
-            />
-            <TextField
-              label="URL"
-              value={link.url}
-              onChange={(e) => {
-                const updatedLinks = [...links];
-                updatedLinks[index].url = e.target.value;
-                onLinksChange(updatedLinks);
-              }}
-              sx={{ flexBasis: '40%', mr: 1 }}
-            />
-            <TextField
-              label="Description"
-              value={link.description}
-              onChange={(e) => {
-                const updatedLinks = [...links];
-                updatedLinks[index].description = e.target.value;
-                onLinksChange(updatedLinks);
-              }}
-              sx={{ flexBasis: '40%' }}
-            />
-            <IconButton onClick={() => handleDeleteLink(index)}>
-              <DeleteIcon />
-            </IconButton>
-          </Box>
-        ))}
-      </Box>
-      <Button variant="contained" onClick={handleAddLink} sx={{ mt: 2 }}>
+
+      <Button 
+        variant="contained" 
+        onClick={handleAddLink}
+        startIcon={<AddIcon />}
+        sx={{
+          mb: 3,
+          textTransform: 'none',
+          borderRadius: borderRadius.xl,
+        }}
+      >
         Add Link
       </Button>
+
+      {links.length > 0 && (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {links.map((link, index) => (
+            <Card
+              key={index}
+              sx={{
+                borderRadius: borderRadius.xl,
+                border: `1px solid ${designSystemTheme.palette.divider}`,
+                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                '&:hover': {
+                  boxShadow: designSystemTheme.shadows[2],
+                },
+              }}
+            >
+              <CardContent sx={{ p: 3 }}>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Link Title"
+                      value={link.title}
+                      onChange={(e) => handleLinkChange(index, 'title', e.target.value)}
+                      variant="outlined"
+                      size="small"
+                      placeholder="Enter link title"
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: borderRadius.xl,
+                        },
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="URL"
+                      value={link.url}
+                      onChange={(e) => handleLinkChange(index, 'url', e.target.value)}
+                      variant="outlined"
+                      size="small"
+                      placeholder="https://example.com"
+                      error={link.url && !isValidUrl(link.url)}
+                      helperText={link.url && !isValidUrl(link.url) ? 'Please enter a valid URL' : ''}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: borderRadius.xl,
+                        },
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Description (Optional)"
+                      value={link.description}
+                      onChange={(e) => handleLinkChange(index, 'description', e.target.value)}
+                      variant="outlined"
+                      size="small"
+                      multiline
+                      rows={2}
+                      placeholder="Enter link description"
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: borderRadius.xl,
+                        },
+                      }}
+                    />
+                  </Grid>
+                </Grid>
+              </CardContent>
+              
+              <Divider />
+              
+              <CardActions sx={{ p: 2, justifyContent: 'space-between' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  {link.url && isValidUrl(link.url) && (
+                    <Tooltip title="Open link" arrow>
+                      <IconButton
+                        size="small"
+                        onClick={() => window.open(link.url, '_blank')}
+                        sx={{
+                          color: designSystemTheme.palette.primary.main,
+                          '&:hover': {
+                            backgroundColor: designSystemTheme.palette.primary.light,
+                          },
+                        }}
+                      >
+                        <OpenInNewIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                  <Typography variant="caption" color="text.secondary">
+                    Link {index + 1}
+                  </Typography>
+                </Box>
+                
+                <Tooltip title="Delete link" arrow>
+                  <IconButton
+                    size="small"
+                    onClick={() => handleDeleteLink(index)}
+                    sx={{
+                      color: designSystemTheme.palette.error.main,
+                      '&:hover': {
+                        backgroundColor: designSystemTheme.palette.error.light,
+                      },
+                    }}
+                  >
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </CardActions>
+            </Card>
+          ))}
+        </Box>
+      )}
     </Box>
   );
 };

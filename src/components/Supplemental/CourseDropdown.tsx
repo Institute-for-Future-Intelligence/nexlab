@@ -7,9 +7,10 @@ import { useUser } from '../../hooks/useUser';
 interface CourseDropdownProps {
   value: string;
   onChange: (value: string) => void;
+  disabled?: boolean;
 }
 
-const CourseDropdown: React.FC<CourseDropdownProps> = ({ value, onChange }) => {
+const CourseDropdown: React.FC<CourseDropdownProps> = ({ value, onChange, disabled = false }) => {
   const [adminCourses, setAdminCourses] = useState<{ id: string; number: string; title: string }[]>([]);
   const [loading, setLoading] = useState(true); // Add loading state
   const { userDetails } = useUser();
@@ -53,6 +54,7 @@ const CourseDropdown: React.FC<CourseDropdownProps> = ({ value, onChange }) => {
       value={isValidValue ? value : ''}
       onChange={(e) => onChange(e.target.value)}
       fullWidth
+      disabled={disabled}
       sx={{ mb: 2 }}
       error={!isValidValue && value !== ''}
       helperText={!isValidValue && value !== '' ? 'Invalid course selected' : ''}

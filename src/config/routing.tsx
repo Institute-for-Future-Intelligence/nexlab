@@ -11,9 +11,9 @@ const SupplementalMaterials = lazy(() => import('../components/Supplemental/Supp
 
 // Direct imports for smaller components
 import SelectionPage from '../components/SelectionPage';
-import AddMaterialForm from '../components/Supplemental/AddMaterialForm';
+import AddMaterialForm from '../components/Supplemental/AddMaterialFormModern';
 import EditMaterialForm from '../components/Supplemental/EditMaterialForm';
-import ViewMaterial from '../components/Supplemental/ViewMaterial';
+import ViewMaterial from '../components/Supplemental/ViewMaterialModern';
 import AddMessage from '../components/Messages/AddMessage';
 import EditMessage from '../components/Messages/EditMessage';
 

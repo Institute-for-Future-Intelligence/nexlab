@@ -13,13 +13,17 @@ interface MaterialImportProps {
   authorId: string;
   onMaterialReady?: (materialData: any) => void;
   onCancel?: () => void;
+  imageUploadProgress?: { completed: number; total: number } | null;
+  isSaving?: boolean;
 }
 
 const MaterialImport: React.FC<MaterialImportProps> = ({
   courseId,
   authorId,
   onMaterialReady,
-  onCancel
+  onCancel,
+  imageUploadProgress,
+  isSaving = false
 }) => {
   const { 
     uploadedFile, 
@@ -128,6 +132,8 @@ const MaterialImport: React.FC<MaterialImportProps> = ({
               convertedMaterial={convertedMaterial}
               onMaterialReady={onMaterialReady}
               onCancel={onCancel}
+              imageUploadProgress={imageUploadProgress}
+              isSaving={isSaving}
             />
           </Box>
         )}
