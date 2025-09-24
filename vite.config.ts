@@ -37,10 +37,11 @@ export default defineConfig(({ command }) => ({
     open: true,
     port: 3001,
     host: true,
-    headers: {
-      'Cross-Origin-Embedder-Policy': 'credentialless',
-      'Cross-Origin-Opener-Policy': 'same-origin',
-    },
+    // Removed CORS headers that might interfere with Firebase Auth popups
+    // headers: {
+    //   'Cross-Origin-Embedder-Policy': 'credentialless',
+    //   'Cross-Origin-Opener-Policy': 'same-origin',
+    // },
   },
   build: {
     outDir: 'dist',

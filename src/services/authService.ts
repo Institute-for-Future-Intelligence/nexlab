@@ -40,6 +40,11 @@ class FirebaseAuthService implements AuthService {
       const persistence = keepSignedIn ? browserLocalPersistence : browserSessionPersistence;
       await setPersistence(this.auth!, persistence);
       
+      // Configure Google provider with additional scopes if needed
+      this.googleProvider!.setCustomParameters({
+        prompt: 'select_account'
+      });
+      
       // Sign in with popup
       const authResult = await signInWithPopup(this.auth!, this.googleProvider!);
       
@@ -51,6 +56,15 @@ class FirebaseAuthService implements AuthService {
     }, { operation: 'google_sign_in', keepSignedIn });
 
     if (result.error) {
+      // Provide more specific error messages
+      const errorCode = (result.error.originalError as any)?.code;
+      if (errorCode === 'auth/popup-closed-by-user') {
+        throw new Error('Sign-in was cancelled. Please try again and complete the sign-in process.');
+      } else if (errorCode === 'auth/popup-blocked') {
+        throw new Error('Popup was blocked by your browser. Please allow popups for this site and try again.');
+      } else if (errorCode === 'auth/network-request-failed') {
+        throw new Error('Network error. Please check your internet connection and try again.');
+      }
       throw result.error;
     }
     
