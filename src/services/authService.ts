@@ -40,9 +40,10 @@ class FirebaseAuthService implements AuthService {
       const persistence = keepSignedIn ? browserLocalPersistence : browserSessionPersistence;
       await setPersistence(this.auth!, persistence);
       
-      // Configure Google provider with additional scopes if needed
+      // Configure Google provider - only force account selection if needed
+      // Don't use prompt: 'select_account' as it can cause issues with single-account scenarios
       this.googleProvider!.setCustomParameters({
-        prompt: 'select_account'
+        // prompt: 'select_account' // Removed - causes issues when only one account is logged in
       });
       
       // Sign in with popup
@@ -58,12 +59,20 @@ class FirebaseAuthService implements AuthService {
     if (result.error) {
       // Provide more specific error messages
       const errorCode = (result.error.originalError as any)?.code;
+      console.error('Google Auth Error:', {
+        code: errorCode,
+        message: result.error.message,
+        originalError: result.error.originalError
+      });
+      
       if (errorCode === 'auth/popup-closed-by-user') {
-        throw new Error('Sign-in was cancelled. Please try again and complete the sign-in process.');
+        throw new Error('Sign-in was cancelled. Please try again and complete the sign-in process. If you only have one Google account logged in, try logging out and back in to your Google account.');
       } else if (errorCode === 'auth/popup-blocked') {
         throw new Error('Popup was blocked by your browser. Please allow popups for this site and try again.');
       } else if (errorCode === 'auth/network-request-failed') {
         throw new Error('Network error. Please check your internet connection and try again.');
+      } else if (errorCode === 'auth/account-exists-with-different-credential') {
+        throw new Error('An account already exists with this email address. Please use a different sign-in method.');
       }
       throw result.error;
     }
