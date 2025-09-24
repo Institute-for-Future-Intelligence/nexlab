@@ -8,6 +8,7 @@ import RouteErrorBoundary from '../components/common/RouteErrorBoundary';
 const Login = lazy(() => import('../components/Login/index'));
 const Dashboard = lazy(() => import('../components/Dashboard/index'));
 const SupplementalMaterials = lazy(() => import('../components/Supplemental/SupplementalMaterials'));
+const MessagesPage = lazy(() => import('../components/Messages/MessagesPage'));
 
 // Direct imports for smaller components
 import SelectionPage from '../components/SelectionPage';
@@ -71,6 +72,10 @@ export const createRoutes = (userDetails: any, isSuperAdmin: boolean): RouteObje
     ) : (
       <PublicRoute element={<Login />} />
     )
+  },
+  {
+    path: "/messages",
+    element: <ProtectedRoute element={MessagesPage} />
   },
   {
     path: "/laboratory-notebooks",

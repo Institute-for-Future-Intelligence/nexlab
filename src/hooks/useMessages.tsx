@@ -10,16 +10,23 @@ export interface UseMessagesReturn {
   deleteMessage: (id: string) => Promise<void>;
   togglePinMessage: (messageId: string, currentPinStatus: boolean) => Promise<void>;
   clearError: () => void;
+  initializeMessages: () => void;
 }
 
-export const useMessages = (): UseMessagesReturn => {
+export const useMessages = (lazyLoad: boolean = false): UseMessagesReturn => {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!lazyLoad); // Start with loading false if lazy loading
   const [error, setError] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
   const { handleError } = useErrorHandler();
   const { showError, showSuccess } = useNotificationStore();
 
   useEffect(() => {
+    // If lazy loading is enabled and we haven't initialized yet, don't load messages
+    if (lazyLoad && !isInitialized) {
+      return;
+    }
+
     // Try to load cached messages first
     const cachedMessages = messageService.getCachedMessages();
     if (cachedMessages) {
@@ -40,7 +47,15 @@ export const useMessages = (): UseMessagesReturn => {
     return () => {
       unsubscribe();
     };
-  }, []);
+  }, [lazyLoad, isInitialized]);
+
+  // Method to manually initialize messages loading
+  const initializeMessages = () => {
+    if (!isInitialized) {
+      setIsInitialized(true);
+      setLoading(true);
+    }
+  };
 
   const deleteMessage = async (id: string): Promise<void> => {
     try {
@@ -81,6 +96,7 @@ export const useMessages = (): UseMessagesReturn => {
     error,
     deleteMessage,
     togglePinMessage,
-    clearError
+    clearError,
+    initializeMessages
   };
 }; 
