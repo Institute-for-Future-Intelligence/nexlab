@@ -7,18 +7,22 @@ import { useUser } from './hooks/useUser';
 import { createRoutes } from './config/routing';
 import { appTheme } from './config/theme';
 
-// Import layout and global components
-import DeviceVersion from './components/DeviceVersion';
-import Header from './components/Header';
-import Footer from './components/Footer';
-import ChatbotManager from './components/ChatbotIntegration/ChatbotManager';
-import QuizManager from './components/QuizIntegration/QuizManager';
-import GlobalNotifications from './components/common/GlobalNotifications';
+// Import layout components
+import AppLayout from './components/Layout/AppLayout';
 
 const AppRoutes = () => {
   const { userDetails, isSuperAdmin } = useUser();
   const routes = createRoutes(userDetails, isSuperAdmin);
-  return useRoutes(routes);
+  const routeElement = useRoutes(routes);
+  
+  // Wrap authenticated routes with AppLayout
+  const isAuthenticated = Boolean(userDetails?.uid);
+  
+  if (isAuthenticated) {
+    return <AppLayout>{routeElement}</AppLayout>;
+  }
+  
+  return routeElement;
 };
 
 const App = () => {
@@ -50,25 +54,13 @@ const App = () => {
           v7_relativeSplatPath: true
         }}
       >
-        {/* Conditionally render the Header based on stable login state */}
-        {isLoggedIn && <Header />}
-        <div className="content">
-          <Suspense fallback={
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-              <CircularProgress />
-            </div>
-          }>
-            <AppRoutes />
-          </Suspense>
-        </div>
-        <Footer />
-        <DeviceVersion />
-        {/* Chatbot Manager */}
-        {isLoggedIn && <ChatbotManager />}
-        {/* Quiz Manager */}
-        {isLoggedIn && <QuizManager />}
-        {/* Global Notifications */}
-        <GlobalNotifications />
+        <Suspense fallback={
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+            <CircularProgress />
+          </div>
+        }>
+          <AppRoutes />
+        </Suspense>
       </Router>
     </ThemeProvider>
   );

@@ -5,7 +5,7 @@
  * Migrated from CKEditor to ReactQuill for license-free usage
  */
 
-import { ReactQuill } from 'react-quill-new';
+import ReactQuill from 'react-quill-new';
 
 // ReactQuill Editor instance type (covers the common methods we use)
 export interface ReactQuillInstance {

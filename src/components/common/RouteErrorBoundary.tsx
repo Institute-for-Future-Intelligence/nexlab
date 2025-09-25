@@ -76,18 +76,7 @@ const RouteErrorFallback: React.FC = () => {
 const RouteErrorBoundary: React.FC<RouteErrorBoundaryProps> = ({ children, showDetails }) => {
   return (
     <ErrorBoundary 
-      fallbackComponent={<RouteErrorFallback />}
-      showDetails={showDetails}
-      onError={(error, errorInfo) => {
-        // Log route-level errors with additional context
-        console.error('Route Error:', {
-          error: error.message,
-          stack: error.stack,
-          componentStack: errorInfo.componentStack,
-          url: window.location.href,
-          timestamp: new Date().toISOString()
-        });
-      }}
+      fallback={<RouteErrorFallback />}
     >
       {children}
     </ErrorBoundary>
