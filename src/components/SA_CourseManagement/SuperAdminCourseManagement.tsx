@@ -1,7 +1,7 @@
 // src/components/SA_CourseManagement/SuperAdminCourseManagement.tsx
 
 import React, { useState, useEffect } from 'react';
-import { getFirestore, collection, getDocs, updateDoc, doc, deleteDoc, writeBatch } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, updateDoc, doc, deleteDoc, writeBatch, getDoc } from 'firebase/firestore';
 import { useUser } from '../../hooks/useUser';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -78,6 +78,11 @@ const SuperAdminCourseManagement: React.FC = () => {
         const updatedAdmins = [...courseData.courseAdmin, userDetails.uid];
         await updateDoc(courseRef, { courseAdmin: updatedAdmins });
 
+        // Get course creation date from the course document
+        const courseDoc = await getDoc(courseRef);
+        const courseDocData = courseDoc.exists() ? courseDoc.data() : null;
+        const courseCreatedAt = courseDocData?.createdAt || courseDocData?.timestamp || new Date();
+
         // Update user's classes field in the user document
         const userRef = doc(db, 'users', userDetails.uid);
         await updateDoc(userRef, {
@@ -85,6 +90,8 @@ const SuperAdminCourseManagement: React.FC = () => {
             number: courseData.number,
             title: courseData.title,
             isCourseAdmin: true, // Explicitly set the admin status
+            courseCreatedAt: courseCreatedAt, // When the course was originally created
+            enrolledAt: new Date(), // When the SA was added to this course
           }
         });
 

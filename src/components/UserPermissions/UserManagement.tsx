@@ -51,7 +51,21 @@ const AssignCourse: React.FC<{
       const userRef = doc(db, 'users', userId);
       const courseData = courses.find(course => course.id === selectedCourse);
       if (courseData) {
-        await updateDoc(userRef, { [`classes.${selectedCourse}`]: { number: courseData.number, title: courseData.title, isCourseAdmin: isAdminForCourse, } });
+        // Get course creation date from the course document
+        const courseRef = doc(db, 'courses', selectedCourse);
+        const courseDoc = await getDoc(courseRef);
+        const courseDocData = courseDoc.exists() ? courseDoc.data() : null;
+        const courseCreatedAt = courseDocData?.createdAt || courseDocData?.timestamp || new Date();
+
+        await updateDoc(userRef, { 
+          [`classes.${selectedCourse}`]: { 
+            number: courseData.number, 
+            title: courseData.title, 
+            isCourseAdmin: isAdminForCourse,
+            courseCreatedAt: courseCreatedAt, // When the course was originally created
+            enrolledAt: new Date(), // When the user was assigned to this course
+          } 
+        });
 
         setMessage(
           `Course ${courseData.title} assigned successfully to user ${userId}${

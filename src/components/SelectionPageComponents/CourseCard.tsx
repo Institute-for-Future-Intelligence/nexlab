@@ -9,7 +9,8 @@ interface CourseCardProps {
     number: string;
     title: string;
     isPublic?: boolean;
-    createdAt?: Date;
+    courseCreatedAt?: Date; // When the course was originally created
+    enrolledAt?: Date; // When the user was enrolled in this course
     isCourseAdmin?: boolean;
   };
   onClick: () => void;
@@ -84,11 +85,28 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
               fontFamily: typography.fontFamily.secondary,
               fontSize: typography.fontSize.lg,
               lineHeight: 1.5,
-              mb: spacing[2],
+              mb: spacing[1],
             }}
           >
             {course.title}
           </Typography>
+
+          {/* Enrollment Date */}
+          {course.enrolledAt && (
+            <Typography
+              variant="caption"
+              sx={{
+                color: colors.text.tertiary,
+                fontFamily: typography.fontFamily.secondary,
+                fontSize: typography.fontSize.xs,
+                fontStyle: 'italic',
+                mb: spacing[2],
+                display: 'block',
+              }}
+            >
+              Enrolled: {course.enrolledAt.toLocaleDateString()}
+            </Typography>
+          )}
 
           {/* Access Level Badge */}
           <Chip
