@@ -2,8 +2,9 @@
 import React, { useEffect, useState } from 'react';
 import { collection, getDocs, doc, deleteDoc } from 'firebase/firestore';
 import { getFirestore } from 'firebase/firestore';
-import { Box, Typography, CircularProgress, Button, Select, MenuItem, FormControl, InputLabel, Snackbar } from '@mui/material';
+import { Box, Typography, CircularProgress, Button, Select, MenuItem, FormControl, InputLabel, Snackbar, useMediaQuery, useTheme } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { PageHeader } from '../common';
 import { 
   Conversation, 
   ConversationMessage, 
@@ -240,17 +241,7 @@ const ChatbotConversationsPage: React.FC = () => {
 
     return (
         <Box className="profile-container" sx={{ p: 4 }}>
-            <Button
-                variant="text"
-                onClick={() => navigate('/')}
-                className="profile-button"
-            >
-                &larr; Home Page
-            </Button>
-
-            <Typography variant="h5" className="webpage_title" sx={{ mb: 2 }}>
-                Chatbot Conversations
-            </Typography>
+            <PageHeader title="Chatbot Conversations" />
 
             <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
                 {/* Filter by Chatbot ID */}

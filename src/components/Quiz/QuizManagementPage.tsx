@@ -30,7 +30,9 @@ import {
   TextField,
   Stack,
   Tooltip,
-  Badge
+  Badge,
+  useMediaQuery,
+  useTheme
 } from '@mui/material';
 import {
   TrendingUp as TrendingUpIcon,
@@ -47,6 +49,7 @@ import {
   QuestionAnswer as QuestionAnswerIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { PageHeader } from '../common';
 
 import { useUser } from '../../hooks/useUser';
 import { useQuizManagementStore } from '../../stores/quizManagementStore';
@@ -169,37 +172,21 @@ const QuizManagementPage: React.FC = () => {
 
   return (
     <Box className="profile-container">
-      {/* Header Section */}
+      <PageHeader title="Quiz Management" />
+
       <Box sx={{ mb: 4 }}>
-      <Button
-          variant="text" 
-          startIcon={<ArrowBackIcon />} 
-        onClick={() => navigate('/')}
-          className="profile-button"
-          sx={{ mb: 2 }}
-      >
-          Home Page
-      </Button>
-      
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box>
-            <Typography className="webpage_title">
-        Quiz Management
-      </Typography>
-            <Typography variant="body1" className="profile-text">
-              Comprehensive quiz analytics and session management
-            </Typography>
+            <Stack direction="row" spacing={2}>
+              <Tooltip title="Refresh Data">
+                <span>
+                  <IconButton onClick={handleRefresh} disabled={loading}>
+                    <RefreshIcon />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            </Stack>
           </Box>
-        
-          <Stack direction="row" spacing={2}>
-            <Tooltip title="Refresh Data">
-              <span>
-                <IconButton onClick={handleRefresh} disabled={loading}>
-                  <RefreshIcon />
-                </IconButton>
-              </span>
-            </Tooltip>
-          </Stack>
         </Box>
       </Box>
 

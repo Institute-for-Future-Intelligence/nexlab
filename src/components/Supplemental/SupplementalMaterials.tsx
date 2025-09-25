@@ -53,9 +53,8 @@ const SupplementalMaterials: React.FC = () => {
       ) : (
         // If a course is selected, show materials and add button
         <Box>
-          {/* Header Area with Back Button and Course Info */}
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-            <BackToAllMaterialsButton returnToSelection={true} />
+          {/* Header Area with Course Info */}
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 3 }}>
             <Chip
               label={selectedCourseData 
                 ? `${selectedCourseData.number} - ${selectedCourseData.title}` 

@@ -13,6 +13,7 @@ import {
 
 import { useUser } from '../hooks/useUser';
 import { colors, typography, spacing, borderRadius, shadows, animations } from '../config/designSystem';
+import { PageHeader } from './common';
 
 const SelectionPage: React.FC = () => {
   const { userDetails } = useUser();
@@ -65,9 +66,7 @@ const SelectionPage: React.FC = () => {
 
   return (
     <Box className="profile-container">
-      <Typography className="webpage_title">
-        Welcome!
-      </Typography>
+      <PageHeader title="Welcome!" />
       
       {/* Getting Started Section */}
       <Box sx={{ 
@@ -78,7 +77,7 @@ const SelectionPage: React.FC = () => {
         border: `1px solid ${colors.neutral[200]}`,
         boxShadow: shadows.sm,
         position: 'relative',
-        mt: spacing[3], // Space for the tab
+        mt: spacing[8], // Increased space between header and getting started section
       }}>
         {/* File folder tab */}
         <Box sx={{
@@ -331,7 +330,7 @@ const SelectionPage: React.FC = () => {
         border: `1px solid ${colors.neutral[200]}`,
         boxShadow: shadows.sm,
         position: 'relative',
-        mt: spacing[3], // Space for the tab
+        mt: spacing[8], // Increased space between getting started and quick actions sections
       }}>
         {/* File folder tab */}
         <Box sx={{

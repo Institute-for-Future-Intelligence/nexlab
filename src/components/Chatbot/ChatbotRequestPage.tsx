@@ -15,6 +15,7 @@ import { useUser } from '../../hooks/useUser';
 import { collection, addDoc } from 'firebase/firestore';
 import { getFirestore } from 'firebase/firestore';
 import FileUpload from './FileUpload';
+import { PageHeader } from '../common';
 
 import { useMaterialsStore } from '../../stores/materialsStore';
 
@@ -133,13 +134,7 @@ const ChatbotRequestPage: React.FC = () => {
 
   return (
     <Box className="profile-container" sx={{ p: 4 }}>
-      <Button variant="text" onClick={handleNavigateBack} className="profile-button">
-        &larr; Chatbot Management
-      </Button>
-
-      <Typography className="webpage_title" sx={{ mb: 2 }}>
-        Request to Create a Chatbot
-      </Typography>
+      <PageHeader title="Request to Create a Chatbot" />
 
       <Typography variant="body1" className="profile-text" sx={{ mb: 3 }}>
         Fill out the form below to request a chatbot. Please upload all related materials for the chatbot&apos;s knowledge base.

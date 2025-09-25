@@ -311,11 +311,6 @@ const RequestEducatorPermissionsForm: React.FC = () => {
 
   return (
     <Box className="request-form-container" sx={{ padding: 3, maxWidth: '1400px', mx: 'auto' }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-        <Button variant="text" onClick={handleNavigateBack} className="back-home-button">
-          &larr; My Account
-        </Button>
-      </Box>
 
       <Box className="request-form-outline" sx={{ 
         backgroundColor: '#f8f9fa', 

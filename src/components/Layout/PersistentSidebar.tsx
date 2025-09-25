@@ -19,6 +19,7 @@ import {
   Menu as MenuIcon,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
+  Home as HomeIcon,
   AccountCircle as AccountIcon,
   Science as LabIcon,
   School as MaterialsIcon,
@@ -176,6 +177,13 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
   const sidebarWidth = isOpen ? 320 : 64;
 
   const navigationItems = [
+    {
+      title: 'Home',
+      icon: <HomeIcon />,
+      path: '/',
+      roles: ['student', 'educator', 'superadmin'],
+      color: colors.primary[500]
+    },
     {
       title: 'My Account',
       icon: <AccountIcon />,

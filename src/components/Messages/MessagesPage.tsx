@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Box, Grid, Snackbar, Alert, SnackbarCloseReason, Fab, Tooltip } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { PageHeader } from '../common';
 
 import { useUser } from '../../hooks/useUser';
 import { useMessages } from '../../hooks/useMessages';
@@ -35,6 +36,8 @@ const MessagesPage: React.FC = () => {
 
   return (
     <Box sx={{ flexGrow: 1, padding: 3 }}>
+      <PageHeader title="Messages" />
+
       <Grid container spacing={3}>
         {/* Main content area - Messages */}
         <Grid item xs={12}>

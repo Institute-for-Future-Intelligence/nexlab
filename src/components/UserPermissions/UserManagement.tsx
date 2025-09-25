@@ -3,6 +3,7 @@ import { Box, Typography, TextField, Button, Snackbar, Alert, CircularProgress, 
 import { getFirestore, doc, updateDoc, getDoc, collection, getDocs } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { FirebaseTimestamp } from '../../types/firebase'; // Import proper type
+import { PageHeader } from '../common';
 
 import UserTable from './UserTable'; // Import the UserTable component
 import DeleteUser from './DeleteUser'; // Import the DeleteUser component
@@ -383,14 +384,7 @@ const UserManagement: React.FC = () => {
 
   return (
     <Box sx={{ padding: 3 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-        <Button variant="text" onClick={handleNavigateHome} sx={{ mr: 2 }}>
-          &larr; Home Page
-        </Button>
-      </Box>
-      <Typography variant="h4" component="h1" gutterBottom>
-        User Management
-      </Typography>
+      <PageHeader title="User Management" />
       <Typography variant="body1" gutterBottom>
         Use this page to view and manage user permissions. Enter the User ID to grant or revoke admin privileges, or delete user account.
       </Typography>

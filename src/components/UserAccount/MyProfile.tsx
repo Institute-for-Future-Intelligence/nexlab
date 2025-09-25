@@ -1,6 +1,7 @@
 // src/components/UserAccount/MyProfile.tsx
 import React, { useState } from 'react';
 import { Box, Typography, Button, Switch, FormControlLabel, Snackbar, Alert, Chip } from '@mui/material';
+import { PageHeader } from '../common';
 
 import { useUser } from '../../hooks/useUser';
 import { UserDetails } from '../../contexts/UserContext';
@@ -93,14 +94,10 @@ const MyProfile: React.FC = () => {
 
   return (
     <Box className="profile-container">
-      {/* Back to Home Button */}
-      <Button variant="text" onClick={handleNavigateHome} className="profile-button">
-        &larr; Home Page
-      </Button>
-      {/* Page Title */}
-      <Typography className="webpage_title">
-        My Account
-      </Typography>
+      <PageHeader 
+        title="My Account"
+        subtitle="Manage your account settings, course enrollments, and permissions"
+      />
 
       {/* User Info Inside Paper Component */}
       {userDetails && (

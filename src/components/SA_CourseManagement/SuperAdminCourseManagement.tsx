@@ -8,10 +8,12 @@ import {
   Box, Typography, IconButton,
   Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Paper, Snackbar, Alert,
-  Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, TextField, Tooltip
+  Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, TextField, Tooltip,
+  useMediaQuery, useTheme
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
+import { PageHeader } from '../common';
 
 interface Course {
   id: string;
@@ -175,12 +177,7 @@ const SuperAdminCourseManagement: React.FC = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-        <Button variant="text" onClick={handleNavigateHome} sx={{ mr: 2 }}>
-          &larr; Home Page
-        </Button>
-      </Box>
-      <Typography variant="h4" gutterBottom>Super Admin Course Management</Typography>
+      <PageHeader title="Super Admin Course Management" />
       {loading ? (
         <Typography>Loading courses...</Typography>
       ) : (

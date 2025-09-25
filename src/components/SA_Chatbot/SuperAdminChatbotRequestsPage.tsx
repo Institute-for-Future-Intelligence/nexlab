@@ -15,11 +15,14 @@ import {
   TextField,
   Snackbar,
   Alert,
-  TablePagination
+  TablePagination,
+  useMediaQuery,
+  useTheme
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { getFirestore, collection, addDoc, getDoc, getDocs, updateDoc, doc } from 'firebase/firestore';
 import { ChatbotRequest } from '../../types/chatbot'; // Import proper type
+import { PageHeader } from '../common';
 
 import FileDownload from '../Chatbot/FileDownload'; // Import FileDownload component
 
@@ -166,14 +169,7 @@ const SuperAdminChatbotRequestsPage: React.FC = () => {
 
   return (
     <Box className="profile-container" sx={{ p: 4 }}>
-      {/* Back to Home Button */}
-      <Button variant="text" onClick={() => navigate('/')} className="profile-button">
-        &larr; Home Page
-      </Button>
-
-      <Typography variant="h5" className="webpage_title" sx={{ mb: 2 }}>
-        Chatbot Requests Management
-      </Typography>
+      <PageHeader title="Chatbot Requests Management" />
 
       <Typography variant="body1" sx={{ mb: 3 }}>
         Manage chatbot requests submitted by educators. Approve requests and assign Chatbot IDs.

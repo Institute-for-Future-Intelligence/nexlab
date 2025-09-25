@@ -7,9 +7,10 @@ import { UserDetails } from '../../contexts/UserContext';
 import { formatFirebaseTimestamp } from '../../types/firebase'; // Import utility
 import { 
   Box, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, 
-  FormControlLabel, Switch 
+  FormControlLabel, Switch
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { PageHeader } from '../common';
 
 import CourseStudentManagement from './CourseStudentManagement';
 import ExportToCSV from './ExportToCSV';
@@ -114,16 +115,7 @@ const CourseManagement: React.FC = () => {
 
   return (
     <Box className="profile-container" sx={{ p: 4 }}>
-      {/* Navigation */}
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-        <Button variant="text" onClick={() => navigate('/')} className="profile-button">
-          &larr; Home Page
-        </Button>
-      </Box>
-
-      <Typography className="webpage_title" sx={{ mb: 2 }}>
-        Course Management
-      </Typography>
+      <PageHeader title="Course Management" />
 
       {/* Course Selector */}
       <Box
