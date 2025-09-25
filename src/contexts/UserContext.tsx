@@ -15,7 +15,8 @@ export interface UserDetails {
     number: string; 
     title: string; 
     isCourseAdmin: boolean;
-    createdAt?: Date | FirebaseTimestamp;
+    courseCreatedAt?: Date | FirebaseTimestamp; // When the course was originally created
+    enrolledAt?: Date | FirebaseTimestamp; // When the user was enrolled in this course
   }>;
 }
 

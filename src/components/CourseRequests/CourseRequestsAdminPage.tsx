@@ -148,7 +148,8 @@ const CourseRequestsAdminPage: React.FC = () => {
             number: currentRequestData.courseNumber,
             title: currentRequestData.courseTitle,
             isCourseAdmin: true, // Set explicitly
-            createdAt: new Date(), // Add creation date
+            courseCreatedAt: new Date(), // When the course was originally created
+            enrolledAt: new Date(), // When the user was enrolled in this course
           },
         },
       });
