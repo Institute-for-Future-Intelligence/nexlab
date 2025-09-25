@@ -48,11 +48,11 @@ const AddCourseForm: React.FC<AddCourseFormProps> = ({ onCourseAdded }) => {
           } else {
             const userDoc = doc(db, 'users', userDetails.uid);
 
-            // Get course creation date from the course document
-            const courseDocRef = doc(db, 'courses', selectedCourse.id);
-            const courseDoc = await getDoc(courseDocRef);
-            const courseData = courseDoc.exists() ? courseDoc.data() : null;
-            const courseCreatedAt = courseData?.createdAt || courseData?.timestamp || new Date();
+              // Get course creation date from the course document
+              const courseDocRef = doc(db, 'courses', selectedCourse.id);
+              const courseDoc = await getDoc(courseDocRef);
+              const courseData = courseDoc.exists() ? courseDoc.data() : null;
+              const courseCreatedAt = courseData?.courseCreatedAt || courseData?.createdAt || courseData?.timestamp || new Date();
 
             // Update user document using a map structure
             await updateDoc(userDoc, {

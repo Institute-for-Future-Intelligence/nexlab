@@ -448,6 +448,15 @@ export const useSyllabusStore = create<SyllabusState>()(
                 };
               } catch (aiError) {
                 console.warn('AI processing failed, falling back to pattern-based parsing:', aiError);
+                // Set a more specific error message for AI failures
+                set({ 
+                  error: `AI analysis failed: ${aiError instanceof Error ? aiError.message : 'Unknown error'}. Using pattern-based parsing instead.`,
+                  processingProgress: {
+                    stage: 'analyzing',
+                    percentage: 50,
+                    currentOperation: 'AI failed, using pattern-based parsing...'
+                  }
+                });
                 // Fall back to pattern-based parsing
                 parsedInfo = await get().fallbackParsing(extractedText);
               }
@@ -615,6 +624,15 @@ export const useSyllabusStore = create<SyllabusState>()(
                 }
               } catch (aiError) {
                 console.warn('AI material generation failed, using fallback:', aiError);
+                // Set a more specific error message for AI material generation failures
+                set({ 
+                  error: `AI material generation failed: ${aiError instanceof Error ? aiError.message : 'Unknown error'}. Using fallback material generation instead.`,
+                  processingProgress: {
+                    stage: 'generating',
+                    percentage: 75,
+                    currentOperation: 'AI material generation failed, using fallback...'
+                  }
+                });
                 materials = get().generateFallbackMaterials(parsedCourseInfo);
               }
             } else {

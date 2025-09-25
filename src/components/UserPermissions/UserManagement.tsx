@@ -55,7 +55,7 @@ const AssignCourse: React.FC<{
         const courseRef = doc(db, 'courses', selectedCourse);
         const courseDoc = await getDoc(courseRef);
         const courseDocData = courseDoc.exists() ? courseDoc.data() : null;
-        const courseCreatedAt = courseDocData?.createdAt || courseDocData?.timestamp || new Date();
+        const courseCreatedAt = courseDocData?.courseCreatedAt || courseDocData?.createdAt || courseDocData?.timestamp || new Date();
 
         await updateDoc(userRef, { 
           [`classes.${selectedCourse}`]: { 
