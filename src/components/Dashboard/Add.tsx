@@ -1,6 +1,28 @@
 // Add.tsx
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Snackbar, Alert, SnackbarCloseReason, MenuItem, Select } from '@mui/material';
+import { 
+  Button, 
+  Dialog, 
+  DialogActions, 
+  DialogContent, 
+  DialogContentText, 
+  DialogTitle, 
+  Snackbar, 
+  Alert, 
+  SnackbarCloseReason, 
+  MenuItem, 
+  Select,
+  Box,
+  Typography,
+  Paper,
+  TextField,
+  FormControl,
+  InputLabel,
+  useMediaQuery,
+  useTheme,
+  Divider
+} from '@mui/material';
+import { colors, typography, spacing, borderRadius, shadows, animations } from '../../config/designSystem';
 
 import { useUser } from '../../hooks/useUser';
 import { collection, addDoc, serverTimestamp } from "firebase/firestore"; 
@@ -23,6 +45,8 @@ interface AddProps {
 
 const Add: React.FC<AddProps> = ({ designs, setDesigns, setIsAdding, getDesigns, onReturnToDashboard }) => {
   const { userDetails } = useUser();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   console.log("Add Design loaded");
 
@@ -134,138 +158,364 @@ const Add: React.FC<AddProps> = ({ designs, setDesigns, setIsAdding, getDesigns,
   };
   
   return (
-    <div className="small-container">
-      <Button
-            variant="text"
-            onClick={onReturnToDashboard}
-            className="profile-button"
+    <Box sx={{ 
+      p: isMobile ? spacing[3] : spacing[6], 
+      backgroundColor: colors.background.primary, 
+      minHeight: '100vh' 
+    }}>
+      {/* Header Section */}
+      <Box sx={{ mb: spacing[6] }}>
+        <Button
+          variant="text"
+          onClick={onReturnToDashboard}
+          sx={{
+            fontFamily: typography.fontFamily.secondary,
+            fontSize: isMobile ? typography.fontSize.base : typography.fontSize.lg,
+            color: colors.primary[600],
+            textTransform: 'none',
+            fontWeight: typography.fontWeight.medium,
+            mb: spacing[4],
+            '&:hover': {
+              backgroundColor: colors.primary[100],
+              color: colors.primary[700],
+            },
+            transition: animations.transitions.fast,
+          }}
         >
-            &larr; All Designs
-      </Button>
-      <div className="design-record">
-        <form onSubmit={saveDesign}>
-          <h1 className="designHeader">New Design</h1>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <div style={{ flexGrow: 8, marginRight: '12px' }}>
-              <label className="designTitles" htmlFor="title">Title</label>
-              <input
-                id="title"
-                type="text"
-                name="title"
-                value={title}
-                onChange={e => setTitle(e.target.value)}
-                style={{ width: '100%' }} // Make sure the input fills the div        
-              />
-            </div>
-          </div>
+          &larr; All Designs
+        </Button>
 
-          {/* Course Selection Dropdown */}
-          <label className="designTitles" htmlFor="course">Course</label>
-          <Select
-            id="course"
-            value={course}
-            onChange={e => setCourse(e.target.value)}
-            fullWidth
-            disabled={!userDetails?.classes || Object.keys(userDetails.classes).length === 0}
+        <Paper 
+          sx={{ 
+            p: isMobile ? spacing[4] : spacing[6], 
+            backgroundColor: colors.primary[50], 
+            borderRadius: borderRadius['2xl'], 
+            border: `1px solid ${colors.primary[200]}`,
+            boxShadow: shadows.sm,
+          }}
+        >
+          <Typography 
+            variant="h2"
+            sx={{
+              fontFamily: typography.fontFamily.display,
+              fontSize: isMobile ? typography.fontSize['3xl'] : typography.fontSize['5xl'],
+              fontWeight: typography.fontWeight.bold,
+              color: colors.primary[700],
+              lineHeight: typography.lineHeight.tight,
+              mb: spacing[2],
+            }}
           >
-            {(userDetails?.classes ? Object.entries(userDetails.classes) : [])
-              .map(([courseId, courseDetails]) => (
-                <MenuItem key={courseId} value={courseId}>{`${courseDetails.number} - ${courseDetails.title}`}</MenuItem>
-              ))}
-          </Select>
+            Create New Design
+          </Typography>
+          <Typography 
+            variant="body1"
+            sx={{
+              fontFamily: typography.fontFamily.primary,
+              fontSize: isMobile ? typography.fontSize.base : typography.fontSize.lg,
+              color: colors.text.secondary,
+              lineHeight: typography.lineHeight.relaxed,
+            }}
+          >
+            Design and document your laboratory experiments and research projects
+          </Typography>
+        </Paper>
+      </Box>
 
-          <label className="designTitles" htmlFor="description">Description</label>
-          <ul>
-              <li>Objective: What is the goal for this design?</li>
-              <li>Rationale: Why is this new design being done?</li>
-              <li>Selected Target Identified: What is the target for the design being made?</li>
-              <li>Functional Modification: What is being done to this target?</li>
-              <li>Overview/Plan for making the modification: What are the steps to be carried out to meet the objective?</li>
-          </ul>
-          <TextEditor onChange={setDesignDescription} initialValue={description} />
-          <ImageUpload 
-            ref={imageUploadRef}
-            path="designs/images"
-            initialImages={initialImagesMemo}
-            onImagesUpdated={setImages}
-            onDelete={(deletedImages) => setImages(images.filter(img => !deletedImages.includes(img)))}
-            isOwnDesign={true}
-          />
-          <FileUpload  // Include the FileUpload component in the form
-            path="designs/files" 
-            initialFiles={files}
-            onFilesChange={setFiles} // Ensure this is correctly passed and used
-            isOwnDesign={true}
-          />
-          <div style={{ marginTop: '30px', display: 'flex', justifyContent: 'flex-end' }}>
-            <Button 
-              type="submit" 
-              variant="contained"
-              sx={{ 
-                fontSize: '1rem',
-                mt: 2, 
-                textTransform: 'none',
-                boxShadow: 'none', 
-                '&:hover': {
-                  boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.2)',
-                  transform: 'scale(1.05)',
+      {/* Form Section */}
+      <Paper 
+        sx={{ 
+          p: isMobile ? spacing[4] : spacing[6], 
+          backgroundColor: colors.background.elevated,
+          borderRadius: borderRadius['2xl'], 
+          border: `1px solid ${colors.neutral[200]}`,
+          boxShadow: shadows.lg,
+        }}
+      >
+        <form onSubmit={saveDesign}>
+          {/* Title Field */}
+          <Box sx={{ mb: spacing[5] }}>
+            <TextField
+              id="title"
+              label="Design Title"
+              value={title}
+              onChange={e => setTitle(e.target.value)}
+              fullWidth
+              required
+              variant="outlined"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: borderRadius.lg,
+                  fontFamily: typography.fontFamily.primary,
+                  fontSize: typography.fontSize.base,
                 },
-                transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
-                border: '1px solid transparent',
+                '& .MuiInputLabel-root': {
+                  fontFamily: typography.fontFamily.secondary,
+                  fontSize: typography.fontSize.base,
+                  fontWeight: typography.fontWeight.medium,
+                },
+              }}
+            />
+          </Box>
+
+          {/* Course Selection */}
+          <Box sx={{ mb: spacing[5] }}>
+            <FormControl fullWidth required>
+              <InputLabel 
+                sx={{
+                  fontFamily: typography.fontFamily.secondary,
+                  fontSize: typography.fontSize.base,
+                  fontWeight: typography.fontWeight.medium,
+                }}
+              >
+                Course
+              </InputLabel>
+              <Select
+                id="course"
+                value={course}
+                onChange={e => setCourse(e.target.value)}
+                disabled={!userDetails?.classes || Object.keys(userDetails.classes).length === 0}
+                sx={{
+                  borderRadius: borderRadius.lg,
+                  fontFamily: typography.fontFamily.primary,
+                  fontSize: typography.fontSize.base,
+                }}
+              >
+                {(userDetails?.classes ? Object.entries(userDetails.classes) : [])
+                  .map(([courseId, courseDetails]) => (
+                    <MenuItem key={courseId} value={courseId}>
+                      {`${courseDetails.number} - ${courseDetails.title}`}
+                    </MenuItem>
+                  ))}
+              </Select>
+            </FormControl>
+          </Box>
+
+          {/* Description Section */}
+          <Box sx={{ mb: spacing[5] }}>
+            <Typography 
+              variant="h5"
+              sx={{
+                fontFamily: typography.fontFamily.display,
+                fontSize: typography.fontSize.xl,
+                fontWeight: typography.fontWeight.semibold,
+                color: colors.text.primary,
+                mb: spacing[3],
               }}
             >
-              Add
-            </Button>
+              Design Description
+            </Typography>
+            
+            <Paper 
+              sx={{ 
+                p: spacing[4], 
+                backgroundColor: colors.background.secondary,
+                borderRadius: borderRadius.lg,
+                border: `1px solid ${colors.neutral[200]}`,
+                mb: spacing[3],
+              }}
+            >
+              <Typography 
+                variant="body2"
+                sx={{
+                  fontFamily: typography.fontFamily.primary,
+                  fontSize: typography.fontSize.sm,
+                  color: colors.text.secondary,
+                  mb: spacing[2],
+                  fontWeight: typography.fontWeight.medium,
+                }}
+              >
+                Please include the following elements in your description:
+              </Typography>
+              <Box component="ul" sx={{ 
+                pl: spacing[4], 
+                m: 0,
+                '& li': {
+                  fontFamily: typography.fontFamily.primary,
+                  fontSize: typography.fontSize.sm,
+                  color: colors.text.secondary,
+                  mb: spacing[1],
+                }
+              }}>
+                <li>Objective: What is the goal for this design?</li>
+                <li>Rationale: Why is this new design being done?</li>
+                <li>Selected Target Identified: What is the target for the design being made?</li>
+                <li>Functional Modification: What is being done to this target?</li>
+                <li>Overview/Plan for making the modification: What are the steps to be carried out to meet the objective?</li>
+              </Box>
+            </Paper>
+
+            <TextEditor onChange={setDesignDescription} initialValue={description} />
+          </Box>
+
+          <Divider sx={{ my: spacing[5] }} />
+
+          {/* File Upload Sections */}
+          <Box sx={{ mb: spacing[5] }}>
+            <Typography 
+              variant="h5"
+              sx={{
+                fontFamily: typography.fontFamily.display,
+                fontSize: typography.fontSize.xl,
+                fontWeight: typography.fontWeight.semibold,
+                color: colors.text.primary,
+                mb: spacing[3],
+              }}
+            >
+              Attachments
+            </Typography>
+            
+            <ImageUpload 
+              ref={imageUploadRef}
+              path="designs/images"
+              initialImages={initialImagesMemo}
+              onImagesUpdated={setImages}
+              onDelete={(deletedImages) => setImages(images.filter(img => !deletedImages.includes(img)))}
+              isOwnDesign={true}
+            />
+            
+            <Box sx={{ mt: spacing[4] }}>
+              <FileUpload
+                path="designs/files" 
+                initialFiles={files}
+                onFilesChange={setFiles}
+                isOwnDesign={true}
+              />
+            </Box>
+          </Box>
+
+          {/* Action Buttons */}
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'flex-end', 
+            gap: spacing[3],
+            mt: spacing[6],
+            flexDirection: isMobile ? 'column' : 'row',
+          }}>
             <Button 
               onClick={() => setIsAdding(false)} 
-              style={{ marginLeft: '12px' }} 
               variant="outlined"
-              sx={{ 
-                fontSize: '1rem',
-                mt: 2, 
+              sx={{
+                fontFamily: typography.fontFamily.display,
+                fontSize: typography.fontSize.lg,
+                fontWeight: typography.fontWeight.semibold,
                 textTransform: 'none',
-                color: 'currentColor',
-                borderColor: 'rgba(255, 0, 0, 0.5)',
-                boxShadow: 'none',
+                px: spacing[6],
+                py: spacing[3],
+                borderRadius: borderRadius.xl,
+                borderColor: colors.error,
+                color: colors.error,
                 '&:hover': {
-                  borderColor: 'rgba(255, 0, 0, 0.7)',
-                  backgroundColor: 'rgba(255, 0, 0, 0.1)',
-                  boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.2)',
-                  color: 'currentColor',
-                  transform: 'scale(1.05)',
+                  borderColor: colors.error,
+                  backgroundColor: colors.error + '10',
+                  boxShadow: shadows.md,
                 },
-                transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out, border-color 0.3s ease-in-out, background-color 0.3s ease-in-out',
+                transition: animations.transitions.fast,
               }}
             >
               Cancel
             </Button>
-          </div>
+            
+            <Button 
+              type="submit" 
+              variant="contained"
+              sx={{
+                fontFamily: typography.fontFamily.display,
+                fontSize: typography.fontSize.lg,
+                fontWeight: typography.fontWeight.semibold,
+                textTransform: 'none',
+                px: spacing[6],
+                py: spacing[3],
+                backgroundColor: colors.primary[500],
+                borderRadius: borderRadius.xl,
+                boxShadow: shadows.md,
+                '&:hover': {
+                  backgroundColor: colors.primary[600],
+                  boxShadow: shadows.lg,
+                  transform: 'translateY(-2px)',
+                },
+                '&:active': {
+                  transform: 'translateY(0px)',
+                },
+                transition: animations.transitions.fast,
+              }}
+            >
+              Create Design
+            </Button>
+          </Box>
         </form>
-      </div>
+      </Paper>
       <Dialog
         open={dialogOpen}
         onClose={handleDialogClose}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
+        PaperProps={{
+          sx: {
+            borderRadius: borderRadius['2xl'],
+            boxShadow: shadows.xl,
+          }
+        }}
       >
-        <DialogTitle id="alert-dialog-title">{"Notification"}</DialogTitle>
+        <DialogTitle 
+          id="alert-dialog-title"
+          sx={{
+            fontFamily: typography.fontFamily.display,
+            fontSize: typography.fontSize.xl,
+            fontWeight: typography.fontWeight.semibold,
+            color: colors.text.primary,
+          }}
+        >
+          Notification
+        </DialogTitle>
         <DialogContent>
-          <DialogContentText id="alert-dialog-description">
+          <DialogContentText 
+            id="alert-dialog-description"
+            sx={{
+              fontFamily: typography.fontFamily.primary,
+              fontSize: typography.fontSize.base,
+              color: colors.text.secondary,
+            }}
+          >
             {dialogContent}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleDialogClose} autoFocus>
+          <Button 
+            onClick={handleDialogClose} 
+            autoFocus
+            sx={{
+              fontFamily: typography.fontFamily.display,
+              fontSize: typography.fontSize.base,
+              fontWeight: typography.fontWeight.medium,
+              textTransform: 'none',
+              borderRadius: borderRadius.lg,
+            }}
+          >
             Ok
           </Button>
         </DialogActions>
       </Dialog>
-      <Snackbar open={snackbarOpen} autoHideDuration={1000} onClose={handleSnackbarClose}>
-        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
+      
+      <Snackbar 
+        open={snackbarOpen} 
+        autoHideDuration={1000} 
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={handleSnackbarClose} 
+          severity={snackbarSeverity} 
+          sx={{ 
+            width: '100%',
+            borderRadius: borderRadius.lg,
+            fontFamily: typography.fontFamily.primary,
+            fontSize: typography.fontSize.base,
+          }}
+        >
           {snackbarMessage}
         </Alert>
       </Snackbar>
-    </div>
+    </Box>
   );
 };
 
