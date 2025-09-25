@@ -437,7 +437,7 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
               }}>
                 <Tooltip title={copied ? "Copied!" : "Click to Copy"} enterDelay={300} leaveDelay={200}>
                   <Chip
-                    label={`ID: ${userDetails.uid}`}
+                    label={`User ID: ${userDetails.uid}`}
                     variant="outlined"
                     onClick={handleCopyUserId}
                     sx={{

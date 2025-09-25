@@ -119,7 +119,7 @@ const SelectionPage: React.FC = () => {
                 component="h3"
                 sx={{
                   fontFamily: typography.fontFamily.display,
-                  fontSize: typography.fontSize.lg,
+                  fontSize: '2rem',
                   fontWeight: typography.fontWeight.bold,
                   color: colors.text.primary,
                   mb: spacing[3],
@@ -134,7 +134,7 @@ const SelectionPage: React.FC = () => {
                 paragraph 
                 sx={{
                   fontFamily: typography.fontFamily.secondary,
-                  fontSize: typography.fontSize.base,
+                  fontSize: typography.fontSize.lg,
                   color: colors.text.secondary,
                   lineHeight: 1.6,
                   textAlign: 'left',
@@ -160,7 +160,7 @@ const SelectionPage: React.FC = () => {
                 component="h3"
                 sx={{
                   fontFamily: typography.fontFamily.display,
-                  fontSize: typography.fontSize.lg,
+                  fontSize: '2rem',
                   fontWeight: typography.fontWeight.bold,
                   color: colors.text.primary,
                   mb: spacing[3],
@@ -174,7 +174,7 @@ const SelectionPage: React.FC = () => {
                 pl: spacing[3], 
                 '& li': {
                   fontFamily: typography.fontFamily.secondary,
-                  fontSize: typography.fontSize.sm,
+                  fontSize: typography.fontSize.lg,
                   color: colors.text.secondary,
                   lineHeight: 1.5,
                   mb: spacing[1],
@@ -231,7 +231,7 @@ const SelectionPage: React.FC = () => {
                     sx={{ 
                       fontWeight: typography.fontWeight.bold,
                       fontFamily: typography.fontFamily.display,
-                      fontSize: typography.fontSize.lg,
+                      fontSize: '2rem',
                       color: colors.text.primary,
                       mb: spacing[2],
                     }}
@@ -243,7 +243,7 @@ const SelectionPage: React.FC = () => {
                     sx={{ 
                       color: colors.text.secondary,
                       fontFamily: typography.fontFamily.secondary,
-                      fontSize: typography.fontSize.sm,
+                      fontSize: typography.fontSize.lg,
                       lineHeight: 1.5,
                     }}
                   >
@@ -297,7 +297,7 @@ const SelectionPage: React.FC = () => {
                     sx={{ 
                       fontWeight: typography.fontWeight.bold,
                       fontFamily: typography.fontFamily.display,
-                      fontSize: typography.fontSize.lg,
+                      fontSize: '2rem',
                       color: colors.text.primary,
                       mb: spacing[2],
                     }}
@@ -309,7 +309,7 @@ const SelectionPage: React.FC = () => {
                     sx={{ 
                       color: colors.text.secondary,
                       fontFamily: typography.fontFamily.secondary,
-                      fontSize: typography.fontSize.sm,
+                      fontSize: typography.fontSize.lg,
                       lineHeight: 1.5,
                     }}
                   >
@@ -403,31 +403,31 @@ const SelectionPage: React.FC = () => {
                     {action.icon}
                   </Box>
                   <Box sx={{ flex: 1 }}>
-                    <Typography 
-                      variant="h6" 
-                      component="h3" 
-                      gutterBottom 
-                      sx={{ 
-                        fontWeight: typography.fontWeight.bold,
-                        fontFamily: typography.fontFamily.display,
-                        fontSize: typography.fontSize.lg,
-                        color: colors.text.primary,
-                        mb: spacing[2],
-                      }}
-                    >
-                      {action.title}
-                    </Typography>
-                    <Typography 
-                      variant="body2" 
-                      sx={{ 
-                        color: colors.text.secondary,
-                        fontFamily: typography.fontFamily.secondary,
-                        fontSize: typography.fontSize.sm,
-                        lineHeight: 1.5,
-                      }}
-                    >
-                      {action.description}
-                    </Typography>
+                            <Typography 
+                              variant="h6" 
+                              component="h3" 
+                              gutterBottom 
+                              sx={{ 
+                                fontWeight: typography.fontWeight.bold,
+                                fontFamily: typography.fontFamily.display,
+                                fontSize: '2rem',
+                                color: colors.text.primary,
+                                mb: spacing[2],
+                              }}
+                            >
+                              {action.title}
+                            </Typography>
+                            <Typography 
+                              variant="body2" 
+                              sx={{ 
+                                color: colors.text.secondary,
+                                fontFamily: typography.fontFamily.secondary,
+                                fontSize: typography.fontSize.lg,
+                                lineHeight: 1.5,
+                              }}
+                            >
+                              {action.description}
+                            </Typography>
                     {action.disabled && (
                       <Typography 
                         variant="caption" 
@@ -495,31 +495,31 @@ const SelectionPage: React.FC = () => {
                     {action.icon}
                   </Box>
                   <Box sx={{ flex: 1 }}>
-                    <Typography 
-                      variant="h6" 
-                      component="h3" 
-                      gutterBottom 
-                      sx={{ 
-                        fontWeight: typography.fontWeight.bold,
-                        fontFamily: typography.fontFamily.display,
-                        fontSize: typography.fontSize.lg,
-                        color: colors.text.primary,
-                        mb: spacing[2],
-                      }}
-                    >
-                      {action.title}
-                    </Typography>
-                    <Typography 
-                      variant="body2" 
-                      sx={{ 
-                        color: colors.text.secondary,
-                        fontFamily: typography.fontFamily.secondary,
-                        fontSize: typography.fontSize.sm,
-                        lineHeight: 1.5,
-                      }}
-                    >
-                      {action.description}
-                    </Typography>
+                            <Typography 
+                              variant="h6" 
+                              component="h3" 
+                              gutterBottom 
+                              sx={{ 
+                                fontWeight: typography.fontWeight.bold,
+                                fontFamily: typography.fontFamily.display,
+                                fontSize: '2rem',
+                                color: colors.text.primary,
+                                mb: spacing[2],
+                              }}
+                            >
+                              {action.title}
+                            </Typography>
+                            <Typography 
+                              variant="body2" 
+                              sx={{ 
+                                color: colors.text.secondary,
+                                fontFamily: typography.fontFamily.secondary,
+                                fontSize: typography.fontSize.lg,
+                                lineHeight: 1.5,
+                              }}
+                            >
+                              {action.description}
+                            </Typography>
                     {action.disabled && (
                       <Typography 
                         variant="caption" 
