@@ -1,7 +1,11 @@
 // src/components/Supplemental/CourseSelector.tsx
 import React from 'react';
-import { Box, Grid, Card, CardContent, Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { useCourses } from '../../hooks/useCourses';
+import { useUser } from '../../hooks/useUser';
+import CourseSection from '../SelectionPageComponents/CourseSection';
+import { colors, typography, spacing, borderRadius, shadows } from '../../config/designSystem';
 
 interface CourseSelectorProps {
   courses: { id: string; number: string; title: string }[];
@@ -9,74 +13,66 @@ interface CourseSelectorProps {
 
 const CourseSelector: React.FC<CourseSelectorProps> = ({ courses }) => {
   const navigate = useNavigate();
+  const { publicCourses, userCourses } = useCourses();
+
+  const handleCourseClick = (courseId: string) => {
+    navigate(`/supplemental-materials?course=${courseId}`);
+  };
+
 
   return (
     <Box sx={{ width: '100%', padding: 4 }}>
-      <Typography
-        variant="h5"
-        align="center"
-        sx={{
-          mt: 3,
-          pb: 2, // Adds padding below the text
-          fontFamily: 'Staatliches, sans-serif', // Use the Staatliches font for bold, prominent headings
-          fontSize: '2rem', // Adjust font size to make it stand out
-          color: '#00695c', // A color that matches your palette
-          textTransform: 'uppercase', // Optional: Makes the text uppercase for emphasis
-          letterSpacing: '1px', // Adds spacing for a clean look
-        }}
-      >
-        Select a Course
-      </Typography>
-      <Grid container spacing={4} justifyContent="center">
-        {courses.map((course) => (
-          <Grid item key={course.id} xs={12} sm={6} md={4} lg={3}>
-            <Card
-              onClick={() => navigate(`/supplemental-materials?course=${course.id}`)}
-              sx={{
-                cursor: 'pointer',
-                borderRadius: '15px',
-                transition: 'transform 0.3s, box-shadow 0.3s',
-                '&:hover': {
-                  transform: 'scale(1.05)',
-                  boxShadow: '0 6px 20px rgba(0, 0, 0, 0.1)',
-                },
-                boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
-              }}
-            >
-              <CardContent
-                sx={{
-                  textAlign: 'center',
-                  padding: 3,
-                  backgroundColor: '#e0f7fa',
-                  '&:hover': { backgroundColor: '#b2ebf2' },
-                }}
-              >
-                <Typography
-                  variant="h5"
-                  sx={{
-                    fontFamily: 'Staatliches, sans-serif',
-                    fontSize: '1.5rem',
-                    color: '#006064',
-                  }}
-                >
-                  {course.number}
-                </Typography>
-                <Typography
-                  variant="body1"
-                  sx={{
-                    fontFamily: 'Gabarito, sans-serif',
-                    fontSize: '1rem',
-                    color: '#004d40',
-                    marginTop: 1,
-                  }}
-                >
-                  {course.title}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+
+      {/* Course Selection Section */}
+      <Box sx={{ 
+        mb: spacing[6], 
+        p: spacing[4], 
+        backgroundColor: colors.background.secondary,
+        borderRadius: borderRadius.xl,
+        border: `1px solid ${colors.neutral[200]}`,
+        boxShadow: shadows.sm,
+        position: 'relative',
+        mt: spacing[3], // Space for the tab
+      }}>
+        {/* File folder tab */}
+        <Box sx={{
+          position: 'absolute',
+          top: '-25px',
+          left: '40px',
+          backgroundColor: colors.secondary[500],
+          borderRadius: `${borderRadius.lg} ${borderRadius.lg} 0 0`,
+          px: spacing[3],
+          py: spacing[1],
+          zIndex: 1,
+        }}>
+          <Typography sx={{
+            color: colors.text.inverse,
+            fontFamily: typography.fontFamily.display,
+            fontSize: '2rem',
+            fontWeight: typography.fontWeight.bold,
+            whiteSpace: 'nowrap',
+            lineHeight: 1,
+          }}>
+            Available Courses
+          </Typography>
+        </Box>
+
+        <Box sx={{ mt: spacing[3] }}>
+          {/* Public Courses */}
+          <CourseSection
+            title="Public Course"
+            courses={publicCourses}
+            onCourseClick={handleCourseClick}
+          />
+
+          {/* User Courses */}
+          <CourseSection
+            title="Your Enrolled Courses"
+            courses={userCourses}
+            onCourseClick={handleCourseClick}
+          />
+        </Box>
+      </Box>
     </Box>
   );
 };

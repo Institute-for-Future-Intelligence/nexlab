@@ -16,14 +16,12 @@ interface CourseSectionProps {
   title: string;
   courses: Course[];
   onCourseClick: (courseId: string) => void;
-  isAdmin?: boolean;
 }
 
 const CourseSection: React.FC<CourseSectionProps> = ({ 
   title, 
   courses, 
-  onCourseClick, 
-  isAdmin 
+  onCourseClick 
 }) => {
   if (courses.length === 0) return null;
 
@@ -64,7 +62,6 @@ const CourseSection: React.FC<CourseSectionProps> = ({
             <CourseCard
               course={course}
               onClick={() => onCourseClick(course.id)}
-              isAdmin={course.isCourseAdmin}
             />
           </Grid>
         ))}

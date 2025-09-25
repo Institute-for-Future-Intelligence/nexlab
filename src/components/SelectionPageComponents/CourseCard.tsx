@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent, Typography, Box, Chip } from '@mui/material';
-import { School as CourseIcon, Public as PublicIcon } from '@mui/icons-material';
+import { School as CourseIcon } from '@mui/icons-material';
 import { colors, typography, spacing, borderRadius, shadows, animations } from '../../config/designSystem';
 
 interface CourseCardProps {
@@ -10,12 +10,12 @@ interface CourseCardProps {
     title: string;
     isPublic?: boolean;
     createdAt?: Date;
+    isCourseAdmin?: boolean;
   };
   onClick: () => void;
-  isAdmin?: boolean;
 }
 
-const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, isAdmin }) => {
+const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
   const isPublicCourse = course.isPublic || course.id === 'xsA42JCvfCUtmyoyx45s'; // Public course ID from config
 
   return (
@@ -37,30 +37,6 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, isAdmin }) => 
         }
       }}
     >
-      {/* Public Course Badge */}
-      {isPublicCourse && (
-        <Box
-          sx={{
-            position: 'absolute',
-            top: spacing[2],
-            right: spacing[2],
-            zIndex: 1,
-          }}
-        >
-          <Chip
-            icon={<PublicIcon sx={{ fontSize: 16 }} />}
-            label="Public"
-            size="small"
-            sx={{
-              backgroundColor: colors.warning,
-              color: colors.text.inverse,
-              fontFamily: typography.fontFamily.secondary,
-              fontWeight: typography.fontWeight.bold,
-              fontSize: typography.fontSize.xs,
-            }}
-          />
-        </Box>
-      )}
 
       <CardContent
         sx={{
@@ -114,20 +90,25 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, isAdmin }) => 
             {course.title}
           </Typography>
 
-          {/* Admin Badge */}
-          {isAdmin && (
-            <Chip
-              label="Admin Access"
-              size="small"
-              sx={{
-                backgroundColor: colors.secondary[100],
-                color: colors.secondary[700],
-                fontFamily: typography.fontFamily.secondary,
-                fontWeight: typography.fontWeight.medium,
-                fontSize: typography.fontSize.xs,
-              }}
-            />
-          )}
+          {/* Access Level Badge */}
+          <Chip
+            label={
+              course.isCourseAdmin ? 'Instructor Access' :
+              'Student Access'
+            }
+            size="small"
+            sx={{
+              backgroundColor: 
+                course.isCourseAdmin ? colors.warning + '20' :
+                colors.secondary[100],
+              color: 
+                course.isCourseAdmin ? colors.warning :
+                colors.secondary[700],
+              fontFamily: typography.fontFamily.secondary,
+              fontWeight: typography.fontWeight.medium,
+              fontSize: typography.fontSize.xs,
+            }}
+          />
         </Box>
       </CardContent>
     </Card>
