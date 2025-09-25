@@ -249,6 +249,27 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
       color: colors.error
     },
     {
+      title: 'Educator Requests',
+      icon: <AdminIcon />,
+      path: '/educator-requests',
+      roles: ['superadmin'],
+      color: colors.info
+    },
+    {
+      title: 'Course Requests',
+      icon: <SettingsIcon />,
+      path: '/course-requests',
+      roles: ['superadmin'],
+      color: colors.primary[600]
+    },
+    {
+      title: 'Super Admin Chatbot Requests',
+      icon: <AdminIcon />,
+      path: '/super-admin-chatbot-requests',
+      roles: ['superadmin'],
+      color: colors.warning
+    },
+    {
       title: 'Chatbot Conversations',
       icon: <ConversationsIcon />,
       path: '/chatbot-conversations',
@@ -261,13 +282,6 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
       path: '/super-admin-course-management',
       roles: ['superadmin'],
       color: colors.secondary[700]
-    },
-    {
-      title: 'Super Admin Chatbot Requests',
-      icon: <AdminIcon />,
-      path: '/super-admin-chatbot-requests',
-      roles: ['superadmin'],
-      color: colors.warning
     }
   ];
 
