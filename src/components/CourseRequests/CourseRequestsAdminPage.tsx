@@ -106,7 +106,8 @@ const CourseRequestsAdminPage: React.FC = () => {
         description: currentRequestData.courseDescription,
         passcode: passcode,
         courseAdmin: [currentRequestData.uid], // Initialize with primary admin as array
-        createdAt: new Date(),
+        createdAt: new Date(), // Keep this for backward compatibility
+        courseCreatedAt: new Date(), // Add explicit courseCreatedAt field for consistency
       };
 
       // Add additional information if available from syllabus import

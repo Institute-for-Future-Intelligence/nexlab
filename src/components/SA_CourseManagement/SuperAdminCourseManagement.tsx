@@ -81,7 +81,7 @@ const SuperAdminCourseManagement: React.FC = () => {
         // Get course creation date from the course document
         const courseDoc = await getDoc(courseRef);
         const courseDocData = courseDoc.exists() ? courseDoc.data() : null;
-        const courseCreatedAt = courseDocData?.createdAt || courseDocData?.timestamp || new Date();
+        const courseCreatedAt = courseDocData?.courseCreatedAt || courseDocData?.createdAt || courseDocData?.timestamp || new Date();
 
         // Update user's classes field in the user document
         const userRef = doc(db, 'users', userDetails.uid);

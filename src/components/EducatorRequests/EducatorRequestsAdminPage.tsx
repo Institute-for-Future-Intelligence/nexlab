@@ -101,6 +101,8 @@ const EducatorRequestsAdminPage: React.FC = () => {
           title: currentRequestData.courseTitle,
           passcode,
           courseAdmin: [currentRequestData.uid], // Initialize with primary admin as array
+          createdAt: new Date(), // Keep this for backward compatibility
+          courseCreatedAt: new Date(), // Add explicit courseCreatedAt field for consistency
         });
 
         // Update the user's document
