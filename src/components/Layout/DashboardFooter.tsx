@@ -142,7 +142,7 @@ const DashboardFooter: React.FC = () => {
               opacity: 0.8, // 80% transparency
             }}
           >
-            © 2025 Institute for Future Intelligence and Kapi&apos;olani Community College Antibody Engineering & Research Projects
+            © 2025 Institute for Future Intelligence and Kapi&apos;olani Community College Antibody Engineering & Research Projects.
           </Typography>
         </Box>
       </Box>
