@@ -294,7 +294,18 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
 
     const content = (
       <ListItemButton
-        onClick={() => item.expandable ? toggleMessages() : handleNavigation(item.path)}
+        onClick={() => {
+          if (item.expandable) {
+            if (isOpen) {
+              toggleMessages();
+            } else {
+              // When sidebar is collapsed, navigate to messages page directly
+              handleNavigation(item.path);
+            }
+          } else {
+            handleNavigation(item.path);
+          }
+        }}
         disabled={item.disabled}
         sx={{
           minHeight: 56,
@@ -647,9 +658,9 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
                 borderRadius: borderRadius.lg,
                 backgroundColor: colors.secondary[50],
                 color: colors.secondary[700],
-                fontFamily: typography.fontFamily.secondary,
+                fontFamily: typography.fontFamily.display,
                 fontWeight: typography.fontWeight.medium,
-                fontSize: typography.fontSize.sm,
+                fontSize: typography.fontSize.lg,
                 '&:hover': {
                   backgroundColor: colors.secondary[100],
                   transform: 'translateY(-1px)',
@@ -666,9 +677,9 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
                   primary="Provide Feedback" 
                   sx={{
                     '& .MuiListItemText-primary': {
-                      fontSize: typography.fontSize.sm,
+                      fontSize: typography.fontSize.lg,
                       fontWeight: typography.fontWeight.medium,
-                      fontFamily: typography.fontFamily.secondary,
+                      fontFamily: typography.fontFamily.display,
                     }
                   }}
                 />
@@ -692,9 +703,9 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
               borderRadius: borderRadius.lg,
               backgroundColor: colors.error + '20',
               color: colors.error,
-              fontFamily: typography.fontFamily.secondary,
+              fontFamily: typography.fontFamily.display,
               fontWeight: typography.fontWeight.medium,
-              fontSize: typography.fontSize.sm,
+              fontSize: typography.fontSize.lg,
               '&:hover': {
                 backgroundColor: colors.error + '30',
                 transform: 'translateY(-1px)',
@@ -711,9 +722,9 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
                 primary="Logout" 
                 sx={{
                   '& .MuiListItemText-primary': {
-                    fontSize: typography.fontSize.sm,
+                    fontSize: typography.fontSize.lg,
                     fontWeight: typography.fontWeight.medium,
-                    fontFamily: typography.fontFamily.secondary,
+                    fontFamily: typography.fontFamily.display,
                   }
                 }}
               />
