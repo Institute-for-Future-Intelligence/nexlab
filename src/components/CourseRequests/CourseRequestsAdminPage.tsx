@@ -6,6 +6,7 @@ import { getFirestore, collection, getDocs, getDoc, doc, updateDoc, addDoc, writ
 import { useNavigate } from 'react-router-dom';
 import { ParsedCourseInfo, GeneratedMaterial } from '../../stores/syllabusStore';
 import type { Material } from '../../types/Material';
+import { courseEnhancementService } from '../../services/courseEnhancementService';
 
 interface CourseRequest {
   id: string;
@@ -147,6 +148,7 @@ const CourseRequestsAdminPage: React.FC = () => {
             number: currentRequestData.courseNumber,
             title: currentRequestData.courseTitle,
             isCourseAdmin: true, // Set explicitly
+            createdAt: new Date(), // Add creation date
           },
         },
       });

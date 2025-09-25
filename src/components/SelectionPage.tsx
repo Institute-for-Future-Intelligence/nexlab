@@ -12,14 +12,21 @@ import {
 } from '@mui/icons-material';
 
 import { useUser } from '../hooks/useUser';
+import { useCourses } from '../hooks/useCourses';
+import CourseSection from './SelectionPageComponents/CourseSection';
 import { colors, typography, spacing, borderRadius, shadows, animations } from '../config/designSystem';
 
 const SelectionPage: React.FC = () => {
   const { userDetails } = useUser();
+  const { publicCourses, userCourses } = useCourses();
   const navigate = useNavigate();
 
   const isLabNotebookDisabled = userDetails && !userDetails.isAdmin && 
     (!userDetails.classes || Object.keys(userDetails.classes).length === 0);
+
+  const handleCourseClick = (courseId: string) => {
+    navigate(`/supplemental-materials?course=${courseId}`);
+  };
 
   const firstRowActions = [
     {
@@ -540,6 +547,61 @@ const SelectionPage: React.FC = () => {
           ))}
         </Grid>
       </Box>
+
+      {/* Course Selection Section */}
+      {(publicCourses.length > 0 || userCourses.length > 0) && (
+        <Box sx={{ 
+          mb: spacing[6], 
+          p: spacing[4], 
+          backgroundColor: colors.background.secondary,
+          borderRadius: borderRadius.xl,
+          border: `1px solid ${colors.neutral[200]}`,
+          boxShadow: shadows.sm,
+          position: 'relative',
+          mt: spacing[3], // Space for the tab
+        }}>
+          {/* File folder tab */}
+          <Box sx={{
+            position: 'absolute',
+            top: '-25px',
+            left: '40px',
+            backgroundColor: colors.secondary[500],
+            borderRadius: `${borderRadius.lg} ${borderRadius.lg} 0 0`,
+            px: spacing[3],
+            py: spacing[1],
+            zIndex: 1,
+          }}>
+            <Typography sx={{
+              color: colors.text.inverse,
+              fontFamily: typography.fontFamily.display,
+              fontSize: '2rem',
+              fontWeight: typography.fontWeight.bold,
+              whiteSpace: 'nowrap',
+              lineHeight: 1,
+            }}>
+              Your Courses
+            </Typography>
+          </Box>
+
+          <Box sx={{ mt: spacing[3] }}>
+            {/* Public Courses */}
+            <CourseSection
+              title="Public Course"
+              courses={publicCourses}
+              onCourseClick={handleCourseClick}
+              isAdmin={userDetails?.isAdmin}
+            />
+
+            {/* User Courses */}
+            <CourseSection
+              title="Your Enrolled Courses"
+              courses={userCourses}
+              onCourseClick={handleCourseClick}
+              isAdmin={userDetails?.isAdmin}
+            />
+          </Box>
+        </Box>
+      )}
 
       {/* Additional info for students */}
       {!userDetails?.isAdmin && (
