@@ -2,6 +2,7 @@
 import React from 'react';
 import { Box, Button, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { PageHeader } from '../common';
 
 import ChatbotRequestsDisplay from './ChatbotRequestsDisplay';
 
@@ -10,9 +11,7 @@ const ChatbotManagementPage: React.FC = () => {
 
   return (
     <Box className="profile-container" sx={{ p: 4 }}>
-      <Typography className="webpage_title" sx={{ mb: 2 }}>
-        Chatbot Management
-      </Typography>
+      <PageHeader title="Chatbot Management" />
 
       <Typography variant="body1" className="profile-text" sx={{ mb: 3 }}>
         Manage your chatbots or create new chatbot requests.

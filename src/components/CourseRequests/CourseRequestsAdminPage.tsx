@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { ParsedCourseInfo, GeneratedMaterial } from '../../stores/syllabusStore';
 import type { Material } from '../../types/Material';
 import { courseEnhancementService } from '../../services/courseEnhancementService';
+import { PageHeader } from '../common';
 
 interface CourseRequest {
   id: string;
@@ -294,9 +295,7 @@ const CourseRequestsAdminPage: React.FC = () => {
 
   return (
     <Box sx={{ padding: 3 }}>
-      <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold', mb: 3 }}>
-        Course Creation Requests
-      </Typography>
+      <PageHeader title="Course Creation Requests" />
 
       <TableContainer component={Paper}>
         <Table>

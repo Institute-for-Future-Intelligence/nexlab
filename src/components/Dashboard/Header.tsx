@@ -1,7 +1,8 @@
 // Header.tsx
 import React, { memo } from 'react';
-import { Typography, Button, Box, useMediaQuery, useTheme } from '@mui/material';
+import { Button, Box, useMediaQuery, useTheme } from '@mui/material';
 import { colors, typography, spacing, borderRadius, shadows, animations } from '../../config/designSystem';
+import { PageHeader } from '../common';
 
 interface HeaderProps {
   setIsAdding: React.Dispatch<React.SetStateAction<boolean>>;
@@ -15,44 +16,11 @@ const Header: React.FC<HeaderProps> = memo(({ setIsAdding }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   return (
-    <Box 
-      sx={{ 
-        p: isMobile ? spacing[4] : spacing[6], // Responsive padding
-        backgroundColor: colors.primary[50], // Light blue background
-        borderRadius: borderRadius['2xl'], // 16px border radius
-        mb: spacing[6], // 24px margin bottom
-        border: `1px solid ${colors.primary[200]}`,
-        boxShadow: shadows.sm,
-      }}
-    >
-
-      {/* Page Title */}
-      <Box sx={{ mb: spacing[6] }}>
-        <Typography 
-          variant="h2"
-          sx={{
-            fontFamily: typography.fontFamily.display,
-            fontSize: isMobile ? typography.fontSize['3xl'] : typography.fontSize['5xl'], // Responsive font size
-            fontWeight: typography.fontWeight.bold,
-            color: colors.primary[700],
-            lineHeight: typography.lineHeight.tight,
-            mb: spacing[2],
-          }}
-        >
-          Laboratory Notebook
-        </Typography>
-        <Typography 
-          variant="body1"
-          sx={{
-            fontFamily: typography.fontFamily.primary,
-            fontSize: isMobile ? typography.fontSize.base : typography.fontSize.lg,
-            color: colors.text.secondary,
-            lineHeight: typography.lineHeight.relaxed,
-          }}
-        >
-          Manage your lab experiments, designs, and research projects
-        </Typography>
-      </Box>
+    <Box>
+      <PageHeader 
+        title="Laboratory Notebook"
+        subtitle="Manage your lab experiments, designs, and research projects"
+      />
 
       {/* Action Button */}
       <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
