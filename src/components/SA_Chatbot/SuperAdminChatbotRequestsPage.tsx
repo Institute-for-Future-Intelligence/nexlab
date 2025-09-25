@@ -166,11 +166,6 @@ const SuperAdminChatbotRequestsPage: React.FC = () => {
 
   return (
     <Box className="profile-container" sx={{ p: 4 }}>
-      {/* Back to Home Button */}
-      <Button variant="text" onClick={() => navigate('/')} className="profile-button">
-        &larr; Home Page
-      </Button>
-
       <Typography variant="h5" className="webpage_title" sx={{ mb: 2 }}>
         Chatbot Requests Management
       </Typography>

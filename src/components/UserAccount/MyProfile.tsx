@@ -93,10 +93,6 @@ const MyProfile: React.FC = () => {
 
   return (
     <Box className="profile-container">
-      {/* Back to Home Button */}
-      <Button variant="text" onClick={handleNavigateHome} className="profile-button">
-        &larr; Home Page
-      </Button>
       {/* Page Title */}
       <Typography className="webpage_title">
         My Account

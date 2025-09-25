@@ -114,12 +114,6 @@ const CourseManagement: React.FC = () => {
 
   return (
     <Box className="profile-container" sx={{ p: 4 }}>
-      {/* Navigation */}
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-        <Button variant="text" onClick={() => navigate('/')} className="profile-button">
-          &larr; Home Page
-        </Button>
-      </Box>
 
       <Typography className="webpage_title" sx={{ mb: 2 }}>
         Course Management

@@ -1,7 +1,6 @@
 // Header.tsx
 import React, { memo } from 'react';
 import { Typography, Button, Box, useMediaQuery, useTheme } from '@mui/material';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate for navigation
 import { colors, typography, spacing, borderRadius, shadows, animations } from '../../config/designSystem';
 
 interface HeaderProps {
@@ -12,14 +11,8 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = memo(({ setIsAdding }) => {
   console.log("Header loaded");
 
-  const navigate = useNavigate(); // Initialize useNavigate hook
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  
-  // Handler for navigating back to the home page
-  const handleNavigateHome = () => {
-    navigate('/');
-  };
 
   return (
     <Box 
@@ -32,27 +25,6 @@ const Header: React.FC<HeaderProps> = memo(({ setIsAdding }) => {
         boxShadow: shadows.sm,
       }}
     >
-      {/* Back Button */}
-      <Box sx={{ mb: spacing[4] }}>
-        <Button 
-          variant="text" 
-          onClick={handleNavigateHome}
-          sx={{
-            fontFamily: typography.fontFamily.secondary,
-            fontSize: isMobile ? typography.fontSize.base : typography.fontSize.lg,
-            color: colors.primary[600],
-            textTransform: 'none',
-            fontWeight: typography.fontWeight.medium,
-            '&:hover': {
-              backgroundColor: colors.primary[100],
-              color: colors.primary[700],
-            },
-            transition: animations.transitions.fast,
-          }}
-        >
-          &larr; Home Page
-        </Button>
-      </Box>
 
       {/* Page Title */}
       <Box sx={{ mb: spacing[6] }}>

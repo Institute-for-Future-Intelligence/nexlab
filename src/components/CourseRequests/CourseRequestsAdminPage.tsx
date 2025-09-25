@@ -294,12 +294,6 @@ const CourseRequestsAdminPage: React.FC = () => {
 
   return (
     <Box sx={{ padding: 3 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-        <Button variant="text" onClick={handleNavigateHome} sx={{ mr: 2 }}>
-          &larr; Home Page
-        </Button>
-      </Box>
-
       <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold', mb: 3 }}>
         Course Creation Requests
       </Typography>

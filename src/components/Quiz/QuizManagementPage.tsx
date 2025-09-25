@@ -171,16 +171,6 @@ const QuizManagementPage: React.FC = () => {
     <Box className="profile-container">
       {/* Header Section */}
       <Box sx={{ mb: 4 }}>
-      <Button
-          variant="text" 
-          startIcon={<ArrowBackIcon />} 
-        onClick={() => navigate('/')}
-          className="profile-button"
-          sx={{ mb: 2 }}
-      >
-          Home Page
-      </Button>
-      
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box>
             <Typography className="webpage_title">

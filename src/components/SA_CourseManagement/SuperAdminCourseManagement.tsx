@@ -175,11 +175,6 @@ const SuperAdminCourseManagement: React.FC = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-        <Button variant="text" onClick={handleNavigateHome} sx={{ mr: 2 }}>
-          &larr; Home Page
-        </Button>
-      </Box>
       <Typography variant="h4" gutterBottom>Super Admin Course Management</Typography>
       {loading ? (
         <Typography>Loading courses...</Typography>

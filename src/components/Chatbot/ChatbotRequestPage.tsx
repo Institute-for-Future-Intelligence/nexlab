@@ -133,10 +133,6 @@ const ChatbotRequestPage: React.FC = () => {
 
   return (
     <Box className="profile-container" sx={{ p: 4 }}>
-      <Button variant="text" onClick={handleNavigateBack} className="profile-button">
-        &larr; Chatbot Management
-      </Button>
-
       <Typography className="webpage_title" sx={{ mb: 2 }}>
         Request to Create a Chatbot
       </Typography>
