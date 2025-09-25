@@ -15,7 +15,7 @@ import { useUser } from '../hooks/useUser';
 import { colors, typography, spacing, borderRadius, shadows, animations } from '../config/designSystem';
 
 const SelectionPage: React.FC = () => {
-  const { userDetails, isSuperAdmin } = useUser();
+  const { userDetails } = useUser();
   const navigate = useNavigate();
 
   const isLabNotebookDisabled = userDetails && !userDetails.isAdmin && 
@@ -575,8 +575,8 @@ const SelectionPage: React.FC = () => {
               mb: spacing[4],
             }}
           >
-            Welcome to NexLab! To get started, you'll need to enroll in a course. 
-            Use the "My Account" section to add course access codes provided by your instructor.
+            Welcome to NexLab! To get started, you&apos;ll need to enroll in a course. 
+            Use the &quot;My Account&quot; section to add course access codes provided by your instructor.
           </Typography>
           <Button 
             variant="contained" 
