@@ -11,7 +11,12 @@ export interface UserDetails {
   isAdmin?: boolean;
   isSuperAdmin?: boolean;
   lastLogin?: FirebaseTimestamp;
-  classes?: Record<string, { number: string; title: string; isCourseAdmin: boolean }>;
+  classes?: Record<string, { 
+    number: string; 
+    title: string; 
+    isCourseAdmin: boolean;
+    createdAt?: Date | FirebaseTimestamp;
+  }>;
 }
 
 export interface UserContextType {

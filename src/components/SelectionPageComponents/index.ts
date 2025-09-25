@@ -3,4 +3,6 @@ export { default as UserNavigationCards } from './UserNavigationCards';
 export { default as AdminNavigationCards } from './AdminNavigationCards';
 export { default as SuperAdminNavigationCards } from './SuperAdminNavigationCards';
 export { default as NavigationMenu } from './NavigationMenu';
-export { default as MessagesSection } from './MessagesSection'; 
+export { default as MessagesSection } from './MessagesSection';
+export { default as CourseCard } from './CourseCard';
+export { default as CourseSection } from './CourseSection'; 

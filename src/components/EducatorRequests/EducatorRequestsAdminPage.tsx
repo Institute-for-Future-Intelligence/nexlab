@@ -115,6 +115,7 @@ const EducatorRequestsAdminPage: React.FC = () => {
               number: currentRequestData.courseNumber,
               title: currentRequestData.courseTitle,
               isCourseAdmin: true, // Explicitly set the user as course admin
+              createdAt: new Date(), // Add creation date
             },
           },
         });
@@ -153,6 +154,7 @@ const EducatorRequestsAdminPage: React.FC = () => {
               number: currentRequestData.courseNumber,
               title: currentRequestData.courseTitle,
               isCourseAdmin: true, // Co-instructors are also course admins
+              createdAt: new Date(), // Add creation date
             },
           },
         });

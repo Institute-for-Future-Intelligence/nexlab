@@ -541,6 +541,7 @@ const SelectionPage: React.FC = () => {
         </Grid>
       </Box>
 
+
       {/* Additional info for students */}
       {!userDetails?.isAdmin && (
         <Box sx={{ 
