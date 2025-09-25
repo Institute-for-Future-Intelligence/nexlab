@@ -2,7 +2,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useUser } from '../../hooks/useUser';
 
-import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, Snackbar, Alert, TextField, Box } from '@mui/material';
+import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, Snackbar, Alert, TextField, Box, Typography, Paper, Chip, useMediaQuery, useTheme } from '@mui/material';
+import { colors, typography, spacing, borderRadius, shadows } from '../../config/designSystem';
 
 import { collection, query, where, getDocs, doc, deleteDoc, orderBy } from "firebase/firestore";
 import { db } from '../../config/firestore';
@@ -17,6 +18,8 @@ import { DesignDocumentData, getDocumentField } from '../../types/events';
 
 const Dashboard = () => {
   const { userDetails, loading } = useUser();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   console.log("Dashboard loaded");
 
@@ -204,17 +207,67 @@ const Dashboard = () => {
     }
   };
 
+  // Helper function to render section header
+  const renderSectionHeader = (title: string, count: number, color: string) => (
+    <Box sx={{ mb: spacing[4], mt: spacing[6] }}>
+      <Paper 
+        sx={{ 
+          p: isMobile ? spacing[3] : spacing[4], // Responsive padding
+          backgroundColor: colors.background.secondary,
+          borderRadius: borderRadius.lg,
+          border: `1px solid ${colors.neutral[200]}`,
+          boxShadow: shadows.sm,
+        }}
+      >
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: spacing[3],
+          flexDirection: isMobile ? 'column' : 'row', // Stack on mobile
+          textAlign: isMobile ? 'center' : 'left',
+        }}>
+          <Typography 
+            variant="h4"
+            sx={{
+              fontFamily: typography.fontFamily.display,
+              fontSize: isMobile ? typography.fontSize.xl : typography.fontSize['2xl'], // Responsive font size
+              fontWeight: typography.fontWeight.bold,
+              color: colors.text.primary,
+            }}
+          >
+            {title}
+          </Typography>
+          <Chip
+            label={`${count} ${count === 1 ? 'Design' : 'Designs'}`}
+            size="small"
+            sx={{
+              backgroundColor: color,
+              color: colors.text.inverse,
+              fontFamily: typography.fontFamily.secondary,
+              fontWeight: typography.fontWeight.semibold,
+              fontSize: typography.fontSize.sm,
+            }}
+          />
+        </Box>
+      </Paper>
+    </Box>
+  );
+
   return (
-    <Box className="profile-container" sx={{ p: 4 }}> {/* Ensures consistent padding and layout */}
+    <Box sx={{ 
+      p: isMobile ? spacing[3] : spacing[6], // Responsive padding
+      backgroundColor: colors.background.primary, 
+      minHeight: '100vh' 
+    }}>
       {!isAdding && !isEditing && (
         <>
-          {/* Wrapping the Header in a properly formatted container */}
-          <Box sx={{ mb: 3 }}> 
-            <Header setIsAdding={setIsAdding} />
-          </Box>
+          {/* Header */}
+          <Header setIsAdding={setIsAdding} />
+          
+          {/* Super Admin View */}
           {userDetails?.isSuperAdmin && (
             <>
-              <h2>Super Admin Designs</h2>
+              {renderSectionHeader('My Designs', superAdminDesigns.length, colors.primary[500])}
               <NotebookTable
                 designs={superAdminDesigns}
                 handleEdit={handleEdit}
@@ -223,7 +276,8 @@ const Dashboard = () => {
                 userDetails={userDetails}
                 showUserIdColumn={true}
               />
-              <h2>Educator Designs</h2>
+              
+              {renderSectionHeader('Educator Designs', adminDesigns.length, colors.secondary[500])}
               <NotebookTable
                 designs={adminDesigns}
                 handleEdit={handleEdit}
@@ -232,7 +286,8 @@ const Dashboard = () => {
                 userDetails={userDetails}
                 showUserIdColumn={true}
               />
-              <h2>Student Designs</h2>
+              
+              {renderSectionHeader('Student Designs', userDesigns.length, colors.info)}
               <NotebookTable
                 designs={userDesigns}
                 handleEdit={handleEdit}
@@ -244,9 +299,10 @@ const Dashboard = () => {
             </>
           )}
 
+          {/* Admin View */}
           {userDetails?.isAdmin && !userDetails.isSuperAdmin && (
             <>
-              <h2>Educator Designs</h2>
+              {renderSectionHeader('My Educator Designs', adminDesigns.length, colors.secondary[500])}
               <NotebookTable
                 designs={adminDesigns}
                 handleEdit={handleEdit}
@@ -255,7 +311,8 @@ const Dashboard = () => {
                 userDetails={userDetails}
                 showUserIdColumn={true}
               />
-              <h2>Student Designs</h2>
+              
+              {renderSectionHeader('Student Designs', userDesigns.length, colors.info)}
               <NotebookTable
                 designs={userDesigns}
                 handleEdit={handleEdit}
@@ -267,9 +324,10 @@ const Dashboard = () => {
             </>
           )}
 
+          {/* Student View */}
           {!userDetails?.isAdmin && !userDetails?.isSuperAdmin && (
             <>
-              <h2>Student Designs</h2>
+              {renderSectionHeader('My Designs', userDesigns.length, colors.primary[500])}
               <NotebookTable
                 designs={userDesigns}
                 handleEdit={handleEdit}
