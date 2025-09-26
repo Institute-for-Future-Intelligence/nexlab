@@ -5,15 +5,13 @@ import { getFirestore, collection, getDocs, updateDoc, doc, deleteDoc, writeBatc
 import { useUser } from '../../hooks/useUser';
 import { useNavigate } from 'react-router-dom';
 import {
-  Box, Typography, IconButton,
-  Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Paper, Snackbar, Alert,
-  Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, TextField, Tooltip,
+  Box, Typography, Snackbar, Alert,
+  Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, TextField,
   useMediaQuery, useTheme
 } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
-import AddIcon from '@mui/icons-material/Add';
 import { PageHeader } from '../common';
+import { colors, typography, spacing } from '../../config/designSystem';
+import ModernSuperAdminCourseTable from './ModernSuperAdminCourseTable';
 
 interface Course {
   id: string;
@@ -176,65 +174,30 @@ const SuperAdminCourseManagement: React.FC = () => {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ 
+      p: spacing[6], 
+      backgroundColor: colors.background.primary, 
+      minHeight: '100vh' 
+    }}>
       <PageHeader title="Super Admin Course Management" />
-      {loading ? (
-        <Typography>Loading courses...</Typography>
-      ) : (
-        <TableContainer component={Paper}>
-          <Table aria-label="courses table">
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ fontWeight: 'bold' }}>Course ID</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Course Number</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Course Title</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Instructors</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 'bold' }}>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {courses.map(course => {
-                const isCourseAdmin = !!userDetails?.uid && course.courseAdmin.includes(userDetails.uid);
+      
+      <Typography 
+        variant="body1" 
+        sx={{ 
+          mb: spacing[4],
+          color: colors.text.secondary,
+        }}
+      >
+        Manage all courses in the system. Add yourself as an instructor or delete courses you manage.
+      </Typography>
 
-                return (
-                  <TableRow key={course.id} sx={{ backgroundColor: isCourseAdmin ? '#e0f7fa' : 'transparent' }}>
-                    <TableCell>{course.id}</TableCell>
-                    <TableCell>{course.number}</TableCell>
-                    <TableCell>{course.title}</TableCell>
-                    <TableCell>{course.courseAdmin.length > 0 ? course.courseAdmin.join(', ') : 'No admins assigned'}</TableCell>
-                    <TableCell align="right">
-                      <Tooltip title="Add yourself as an instructor">
-                        <span>
-                          <IconButton 
-                            edge="end" 
-                            aria-label="add" 
-                            onClick={() => handleAddSuperAdmin(course.id)}
-                            disabled={isCourseAdmin} 
-                          >
-                            <AddIcon />
-                          </IconButton>
-                        </span>
-                      </Tooltip>
-                      <Tooltip title={isCourseAdmin ? "Delete this course" : "You are not authorized to delete this course"}>
-                        <span>
-                          <IconButton 
-                            edge="end" 
-                            aria-label="delete" 
-                            onClick={() => handleDeleteCourse(course.id)} 
-                            disabled={!isCourseAdmin} 
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </span>
-                      </Tooltip>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
+      <ModernSuperAdminCourseTable
+        courses={courses}
+        loading={loading}
+        onAddSuperAdmin={handleAddSuperAdmin}
+        onDeleteCourse={handleDeleteCourse}
+        userUid={userDetails?.uid}
+      />
       {/* Snackbar for Notifications */}
       <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleCloseSnackbar}>
         <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }}>

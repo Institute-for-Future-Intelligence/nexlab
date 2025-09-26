@@ -12,6 +12,7 @@ import {
 } from '../../types/chatbot'; // Import proper types
 
 import ConversationsTable from './ConversationsTable';
+import ModernConversationsTable from './ModernConversationsTable';
 import axios from 'axios';
 import ConversationHistoryModal from './ConversationHistoryModal';
 
@@ -290,13 +291,14 @@ const ChatbotConversationsPage: React.FC = () => {
 
             <Box className="profile-container" sx={{ p: 4 }}>
                 {/* Conversations Table */}
-                <ConversationsTable
+                <ModernConversationsTable
                     conversations={currentConversations}
-                    onViewHistory={(chatbotId, conversationId, userId, startedAt) =>
-                        fetchConversationHistory(chatbotId, conversationId, userId, startedAt)
+                    onViewHistory={(chatbotId, conversationId, metadata) =>
+                        fetchConversationHistory(chatbotId, conversationId, metadata.userId, metadata.startedAt)
                     }
                     onDeleteConversation={handleOpenDeleteDialog}
                     loadingMap={loadingMap}
+                    loading={loading}
                 />
 
                 <DeleteConfirmationDialog

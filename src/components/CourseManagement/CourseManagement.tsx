@@ -6,14 +6,16 @@ import { useUser } from '../../hooks/useUser';
 import { UserDetails } from '../../contexts/UserContext';
 import { formatFirebaseTimestamp } from '../../types/firebase'; // Import utility
 import { 
-  Box, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, 
+  Box, Typography, Paper, Button, 
   FormControlLabel, Switch
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../common';
+import { colors, typography, spacing, borderRadius } from '../../config/designSystem';
 
 import CourseStudentManagement from './CourseStudentManagement';
 import ExportToCSV from './ExportToCSV';
+import ModernStudentsTable from './ModernStudentsTable';
 
 import CourseSelector from './CourseSelector';
 
@@ -185,56 +187,37 @@ const CourseManagement: React.FC = () => {
       {/* Students Table */}
       {isCourseSelected && (
         <Paper
-          elevation={3}
+          elevation={0}
           sx={{
-            p: 3,
-            mb: 4,
-            borderRadius: 2,
-            boxShadow: '0 1px 4px rgba(0, 0, 0, 0.1)',
-            backgroundColor: '#F9FAFB',
+            p: spacing[6],
+            mb: spacing[6],
+            borderRadius: borderRadius.xl,
+            backgroundColor: colors.background.secondary,
+            border: `1px solid ${colors.neutral[200]}`,
           }}
         >
           <Typography
-            variant="h6"
+            variant="h5"
             component="h2"
             sx={{
-              fontFamily: 'Staatliches, sans-serif',
-              fontWeight: 'bold',
-              mb: 2,
-              color: '#0B53C0',
+              fontFamily: typography.fontFamily.display,
+              fontWeight: typography.fontWeight.bold,
+              mb: spacing[4],
+              color: colors.primary[500],
             }}
           >
-            Students Enrolled in a Course
+            Students Enrolled in Course
           </Typography>
 
-          {students.length === 0 ? (
-            <Typography sx={{ color: '#757575', textAlign: 'center', p: 3 }}>
-              No students are currently enrolled in <strong>{selectedCourseDisplay}</strong>.
-            </Typography>
-          ) : (
-            <>
-              <TableContainer component={Paper}>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell sx={{ fontWeight: 'bold' }}>User ID</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Last Login</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {students.map((student) => (
-                      <TableRow key={student.uid}>
-                        <TableCell>{student.uid}</TableCell>
-                        <TableCell>
-                          {formatFirebaseTimestamp(student.lastLogin)}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-              <ExportToCSV students={students} selectedCourse={selectedCourse} />
-            </>
+          <Box sx={{ mb: spacing[4] }}>
+            <ModernStudentsTable 
+              students={students}
+              loading={false}
+            />
+          </Box>
+
+          {students.length > 0 && (
+            <ExportToCSV students={students} selectedCourse={selectedCourse} />
           )}
 
           {/* Remove Students Section */}

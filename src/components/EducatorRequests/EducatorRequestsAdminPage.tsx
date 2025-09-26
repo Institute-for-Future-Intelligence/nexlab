@@ -1,9 +1,11 @@
 // src/components/EducatorRequests/EducatorRequestsAdminPage.tsx
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Button, Snackbar, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Select, MenuItem } from '@mui/material';
+import { Box, Typography, Button, Snackbar, Alert, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Select, MenuItem } from '@mui/material';
 import { getFirestore, collection, getDocs, getDoc, doc, updateDoc, addDoc, arrayUnion } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../common';
+import { colors, typography, spacing } from '../../config/designSystem';
+import ModernEducatorRequestsTable from './ModernEducatorRequestsTable';
 
 // Define the interface for the request data
 interface EducatorRequest {
@@ -230,67 +232,32 @@ const EducatorRequestsAdminPage: React.FC = () => {
   };
 
   return (
-    <Box sx={{ padding: 3 }}>
+    <Box sx={{ 
+      p: spacing[6], 
+      backgroundColor: colors.background.primary, 
+      minHeight: '100vh' 
+    }}>
       <PageHeader title="Educator Permission Requests" />
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell>User ID</TableCell>
-              <TableCell>Institution</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell>Course Number</TableCell>
-              <TableCell>Course Title</TableCell>
-              <TableCell>Course Description</TableCell>
-              <TableCell>Timestamp</TableCell>
-              <TableCell>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {requests.map((request) => (
-              <TableRow key={request.id}>
-                <TableCell>{`${request.firstName} ${request.lastName}`}</TableCell>
-                <TableCell>{request.uid}</TableCell>
-                <TableCell>{request.institution}</TableCell>
-                <TableCell>{request.email}</TableCell>
-                <TableCell>{request.courseNumber}</TableCell>
-                <TableCell>{request.courseTitle}</TableCell>
-                <TableCell>{request.courseDescription}</TableCell>
-                <TableCell>{new Date(request.timestamp.seconds * 1000).toLocaleString()}</TableCell>
-                <TableCell>
-                  {request.status === 'pending' && (
-                    <>
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        sx={{ mr: 1 }}
-                        onClick={() => handleOpenDialog('approve', request.id, request)}
-                      >
-                        Approve
-                      </Button>
-                      <Button
-                        variant="contained"
-                        color="secondary"
-                        onClick={() => handleOpenDialog('deny', request.id, request)}
-                      >
-                        Deny
-                      </Button>
-                    </>
-                  )}
-                  {request.status === 'approved' && (
-                    <Typography color="success.main">Approved</Typography>
-                  )}
-                  {request.status === 'denied' && (
-                    <Typography color="error.main">Denied</Typography>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <Typography 
+        variant="body1" 
+        sx={{ 
+          mb: spacing[4],
+          color: colors.text.secondary,
+        }}
+      >
+        Review and manage educator permission requests from users seeking to become course instructors.
+      </Typography>
+
+      <ModernEducatorRequestsTable
+        requests={requests}
+        loading={false}
+        onApprove={(requestId) => {
+          const request = requests.find(r => r.id === requestId);
+          if (request) handleOpenDialog('approve', requestId, request);
+        }}
+        onDeny={(requestId) => handleOpenDialog('deny', requestId, null)}
+      />
 
       <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleCloseSnackbar}>
         <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }}>

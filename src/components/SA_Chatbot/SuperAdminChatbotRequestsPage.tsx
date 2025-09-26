@@ -3,26 +3,16 @@ import React, { useEffect, useState } from 'react';
 import {
   Box,
   Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   CircularProgress,
-  Paper,
-  Button,
-  TextField,
   Snackbar,
   Alert,
-  TablePagination,
-  useMediaQuery,
-  useTheme
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { getFirestore, collection, addDoc, getDoc, getDocs, updateDoc, doc } from 'firebase/firestore';
 import { ChatbotRequest } from '../../types/chatbot'; // Import proper type
 import { PageHeader } from '../common';
+import { colors, typography, spacing } from '../../config/designSystem';
+import ModernSuperAdminChatbotRequestsTableImproved from './ModernSuperAdminChatbotRequestsTableImproved';
 
 import FileDownload from '../Chatbot/FileDownload'; // Import FileDownload component
 
@@ -168,108 +158,30 @@ const SuperAdminChatbotRequestsPage: React.FC = () => {
   }
 
   return (
-    <Box className="profile-container" sx={{ p: 4 }}>
+    <Box sx={{ 
+      p: spacing[6], 
+      backgroundColor: colors.background.primary, 
+      minHeight: '100vh' 
+    }}>
       <PageHeader title="Chatbot Requests Management" />
 
-      <Typography variant="body1" sx={{ mb: 3 }}>
+      <Typography 
+        variant="body1" 
+        sx={{ 
+          mb: spacing[4],
+          color: colors.text.secondary,
+        }}
+      >
         Manage chatbot requests submitted by educators. Approve requests and assign Chatbot IDs.
       </Typography>
 
-      <TableContainer component={Paper} elevation={3} sx={{ maxHeight: '70vh', overflow: 'auto' }}>
-        <Table stickyHeader>
-          <TableHead>
-            <TableRow>
-              <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#E8E8E8', color: '#12372A' }}>Title</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#E8E8E8', color: '#12372A' }}>Course</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#E8E8E8', color: '#12372A' }}>Material</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#E8E8E8', color: '#12372A' }}>Educator ID</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#E8E8E8', color: '#12372A' }}>Course ID</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#E8E8E8', color: '#12372A' }}>Material ID</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#E8E8E8', color: '#12372A' }}>Submitted On</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#E8E8E8', color: '#12372A' }}>Status</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#E8E8E8', color: '#12372A' }}>File Links</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#E8E8E8', color: '#12372A' }}>Chatbot ID</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#E8E8E8', color: '#12372A' }}>Action</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {requests.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((request, index) => (
-              <TableRow
-                key={request.id}
-                sx={{
-                  backgroundColor: index % 2 === 0 ? '#F6E9B2' : '#FBFADA',
-                  '&:hover': { backgroundColor: '#E8E8E8' },
-                }}
-              >
-                <TableCell>{request.title}</TableCell>
-                <TableCell>{`${request.courseNumber} - ${request.courseTitle}`}</TableCell>
-                <TableCell>{request.materialTitle || 'N/A'}</TableCell>
-                <TableCell>{request.educatorId}</TableCell>
-                <TableCell>{request.courseId}</TableCell>
-                <TableCell>{request.materialId || 'N/A'}</TableCell>
-                <TableCell>{new Date(request.timestamp).toLocaleString()}</TableCell>
-                <TableCell>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      color: request.status === 'pending' ? '#FFA726' : '#43A047',
-                      fontWeight: 'bold',
-                    }}
-                  >
-                    {request.status}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  {request.files?.length ? (
-                    request.files.map((file: string, idx: number) => (
-                      <FileDownload key={idx} filePath={file} fileLabel={`File ${idx + 1}`} />
-                    ))
-                  ) : (
-                    <Typography variant="body2">No files uploaded</Typography>
-                  )}
-                </TableCell>
-                <TableCell>
-                  {request.status === 'approved' ? (
-                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                      {request.chatbotId}
-                    </Typography>
-                  ) : (
-                    <TextField
-                      size="small"
-                      value={chatbotIdMap[request.id] || ''}
-                      onChange={(e) => handleChatbotIdChange(request.id, e.target.value)}
-                      placeholder="Enter Chatbot ID"
-                      sx={{ width: '150px' }}
-                    />
-                  )}
-                </TableCell>
-                <TableCell>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() => handleApproveRequest(request.id)}
-                    disabled={request.status === 'approved'}
-                    sx={{ fontWeight: 'bold' }}
-                  >
-                    {request.status === 'approved' ? 'Approved' : 'Approve'}
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={requests.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          aria-label="Chatbot requests pagination"
-          sx={{ mt: 2 }}
-        />
-      </TableContainer>
+      <ModernSuperAdminChatbotRequestsTableImproved
+        requests={requests}
+        loading={loading}
+        onApprove={handleApproveRequest}
+        chatbotIdMap={chatbotIdMap}
+        onChatbotIdChange={handleChatbotIdChange}
+      />
 
       {/* Snackbar for Notifications */}
       <Snackbar
