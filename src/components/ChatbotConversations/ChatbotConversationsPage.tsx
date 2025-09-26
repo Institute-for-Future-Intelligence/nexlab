@@ -11,7 +11,6 @@ import {
   ExtendedChatbotDetails 
 } from '../../types/chatbot'; // Import proper types
 
-import ConversationsTable from './ConversationsTable';
 import ModernConversationsTable from './ModernConversationsTable';
 import axios from 'axios';
 import ConversationHistoryModal from './ConversationHistoryModal';

@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom';
 import { FirebaseTimestamp } from '../../types/firebase'; // Import proper type
 import { PageHeader } from '../common';
 
-import UserTable from './UserTable'; // Import the UserTable component
 import ModernUserTable from './ModernUserTable'; // Import the modern UserTable component
 import DeleteUser from './DeleteUser'; // Import the DeleteUser component
 
