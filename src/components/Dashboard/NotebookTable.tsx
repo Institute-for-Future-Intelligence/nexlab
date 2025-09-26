@@ -14,15 +14,14 @@ import {
   Paper,
   Tooltip,
   IconButton,
-  Chip,
   Box,
   Typography,
-  Avatar,
 } from '@mui/material';
 
 import { Timestamp, FieldValue } from 'firebase/firestore';
 import { Design } from '../../types/types'; // Import the Design interface
 import { colors, typography, spacing, borderRadius, shadows, animations } from '../../config/designSystem';
+import { CopyableUserID, CourseHyperlink } from '../common';
 
 // Define the types for the component props
 interface NotebookTableProps {
@@ -35,26 +34,32 @@ interface NotebookTableProps {
 }
 
 const NotebookTable: React.FC<NotebookTableProps> = ({ designs, handleEdit, handleDelete, userDetails, showUserIdColumn }) => {
-  // Function to format Firestore timestamp to a readable format
+  // Function to format Firestore timestamp to a readable format with full date and time
   const formatDate = (value: Timestamp | Date | FieldValue | null): string => {
     if (!value) return 'N/A';
 
     // If value is a Timestamp
     if (value instanceof Timestamp) {
       const date = value.toDate();
-      return date.toLocaleDateString('en-US', {
-        month: 'long',
+      return date.toLocaleString('en-US', {
+        month: 'short',
         day: 'numeric',
         year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
       });
     }
 
     // If value is a Date
     if (value instanceof Date) {
-      return value.toLocaleDateString('en-US', {
-        month: 'long',
+      return value.toLocaleString('en-US', {
+        month: 'short',
         day: 'numeric',
         year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
       });
     }
 
@@ -95,7 +100,7 @@ const NotebookTable: React.FC<NotebookTableProps> = ({ designs, handleEdit, hand
       >
         <TableHead>
           <TableRow sx={{ height: '64px' }}> 
-            <TableCell sx={{ width: showUserIdColumn ? '30%' : '35%' }}>Design Title</TableCell>
+            <TableCell sx={{ width: showUserIdColumn ? '30%' : '35%' }}>Title</TableCell>
             <TableCell sx={{ width: '20%' }}>Course</TableCell>
             {showUserIdColumn && <TableCell sx={{ width: '15%' }}>User</TableCell>}
             <TableCell sx={{ width: '15%' }}>Created</TableCell>
@@ -126,33 +131,42 @@ const NotebookTable: React.FC<NotebookTableProps> = ({ designs, handleEdit, hand
                 >
                   {/* Design Title */}
                   <TableCell>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: spacing[3] }}>
-                      <Avatar 
-                        sx={{ 
-                          width: 40, 
-                          height: 40, 
-                          backgroundColor: colors.primary[100],
-                          color: colors.primary[700],
-                          fontSize: typography.fontSize.sm,
-                          fontWeight: typography.fontWeight.semibold,
-                        }}
-                      >
-                        {design.title.charAt(0).toUpperCase()}
-                      </Avatar>
+                    <Box
+                      onClick={() => handleEdit(design.id)}
+                      sx={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        backgroundColor: colors.primary[100],
+                        border: `1px solid ${colors.primary[200]}`,
+                        borderRadius: borderRadius.lg,
+                        padding: `${spacing[2]} ${spacing[3]}`,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        maxWidth: '100%',
+                        '&:hover': {
+                          backgroundColor: colors.primary[200],
+                          borderColor: colors.primary[300],
+                          transform: 'translateY(-1px)',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                        },
+                        '&:active': {
+                          transform: 'translateY(0)',
+                        },
+                      }}
+                    >
                       <Typography 
                         variant="body1"
                         sx={{
                           fontFamily: typography.fontFamily.secondary,
                           fontSize: typography.fontSize.base,
                           fontWeight: typography.fontWeight.semibold,
-                          color: colors.text.primary,
-                          cursor: 'pointer',
+                          color: colors.primary[700],
+                          textDecoration: 'none',
+                          userSelect: 'none',
                           '&:hover': {
-                            color: colors.primary[600],
                             textDecoration: 'underline',
                           },
                         }}
-                        onClick={() => handleEdit(design.id)}
                       >
                         {design.title}
                       </Typography>
@@ -162,16 +176,12 @@ const NotebookTable: React.FC<NotebookTableProps> = ({ designs, handleEdit, hand
                   {/* Course */}
                   <TableCell>
                     {courseInfo ? (
-                      <Chip
-                        label={`${courseInfo.number}`}
-                        size="small"
-                        sx={{
-                          backgroundColor: colors.secondary[100],
-                          color: colors.secondary[700],
-                          fontFamily: typography.fontFamily.secondary,
-                          fontWeight: typography.fontWeight.medium,
-                          fontSize: typography.fontSize.sm,
-                        }}
+                      <CourseHyperlink
+                        courseId={design.course}
+                        courseNumber={courseInfo.number}
+                        courseTitle={courseInfo.title}
+                        variant="link"
+                        maxTitleLength={30}
                       />
                     ) : (
                       <Typography 
@@ -189,17 +199,10 @@ const NotebookTable: React.FC<NotebookTableProps> = ({ designs, handleEdit, hand
                   {/* User ID (if shown) */}
                   {showUserIdColumn && (
                     <TableCell>
-                      <Typography 
-                        variant="body2"
-                        sx={{
-                          fontFamily: 'monospace',
-                          fontSize: typography.fontSize.sm,
-                          color: colors.text.secondary,
-                          wordBreak: 'break-all', // Allow long IDs to wrap
-                        }}
-                      >
-                        {design.userId}
-                      </Typography>
+                      <CopyableUserID 
+                        userId={design.userId} 
+                        userType="student"
+                      />
                     </TableCell>
                   )}
 
@@ -283,7 +286,14 @@ const NotebookTable: React.FC<NotebookTableProps> = ({ designs, handleEdit, hand
                   fontStyle: 'italic',
                 }}
               >
-                <Typography variant="body1">
+                <Typography 
+                  variant="body1"
+                  sx={{
+                    fontFamily: typography.fontFamily.secondary,
+                    fontSize: typography.fontSize.base,
+                    fontWeight: typography.fontWeight.medium,
+                  }}
+                >
                   No designs found. Create your first design to get started!
                 </Typography>
               </TableCell>

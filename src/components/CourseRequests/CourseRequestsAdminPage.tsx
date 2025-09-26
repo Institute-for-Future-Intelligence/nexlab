@@ -1,13 +1,13 @@
 // src/components/CourseRequests/CourseRequestsAdminPage.tsx
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Button, Snackbar, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Tooltip } from '@mui/material';
-import { Description as SyllabusIcon, Download as DownloadIcon } from '@mui/icons-material';
+import { Box, Typography, Button, Snackbar, Alert, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import { getFirestore, collection, getDocs, getDoc, doc, updateDoc, addDoc, writeBatch, Timestamp } from 'firebase/firestore';
-import { useNavigate } from 'react-router-dom';
 import { ParsedCourseInfo, GeneratedMaterial } from '../../stores/syllabusStore';
 import type { Material } from '../../types/Material';
-import { courseEnhancementService } from '../../services/courseEnhancementService';
 import { PageHeader } from '../common';
+import { colors, spacing } from '../../config/designSystem';
+import { Download as DownloadIcon } from '@mui/icons-material';
+import ModernCourseRequestsTable from './ModernCourseRequestsTable';
 
 interface CourseRequest {
   id: string;
@@ -22,13 +22,13 @@ interface CourseRequest {
     parsedCourseInfo: ParsedCourseInfo;
     generatedMaterials: GeneratedMaterial[];
     additionalInfo?: {
-      contactInfo?: any;
-      policies?: any;
-      additionalResources?: any;
-      labSpecific?: any;
-      textbooks?: any[];
-      gradingPolicy?: any[];
-      assignments?: any[];
+      contactInfo?: Record<string, unknown>;
+      policies?: Record<string, unknown>;
+      additionalResources?: Record<string, unknown>;
+      labSpecific?: Record<string, unknown>;
+      textbooks?: Record<string, unknown>[];
+      gradingPolicy?: Record<string, unknown>[];
+      assignments?: Record<string, unknown>[];
       prerequisites?: string[];
     };
     syllabusFile?: {
@@ -56,7 +56,6 @@ const CourseRequestsAdminPage: React.FC = () => {
   const [currentRequestId, setCurrentRequestId] = useState<string | null>(null);
   const [currentRequestData, setCurrentRequestData] = useState<CourseRequest | null>(null);
   const db = getFirestore();
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -101,7 +100,7 @@ const CourseRequestsAdminPage: React.FC = () => {
       const passcode = generatePasscode();
   
       // Prepare course document data
-      const courseData: any = {
+      const courseData: Record<string, unknown> = {
         number: currentRequestData.courseNumber,
         title: currentRequestData.courseTitle,
         description: currentRequestData.courseDescription,
@@ -289,117 +288,46 @@ const CourseRequestsAdminPage: React.FC = () => {
     setOpenSnackbar(false);
   };
 
-  const handleNavigateHome = () => {
-    navigate('/');
-  };
 
   return (
-    <Box sx={{ padding: 3 }}>
+    <Box sx={{ 
+      p: spacing[6], 
+      backgroundColor: colors.background.primary, 
+      minHeight: '100vh' 
+    }}>
       <PageHeader title="Course Creation Requests" />
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Educator ID</TableCell>
-              <TableCell>Course Number</TableCell>
-              <TableCell>Course Title</TableCell>
-              <TableCell>Course Description</TableCell>
-              <TableCell>Creation Method</TableCell>
-              <TableCell>Timestamp</TableCell>
-              <TableCell>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {requests.map((request) => (
-              <TableRow key={request.id}>
-                <TableCell>{request.uid}</TableCell>
-                <TableCell>{request.courseNumber}</TableCell>
-                <TableCell>{request.courseTitle}</TableCell>
-                <TableCell>
-                  {request.courseDescription.length > 100 
-                    ? `${request.courseDescription.substring(0, 100)}...` 
-                    : request.courseDescription
-                  }
-                </TableCell>
-                <TableCell>
-                  {request.syllabusImported ? (
-                    <Box>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                        <Typography variant="body2" color="primary" sx={{ fontWeight: 'bold' }}>
-                          Syllabus Import
-                        </Typography>
-                        {request.syllabusData?.syllabusFile && (
-                          <Tooltip title={`Download: ${request.syllabusData.syllabusFile.metadata.originalFilename}`}>
-                            <IconButton
-                              size="small"
-                              onClick={() => window.open(request.syllabusData.syllabusFile.url, '_blank')}
-                              sx={{ color: 'primary.main' }}
-                            >
-                              <SyllabusIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        )}
-                      </Box>
-                      <Typography variant="caption" color="text.secondary">
-                        {request.syllabusData?.generatedMaterials?.length || 0} materials
-                      </Typography>
-                      {request.syllabusData?.syllabusFile && (
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                          {request.syllabusData.syllabusFile.metadata.originalFilename}
-                        </Typography>
-                      )}
-                    </Box>
-                  ) : (
-                    <Typography variant="body2" color="text.secondary">
-                      Manual Entry
-                    </Typography>
-                  )}
-                </TableCell>
-                <TableCell>
-                  {request.timestamp?.seconds 
-                    ? new Date(request.timestamp.seconds * 1000).toLocaleString()
-                    : 'Invalid Date'
-                  }
-                </TableCell>
-                <TableCell>
-                  {request.status === 'pending' && (
-                    <>
-                      <Button 
-                        variant="contained" 
-                        color="success" 
-                        size="small"
-                        onClick={() => handleOpenDialog('approve', request.id, request)}
-                        sx={{ mr: 1 }}
-                      >
-                        Approve
-                      </Button>
-                      <Button 
-                        variant="outlined" 
-                        color="error" 
-                        size="small"
-                        onClick={() => handleOpenDialog('deny', request.id, request)}
-                      >
-                        Deny
-                      </Button>
-                    </>
-                  )}
-                  {request.status === 'approved' && (
-                    <Typography variant="body2" color="success.main" sx={{ fontWeight: 'bold' }}>
-                      Approved
-                    </Typography>
-                  )}
-                  {request.status === 'denied' && (
-                    <Typography variant="body2" color="error.main" sx={{ fontWeight: 'bold' }}>
-                      Denied
-                    </Typography>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <Typography 
+        variant="body1" 
+        sx={{ 
+          mb: spacing[4],
+          color: colors.text.secondary,
+        }}
+      >
+        Review and approve course creation requests from educators.
+      </Typography>
+
+      <ModernCourseRequestsTable
+        requests={requests}
+        loading={false}
+        onApprove={(requestId) => {
+          const request = requests.find(r => r.id === requestId);
+          if (request) handleOpenDialog('approve', requestId, request);
+        }}
+        onDeny={(requestId) => {
+          const request = requests.find(r => r.id === requestId);
+          if (request) handleOpenDialog('deny', requestId, request);
+        }}
+        onViewSyllabus={(request) => {
+        // You can add syllabus viewing logic here if needed
+        if (request.syllabusData?.syllabusFile && 
+            typeof request.syllabusData.syllabusFile === 'object' && 
+            request.syllabusData.syllabusFile !== null &&
+            'url' in request.syllabusData.syllabusFile) {
+          window.open((request.syllabusData.syllabusFile as { url: string }).url, '_blank');
+        }
+        }}
+      />
 
       {/* Confirmation Dialog */}
       <Dialog open={dialogOpen} onClose={handleCloseDialog}>
@@ -429,7 +357,11 @@ const CourseRequestsAdminPage: React.FC = () => {
                           size="small"
                           variant="outlined"
                           startIcon={<DownloadIcon />}
-                          onClick={() => window.open(currentRequestData.syllabusData.syllabusFile.url, '_blank')}
+                          onClick={() => {
+                          if (currentRequestData.syllabusData?.syllabusFile && 'url' in currentRequestData.syllabusData.syllabusFile) {
+                            window.open((currentRequestData.syllabusData.syllabusFile as { url: string }).url, '_blank');
+                          }
+                        }}
                           sx={{ mt: 0.5 }}
                         >
                           View/Download Syllabus

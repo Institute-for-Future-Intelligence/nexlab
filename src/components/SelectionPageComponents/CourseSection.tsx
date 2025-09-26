@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Typography, Grid } from '@mui/material';
-import { colors, typography, spacing, borderRadius } from '../../config/designSystem';
+import { colors, typography, spacing } from '../../config/designSystem';
 import CourseCard from './CourseCard';
 
 interface Course {

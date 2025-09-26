@@ -3,20 +3,14 @@ import React, { useEffect, useState } from 'react';
 import {
   Box,
   Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   CircularProgress,
-  Paper,
 } from '@mui/material';
 import { useUser } from '../../hooks/useUser';
 import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
 import { ChatbotRequest } from '../../types/chatbot'; // Import proper type
+import { colors, typography, spacing } from '../../config/designSystem';
+import ModernChatbotRequestsTable from './ModernChatbotRequestsTable';
 
-import FileDownload from './FileDownload'; // Import the new component
 
 const ChatbotRequestsDisplay: React.FC = () => {
   const { userDetails } = useUser();
@@ -64,72 +58,23 @@ const ChatbotRequestsDisplay: React.FC = () => {
   }
 
   return (
-    <Box>
-      <Typography variant="h6" sx={{ mb: 2 }}>
+    <Box sx={{ mt: spacing[6] }}>
+      <Typography 
+        variant="h5" 
+        sx={{ 
+          mb: spacing[4],
+          fontFamily: typography.fontFamily.display,
+          fontWeight: typography.fontWeight.bold,
+          color: colors.primary[500],
+        }}
+      >
         Your Chatbot Requests
       </Typography>
-      <TableContainer component={Paper} elevation={3} sx={{ maxHeight: 400 }}>
-        <Table stickyHeader>
-          <TableHead>
-            <TableRow>
-              <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#E8E8E8', color: '#12372A' }}>
-                Title
-              </TableCell>
-              <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#E8E8E8', color: '#12372A' }}>
-                Course
-              </TableCell>
-              <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#E8E8E8', color: '#12372A' }}>
-                Material
-              </TableCell>
-              <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#E8E8E8', color: '#12372A' }}>
-                Submitted On
-              </TableCell>
-              <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#E8E8E8', color: '#12372A' }}>
-                Status
-              </TableCell>
-              <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#E8E8E8', color: '#12372A' }}>
-                File Links
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {requests.map((request, index) => (
-              <TableRow
-                key={request.id}
-                sx={{
-                  backgroundColor: index % 2 === 0 ? '#F6E9B2' : '#FBFADA',
-                  '&:hover': { backgroundColor: '#E8E8E8' },
-                }}
-              >
-                <TableCell>{request.title}</TableCell>
-                <TableCell>{`${request.courseNumber} - ${request.courseTitle}`}</TableCell>
-                <TableCell>{request.materialTitle || 'N/A'}</TableCell>
-                <TableCell>{new Date(request.timestamp).toLocaleString()}</TableCell>
-                <TableCell>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      color: request.status === 'pending' ? '#FFA726' : '#43A047',
-                      fontWeight: 'bold',
-                    }}
-                  >
-                    {request.status}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  {request.files.map((file: string, index: number) => (
-                    <FileDownload
-                      key={index}
-                      filePath={file}
-                      fileLabel={`File ${index + 1}`}
-                    />
-                  ))}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      
+      <ModernChatbotRequestsTable 
+        requests={requests}
+        loading={loading}
+      />
     </Box>
   );
 };

@@ -274,9 +274,6 @@ const RequestNewCourseForm: React.FC = () => {
     setDialogOpen(false);
   };
 
-  const handleNavigateBack = () => {
-    navigate('/course-management');
-  };
 
   // Check if we're in the middle of syllabus import process
   const isSyllabusInProgress = creationMode === 'syllabus' && currentStep !== 'upload' && !parsedCourseInfo;

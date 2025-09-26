@@ -2,8 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { collection, getDocs, doc, deleteDoc } from 'firebase/firestore';
 import { getFirestore } from 'firebase/firestore';
-import { Box, Typography, CircularProgress, Button, Select, MenuItem, FormControl, InputLabel, Snackbar, useMediaQuery, useTheme } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { Box, Typography, CircularProgress, Select, MenuItem, FormControl, InputLabel, Snackbar } from '@mui/material';
 import { PageHeader } from '../common';
 import { 
   Conversation, 
@@ -11,7 +10,7 @@ import {
   ExtendedChatbotDetails 
 } from '../../types/chatbot'; // Import proper types
 
-import ConversationsTable from './ConversationsTable';
+import ModernConversationsTable from './ModernConversationsTable';
 import axios from 'axios';
 import ConversationHistoryModal from './ConversationHistoryModal';
 
@@ -22,7 +21,6 @@ import DeleteConfirmationDialog from './DeleteConfirmationDialog';
 
 const ChatbotConversationsPage: React.FC = () => {
     const db = getFirestore();
-    const navigate = useNavigate();
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
 
@@ -290,13 +288,14 @@ const ChatbotConversationsPage: React.FC = () => {
 
             <Box className="profile-container" sx={{ p: 4 }}>
                 {/* Conversations Table */}
-                <ConversationsTable
+                <ModernConversationsTable
                     conversations={currentConversations}
-                    onViewHistory={(chatbotId, conversationId, userId, startedAt) =>
-                        fetchConversationHistory(chatbotId, conversationId, userId, startedAt)
+                    onViewHistory={(chatbotId, conversationId, metadata) =>
+                        fetchConversationHistory(chatbotId, conversationId, metadata.userId, metadata.startedAt)
                     }
                     onDeleteConversation={handleOpenDeleteDialog}
                     loadingMap={loadingMap}
+                    loading={loading}
                 />
 
                 <DeleteConfirmationDialog

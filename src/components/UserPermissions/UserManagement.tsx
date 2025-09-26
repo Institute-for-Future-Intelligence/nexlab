@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { FirebaseTimestamp } from '../../types/firebase'; // Import proper type
 import { PageHeader } from '../common';
 
-import UserTable from './UserTable'; // Import the UserTable component
+import ModernUserTable from './ModernUserTable'; // Import the modern UserTable component
 import DeleteUser from './DeleteUser'; // Import the DeleteUser component
 
 interface User {
@@ -492,7 +492,7 @@ const UserManagement: React.FC = () => {
           <MenuItem value="student">Student</MenuItem>
         </Select>
       </FormControl>
-      <UserTable users={filteredUsers(users)} />
+      <ModernUserTable users={filteredUsers(users)} />
       <Dialog
         open={openDialog}
         onClose={handleCloseDialog}
