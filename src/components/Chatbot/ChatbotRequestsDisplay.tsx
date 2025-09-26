@@ -11,7 +11,6 @@ import { ChatbotRequest } from '../../types/chatbot'; // Import proper type
 import { colors, typography, spacing } from '../../config/designSystem';
 import ModernChatbotRequestsTable from './ModernChatbotRequestsTable';
 
-import FileDownload from './FileDownload'; // Import the new component
 
 const ChatbotRequestsDisplay: React.FC = () => {
   const { userDetails } = useUser();

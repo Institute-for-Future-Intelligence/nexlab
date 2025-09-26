@@ -1,6 +1,6 @@
 // src/components/Chatbot/ModernChatbotRequestsTable.tsx
 import React from 'react';
-import { ModernTable, TableColumn, StatusChip, DateCell, TextCell, CommonActionIcons, ActionButtons, CourseHyperlink, MaterialHyperlink } from '../common';
+import { ModernTable, TableColumn, StatusChip, DateCell, TextCell, CourseHyperlink, MaterialHyperlink } from '../common';
 import { ChatbotRequest } from '../../types/chatbot';
 import { Box, Link } from '@mui/material';
 import { colors } from '../../config/designSystem';

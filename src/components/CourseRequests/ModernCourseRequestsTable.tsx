@@ -2,7 +2,7 @@
 import React from 'react';
 import { ModernTable, TableColumn, TextCell, StatusChip, DateCell, ActionButtons, CommonActionIcons, CopyableUserID, CourseHyperlink } from '../common';
 import { Box, Tooltip, IconButton } from '@mui/material';
-import { Description as SyllabusIcon, Download as DownloadIcon } from '@mui/icons-material';
+import { Description as SyllabusIcon } from '@mui/icons-material';
 import { colors } from '../../config/designSystem';
 
 interface CourseRequest {
@@ -14,7 +14,7 @@ interface CourseRequest {
   timestamp: { seconds: number; nanoseconds: number };
   status: 'pending' | 'approved' | 'denied';
   syllabusImported?: boolean;
-  syllabusData?: any;
+  syllabusData?: Record<string, unknown>;
 }
 
 interface ModernCourseRequestsTableProps {
@@ -130,7 +130,7 @@ const ModernCourseRequestsTable: React.FC<ModernCourseRequestsTableProps> = ({
       label: 'Actions',
       width: '10%',
       align: 'center',
-      render: (value: any, row: CourseRequest) => {
+      render: (value: unknown, row: CourseRequest) => {
         const isPending = row.status === 'pending';
         return (
           <ActionButtons

@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Button, Snackbar, Alert, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import { getFirestore, collection, getDocs, getDoc, doc, updateDoc, addDoc, writeBatch, Timestamp } from 'firebase/firestore';
-import { useNavigate } from 'react-router-dom';
 import { ParsedCourseInfo, GeneratedMaterial } from '../../stores/syllabusStore';
 import type { Material } from '../../types/Material';
 import { PageHeader } from '../common';
@@ -57,7 +56,6 @@ const CourseRequestsAdminPage: React.FC = () => {
   const [currentRequestId, setCurrentRequestId] = useState<string | null>(null);
   const [currentRequestData, setCurrentRequestData] = useState<CourseRequest | null>(null);
   const db = getFirestore();
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -321,10 +319,13 @@ const CourseRequestsAdminPage: React.FC = () => {
           if (request) handleOpenDialog('deny', requestId, request);
         }}
         onViewSyllabus={(request) => {
-          // You can add syllabus viewing logic here if needed
-          if (request.syllabusData?.syllabusFile) {
-            window.open(request.syllabusData.syllabusFile.url, '_blank');
-          }
+        // You can add syllabus viewing logic here if needed
+        if (request.syllabusData?.syllabusFile && 
+            typeof request.syllabusData.syllabusFile === 'object' && 
+            request.syllabusData.syllabusFile !== null &&
+            'url' in request.syllabusData.syllabusFile) {
+          window.open((request.syllabusData.syllabusFile as { url: string }).url, '_blank');
+        }
         }}
       />
 
@@ -356,7 +357,11 @@ const CourseRequestsAdminPage: React.FC = () => {
                           size="small"
                           variant="outlined"
                           startIcon={<DownloadIcon />}
-                          onClick={() => window.open(currentRequestData.syllabusData.syllabusFile.url, '_blank')}
+                          onClick={() => {
+                          if (currentRequestData.syllabusData?.syllabusFile && 'url' in currentRequestData.syllabusData.syllabusFile) {
+                            window.open((currentRequestData.syllabusData.syllabusFile as { url: string }).url, '_blank');
+                          }
+                        }}
                           sx={{ mt: 0.5 }}
                         >
                           View/Download Syllabus

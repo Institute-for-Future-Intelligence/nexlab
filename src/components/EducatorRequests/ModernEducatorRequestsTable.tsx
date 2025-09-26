@@ -16,6 +16,7 @@ interface EducatorRequest {
   requestType: 'primary' | 'co-instructor';
   timestamp: { seconds: number; nanoseconds: number };
   status: 'pending' | 'approved' | 'denied';
+  courseId?: string; // Optional, added when request is approved
 }
 
 interface ModernEducatorRequestsTableProps {

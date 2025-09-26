@@ -7,14 +7,12 @@ import {
   Snackbar,
   Alert,
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
 import { getFirestore, collection, addDoc, getDoc, getDocs, updateDoc, doc } from 'firebase/firestore';
 import { ChatbotRequest } from '../../types/chatbot'; // Import proper type
 import { PageHeader } from '../common';
-import { colors, typography, spacing } from '../../config/designSystem';
+import { colors, spacing } from '../../config/designSystem';
 import ModernSuperAdminChatbotRequestsTableImproved from './ModernSuperAdminChatbotRequestsTableImproved';
 
-import FileDownload from '../Chatbot/FileDownload'; // Import FileDownload component
 
 const SuperAdminChatbotRequestsPage: React.FC = () => {
   const [requests, setRequests] = useState<ChatbotRequest[]>([]);
@@ -23,7 +21,6 @@ const SuperAdminChatbotRequestsPage: React.FC = () => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'warning'>('success');
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -127,15 +124,6 @@ const SuperAdminChatbotRequestsPage: React.FC = () => {
     setSnackbarOpen(false);
   };
 
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-
-  const handleChangePage = (event: unknown, newPage: number) => setPage(newPage);
-
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
 
   const handleChatbotIdChange = (id: string, value: string) => {
     setChatbotIdMap((prev) => ({ ...prev, [id]: value }));

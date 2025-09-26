@@ -15,7 +15,7 @@ import {
 import { colors, typography, spacing, borderRadius, shadows, animations } from '../../config/designSystem';
 
 // Generic column definition interface
-export interface TableColumn<T> {
+interface TableColumn<T> {
   id: keyof T | string;
   label: string;
   width?: string;

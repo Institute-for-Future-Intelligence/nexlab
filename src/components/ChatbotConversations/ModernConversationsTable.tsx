@@ -1,6 +1,6 @@
 // src/components/ChatbotConversations/ModernConversationsTable.tsx
 import React from 'react';
-import { ModernTable, TableColumn, DateCell, TextCell, ActionButtons, CommonActionIcons, CopyableUserID, CopyableChatbotID, CopyableConversationID } from '../common';
+import { ModernTable, TableColumn, DateCell, ActionButtons, CommonActionIcons, CopyableUserID, CopyableChatbotID, CopyableConversationID } from '../common';
 import { colors } from '../../config/designSystem';
 
 interface Conversation {
@@ -63,7 +63,7 @@ const ModernConversationsTable: React.FC<ModernConversationsTableProps> = ({
       label: 'Actions',
       width: '10%',
       align: 'center',
-      render: (value: any, row: Conversation) => {
+      render: (value: unknown, row: Conversation) => {
         const isLoading = loadingMap[row.id];
         return (
           <ActionButtons

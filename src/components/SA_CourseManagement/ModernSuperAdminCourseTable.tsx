@@ -102,7 +102,7 @@ const ModernSuperAdminCourseTable: React.FC<ModernSuperAdminCourseTableProps> = 
       label: 'Actions',
       width: '15%',
       align: 'center',
-      render: (value: any, row: Course) => {
+      render: (value: unknown, row: Course) => {
         const isAdmin = isCourseAdmin(row);
         return (
           <ActionButtons

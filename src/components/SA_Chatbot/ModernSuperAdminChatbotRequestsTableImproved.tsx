@@ -206,7 +206,7 @@ const ModernSuperAdminChatbotRequestsTableImproved: React.FC<ModernSuperAdminCha
       label: 'Action',
       width: '8%',
       align: 'center',
-      render: (value: any, row: ChatbotRequest) => {
+      render: (value: unknown, row: ChatbotRequest) => {
         const isPending = row.status === 'pending';
         const hasChatbotId = chatbotIdMap[row.id]?.trim();
         

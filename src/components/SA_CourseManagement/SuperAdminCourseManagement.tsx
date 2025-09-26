@@ -7,10 +7,9 @@ import { useNavigate } from 'react-router-dom';
 import {
   Box, Typography, Snackbar, Alert,
   Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, TextField,
-  useMediaQuery, useTheme
 } from '@mui/material';
 import { PageHeader } from '../common';
-import { colors, typography, spacing } from '../../config/designSystem';
+import { colors, spacing } from '../../config/designSystem';
 import ModernSuperAdminCourseTable from './ModernSuperAdminCourseTable';
 
 interface Course {
@@ -169,9 +168,6 @@ const SuperAdminCourseManagement: React.FC = () => {
     setConfirmUserId('');
   };
 
-  const handleNavigateHome = () => {
-    navigate('/');
-  };
 
   return (
     <Box sx={{ 

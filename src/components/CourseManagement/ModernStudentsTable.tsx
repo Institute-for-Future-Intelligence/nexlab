@@ -1,11 +1,11 @@
 // src/components/CourseManagement/ModernStudentsTable.tsx
 import React from 'react';
 import { ModernTable, TableColumn, CopyableUserID, DateCell } from '../common';
-import { formatFirebaseTimestamp } from '../common/TableComponents';
+import { FirebaseTimestamp } from '../../types/firebase';
 
 interface Student {
   uid: string;
-  lastLogin?: any;
+  lastLogin?: FirebaseTimestamp;
 }
 
 interface ModernStudentsTableProps {
@@ -33,7 +33,7 @@ const ModernStudentsTable: React.FC<ModernStudentsTableProps> = ({
       id: 'lastLogin',
       label: 'Last Login',
       width: '40%',
-      render: (value: any) => (
+      render: (value: FirebaseTimestamp) => (
         <DateCell date={value} format="full" />
       ),
     },
