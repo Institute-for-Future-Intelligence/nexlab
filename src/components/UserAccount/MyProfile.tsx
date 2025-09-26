@@ -1,7 +1,8 @@
 // src/components/UserAccount/MyProfile.tsx
 import React, { useState } from 'react';
-import { Box, Typography, Button, Switch, FormControlLabel, Snackbar, Alert, Chip } from '@mui/material';
+import { Box, Typography, Button, Switch, FormControlLabel, Snackbar, Alert } from '@mui/material';
 import { PageHeader } from '../common';
+import { colors, typography, spacing, borderRadius, shadows } from '../../config/designSystem';
 
 import { useUser } from '../../hooks/useUser';
 import { UserDetails } from '../../contexts/UserContext';
@@ -9,7 +10,6 @@ import { useNavigate } from 'react-router-dom';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
 
 import AddCourseForm from './AddCourseForm';
-
 import UserDetailsBox from './UserDetailsBox';
 
 const MyProfile: React.FC = () => {
@@ -73,27 +73,15 @@ const MyProfile: React.FC = () => {
     setOpenSnackbar(false);
   };
 
-  const renderCourses = () => {
-    if (!userDetails?.classes) return 'None';
-
-    return Object.entries(userDetails.classes).map(([courseId, courseData]) => (
-      <Chip
-        key={courseId}
-        label={`${courseData.number} - ${courseData.title}${courseData.isCourseAdmin ? ' (Admin)' : ''}`}
-        variant="outlined"
-        sx={{
-          margin: '4px', // Add spacing between chips
-          fontSize: '14px',
-          fontWeight: 'bold',
-          bgcolor: courseData.isCourseAdmin ? '#FFCDD2' : '#E3F2FD', // Lighter red for admin courses
-          color: courseData.isCourseAdmin ? '#C62828' : '#1565C0', // Darker red for text
-        }}
-      />
-    ));
-  };
 
   return (
-    <Box className="profile-container">
+    <Box 
+      sx={{
+        minHeight: '100vh',
+        backgroundColor: colors.background.secondary,
+        padding: spacing[4],
+      }}
+    >
       <PageHeader 
         title="My Account"
         subtitle="Manage your account settings, course enrollments, and permissions"
@@ -101,23 +89,62 @@ const MyProfile: React.FC = () => {
 
       {/* User Info Inside Paper Component */}
       {userDetails && (
-        <UserDetailsBox
-          userDetails={userDetails}
-          getAccountStatus={getAccountStatus}
-          renderCourses={renderCourses}
-        />
+        <Box sx={{ mb: spacing[6] }}>
+          <UserDetailsBox
+            userDetails={userDetails}
+          />
+        </Box>
       )}
 
       {/* Enroll in a Course Section - Hidden for educators */}
       {!userDetails?.isAdmin && (
-        <Box className="profile-switch-container">
+        <Box 
+          sx={{
+            mb: spacing[4],
+            p: spacing[4],
+            backgroundColor: colors.background.primary,
+            borderRadius: borderRadius.lg,
+            border: `1px solid ${colors.neutral[200]}`,
+            boxShadow: shadows.sm,
+          }}
+        >
           <FormControlLabel
-            control={<Switch checked={isEnrollOpen} onChange={handleToggleEnroll} />}
-            label="Enroll in a Course (As a Student)"
+            control={
+              <Switch 
+                checked={isEnrollOpen} 
+                onChange={handleToggleEnroll}
+                sx={{
+                  '& .MuiSwitch-switchBase.Mui-checked': {
+                    color: colors.primary[600],
+                  },
+                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                    backgroundColor: colors.primary[600],
+                  },
+                }}
+              />
+            }
+            label={
+              <Typography
+                sx={{
+                  fontFamily: typography.fontFamily.secondary,
+                  fontWeight: typography.fontWeight.semibold,
+                  color: colors.text.primary,
+                }}
+              >
+                Enroll in a Course (As a Student)
+              </Typography>
+            }
           />
           {isEnrollOpen && (
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="body1" className="profile-text">
+            <Box sx={{ mt: spacing[3] }}>
+              <Typography 
+                variant="body1" 
+                sx={{
+                  mb: spacing[3],
+                  color: colors.text.secondary,
+                  fontFamily: typography.fontFamily.secondary,
+                }}
+              >
                 Use the area below to add a course access to your account.
               </Typography>
               <AddCourseForm onCourseAdded={handleCourseAdded} />
@@ -127,35 +154,102 @@ const MyProfile: React.FC = () => {
       )}
 
       {/* Advanced Section */}
-      <Box className="profile-advanced-section">
+      <Box 
+        sx={{
+          mb: spacing[4],
+          p: spacing[4],
+          backgroundColor: colors.background.primary,
+          borderRadius: borderRadius.lg,
+          border: `1px solid ${colors.neutral[200]}`,
+          boxShadow: shadows.sm,
+        }}
+      >
         <FormControlLabel
-          control={<Switch checked={isAdvancedOpen} onChange={handleToggleAdvanced} />}
-          label="Advanced"
+          control={
+            <Switch 
+              checked={isAdvancedOpen} 
+              onChange={handleToggleAdvanced}
+              sx={{
+                '& .MuiSwitch-switchBase.Mui-checked': {
+                  color: colors.primary[600],
+                },
+                '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                  backgroundColor: colors.primary[600],
+                },
+              }}
+            />
+          }
+          label={
+            <Typography
+              sx={{
+                fontFamily: typography.fontFamily.secondary,
+                fontWeight: typography.fontWeight.semibold,
+                color: colors.text.primary,
+              }}
+            >
+              Advanced
+            </Typography>
+          }
         />
         {isAdvancedOpen && (
-          <>
-            <Box sx={{ mt: 2 }}>
-              <Button
-                variant="text"
-                onClick={handleNavigateToRequestPermissions}
-                disabled={userDetails?.isAdmin}
-                className="profile-button"
-              >
-                {userDetails?.isAdmin ? (
-                  <Typography>
-                    <span className="success-text">✔ Educator Account Approved</span>
-                  </Typography>
-                ) : (
-                  'Request Educator Permissions'
-                )}
-              </Button>
-            </Box>
-          </>
+          <Box sx={{ mt: spacing[3] }}>
+            <Button
+              variant={userDetails?.isAdmin ? "outlined" : "contained"}
+              onClick={handleNavigateToRequestPermissions}
+              disabled={userDetails?.isAdmin}
+              sx={{
+                fontFamily: typography.fontFamily.secondary,
+                fontWeight: typography.fontWeight.medium,
+                borderRadius: borderRadius.md,
+                textTransform: 'none',
+                px: spacing[4],
+                py: spacing[2],
+                ...(userDetails?.isAdmin ? {
+                  borderColor: colors.success[500],
+                  color: colors.success[700],
+                  backgroundColor: colors.success[50],
+                  '&:hover': {
+                    backgroundColor: colors.success[100],
+                  },
+                } : {
+                  backgroundColor: colors.primary[600],
+                  color: colors.text.inverse,
+                  '&:hover': {
+                    backgroundColor: colors.primary[700],
+                  },
+                }),
+              }}
+            >
+              {userDetails?.isAdmin ? (
+                <Typography
+                  sx={{
+                    fontFamily: typography.fontFamily.secondary,
+                    fontWeight: typography.fontWeight.medium,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: spacing[2],
+                  }}
+                >
+                  <span>✔</span>
+                  Educator Account Approved
+                </Typography>
+              ) : (
+                'Request Educator Permissions'
+              )}
+            </Button>
+          </Box>
         )}
       </Box>
 
       <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleCloseSnackbar}>
-        <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }}>
+        <Alert 
+          onClose={handleCloseSnackbar} 
+          severity={snackbarSeverity} 
+          sx={{ 
+            width: '100%',
+            fontFamily: typography.fontFamily.secondary,
+          }}
+        >
           {snackbarMessage}
         </Alert>
       </Snackbar>

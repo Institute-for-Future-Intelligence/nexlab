@@ -11,7 +11,6 @@ import {
   ListItemIcon,
   ListItemText,
   Collapse,
-  Chip,
   Typography,
   Avatar,
 } from '@mui/material';
@@ -35,7 +34,6 @@ import {
   ExpandMore as ExpandMoreIcon,
   Feedback as FeedbackIcon,
   Logout as LogoutIcon,
-  ContentCopy as CopyIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useUser } from '../../hooks/useUser';
@@ -52,7 +50,6 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { userDetails, isSuperAdmin } = useUser();
-  const [copied, setCopied] = useState(false);
   
   const { 
     isOpen, 
@@ -71,98 +68,11 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
     }
   };
 
-  const handleCopyUserId = () => {
-    if (userDetails?.uid) {
-      navigator.clipboard.writeText(userDetails.uid)
-        .then(() => {
-          setCopied(true);
-          setTimeout(() => setCopied(false), 2000); // Reset after 2 seconds
-        })
-        .catch(err => console.error('Could not copy text: ', err));
-    } else {
-      console.error('User details are null or undefined');
-    }
-  };
 
   const isActiveRoute = (path: string) => {
     return location.pathname === path;
   };
 
-  const getRoleChip = () => {
-    if (isSuperAdmin) {
-      return (
-        <Tooltip title="Super Admin Account" placement="top" enterDelay={300} leaveDelay={200}>
-          <Chip 
-            label="Super-Admin" 
-            variant="outlined"
-            sx={{
-              borderRadius: '15px',
-              fontWeight: typography.fontWeight.bold,
-              background: '#ffcdd2',
-              color: '#c62828',
-              fontFamily: typography.fontFamily.display,
-              fontSize: typography.fontSize.base,
-              height: 28,
-              border: `1px solid #c62828`,
-              cursor: 'pointer',
-              transition: 'background-color 0.3s',
-              '&:hover': {
-                backgroundColor: '#ffb3ba',
-              },
-            }} 
-          />
-        </Tooltip>
-      );
-    }
-    if (userDetails?.isAdmin) {
-      return (
-        <Tooltip title="Educator Account" placement="top" enterDelay={300} leaveDelay={200}>
-          <Chip 
-            label="Educator" 
-            variant="outlined"
-            sx={{
-              borderRadius: '15px',
-              fontWeight: typography.fontWeight.bold,
-              background: '#ffcdd2',
-              color: '#c62828',
-              fontFamily: typography.fontFamily.display,
-              fontSize: typography.fontSize.base,
-              height: 28,
-              border: `1px solid #c62828`,
-              cursor: 'pointer',
-              transition: 'background-color 0.3s',
-              '&:hover': {
-                backgroundColor: '#ffb3ba',
-              },
-            }} 
-          />
-        </Tooltip>
-      );
-    }
-    return (
-      <Tooltip title="Student Account" placement="top" enterDelay={300} leaveDelay={200}>
-        <Chip 
-          label="Student" 
-          variant="outlined"
-          sx={{
-            borderRadius: '15px',
-            fontWeight: typography.fontWeight.bold,
-            background: '#bbdefb',
-            color: '#1e88e5',
-            fontFamily: typography.fontFamily.display,
-            fontSize: typography.fontSize.base,
-            height: 28,
-            border: `1px solid #1e88e5`,
-            cursor: 'pointer',
-            transition: 'background-color 0.3s',
-            '&:hover': {
-              backgroundColor: '#90caf9',
-            },
-          }} 
-        />
-      </Tooltip>
-    );
-  };
 
   const getUserRoleDisplay = () => {
     if (isSuperAdmin) {
@@ -326,7 +236,7 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
           fontFamily: typography.fontFamily.display, // Use Staatliches font like app page titles
           fontWeight: isActive ? typography.fontWeight.bold : typography.fontWeight.medium,
           fontSize: typography.fontSize.lg, // Increased from md to lg
-          transition: animations.transitions.normal,
+          transition: 'all 350ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
           boxShadow: isActive ? shadows.sm : 'none',
           '&:hover': {
             backgroundColor: isActive ? item.color : colors.neutral[100],
@@ -345,22 +255,24 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
             mr: isOpen ? 2 : 'auto',
             justifyContent: 'center',
             color: isActive ? colors.text.inverse : item.color,
-            transition: animations.transitions.fast,
+            transition: 'all 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
           }}
         >
           {item.icon}
         </ListItemIcon>
         {isOpen && (
-          <ListItemText 
-            primary={item.title} 
+          <ListItemText
+            primary={item.title}
             sx={{ 
               opacity: isOpen ? 1 : 0,
+              transform: isOpen ? 'translateX(0)' : 'translateX(-20px)',
+              transition: 'opacity 350ms cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 350ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
               '& .MuiListItemText-primary': {
                 fontSize: typography.fontSize.lg, // Increased from md to lg
                 fontWeight: isActive ? typography.fontWeight.bold : typography.fontWeight.medium,
                 fontFamily: typography.fontFamily.display, // Use Staatliches font like app page titles
               }
-            }} 
+            }}
           />
         )}
         {item.expandable && isOpen && (
@@ -415,9 +327,13 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
             color: colors.primary[600],
             '&:hover': {
               backgroundColor: colors.primary[200],
-              transform: 'scale(1.05)',
+              transform: 'scale(1.08) rotate(5deg)',
+              boxShadow: shadows.md,
             },
-            transition: animations.transitions.fast,
+            '&:active': {
+              transform: 'scale(0.95)',
+            },
+            transition: 'all 250ms cubic-bezier(0.34, 1.56, 0.64, 1)',
             borderRadius: borderRadius.lg,
             zIndex: 1001, // Ensure it's always visible
           }}
@@ -426,74 +342,6 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
         </IconButton>
       </Box>
 
-      {/* User Controls Section - Moved to top */}
-      {userDetails && isOpen && (
-        <Box sx={{ 
-          p: 2,
-          borderBottom: `1px solid ${colors.neutral[200]}`,
-          backgroundColor: colors.background.primary,
-        }}>
-          {/* User Status & ID */}
-          <Box sx={{ mb: 2 }}>
-            <Typography 
-              variant="caption" 
-              sx={{ 
-                fontFamily: typography.fontFamily.secondary,
-                color: colors.text.secondary,
-                fontSize: typography.fontSize.xs,
-                display: 'block',
-                mb: 1,
-              }}
-            >
-              User Status & ID
-            </Typography>
-            <Box sx={{ 
-              p: 1.5,
-              backgroundColor: colors.neutral[50],
-              borderRadius: borderRadius.lg,
-              border: `1px solid ${colors.neutral[200]}`,
-            }}>
-              {/* Account Status */}
-              <Box sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                mb: 1.5,
-              }}>
-                {getRoleChip()}
-              </Box>
-              
-              {/* User ID */}
-              <Box sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: 1,
-              }}>
-                <Tooltip title={copied ? "Copied!" : "Click to Copy"} enterDelay={300} leaveDelay={200}>
-                  <Chip
-                    label={`User ID: ${userDetails.uid}`}
-                    variant="outlined"
-                    onClick={handleCopyUserId}
-                    sx={{
-                      borderRadius: '15px',
-                      fontSize: typography.fontSize.base,
-                      fontWeight: typography.fontWeight.bold,
-                      background: '#e0f2f1',
-                      color: '#00695c',
-                      cursor: 'pointer',
-                      transition: 'background-color 0.3s',
-                      fontFamily: typography.fontFamily.display,
-                      flex: 1,
-                      '&:hover': {
-                        backgroundColor: '#b2dfdb',
-                      },
-                    }}
-                  />
-                </Tooltip>
-              </Box>
-            </Box>
-          </Box>
-        </Box>
-      )}
 
       {/* Navigation */}
       <Box sx={{ 
@@ -503,6 +351,7 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
         // Custom scrollbar styling
         '&::-webkit-scrollbar': {
           width: isOpen ? '8px' : '6px', // Smaller when collapsed
+          transition: 'width 300ms ease',
         },
         '&::-webkit-scrollbar-track': {
           background: 'transparent',
@@ -510,6 +359,7 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
         '&::-webkit-scrollbar-thumb': {
           background: isOpen ? colors.neutral[300] : colors.neutral[200],
           borderRadius: '4px',
+          transition: 'background 300ms ease',
           '&:hover': {
             background: isOpen ? colors.neutral[400] : colors.neutral[300],
           },
@@ -751,16 +601,17 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
           width: isOpen ? 320 : 100,
           height: '100%',
           flexShrink: 0,
-          transition: animations.transitions.normal,
+          transition: 'width 400ms cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 300ms ease-out',
           backgroundColor: colors.primary[100], // Match header/footer background
           borderRight: `1px solid ${colors.primary[200]}`,
-          boxShadow: shadows.lg,
+          boxShadow: isOpen ? shadows.xl : shadows.md,
           overflow: 'hidden',
           position: 'relative',
           zIndex: 1000,
           // Custom scrollbar styling for the entire sidebar
           '&::-webkit-scrollbar': {
             width: isOpen ? '8px' : '6px',
+            transition: 'width 300ms ease',
           },
           '&::-webkit-scrollbar-track': {
             background: 'transparent',
@@ -768,6 +619,7 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
           '&::-webkit-scrollbar-thumb': {
             background: isOpen ? colors.neutral[300] : colors.neutral[200],
             borderRadius: '4px',
+            transition: 'background 300ms ease',
             '&:hover': {
               background: isOpen ? colors.neutral[400] : colors.neutral[300],
             },
@@ -786,7 +638,7 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
           height: '100%',
           backgroundColor: '#F0F4FF', // Match the profile-container background
           overflow: 'auto',
-          transition: animations.transitions.normal,
+          transition: 'margin-left 400ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
         }}
       >
         {children}
