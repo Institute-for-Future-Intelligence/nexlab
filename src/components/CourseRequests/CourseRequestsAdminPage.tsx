@@ -5,9 +5,9 @@ import { getFirestore, collection, getDocs, getDoc, doc, updateDoc, addDoc, writ
 import { useNavigate } from 'react-router-dom';
 import { ParsedCourseInfo, GeneratedMaterial } from '../../stores/syllabusStore';
 import type { Material } from '../../types/Material';
-import { courseEnhancementService } from '../../services/courseEnhancementService';
 import { PageHeader } from '../common';
-import { colors, typography, spacing } from '../../config/designSystem';
+import { colors, spacing } from '../../config/designSystem';
+import { Download as DownloadIcon } from '@mui/icons-material';
 import ModernCourseRequestsTable from './ModernCourseRequestsTable';
 
 interface CourseRequest {
@@ -23,13 +23,13 @@ interface CourseRequest {
     parsedCourseInfo: ParsedCourseInfo;
     generatedMaterials: GeneratedMaterial[];
     additionalInfo?: {
-      contactInfo?: any;
-      policies?: any;
-      additionalResources?: any;
-      labSpecific?: any;
-      textbooks?: any[];
-      gradingPolicy?: any[];
-      assignments?: any[];
+      contactInfo?: Record<string, unknown>;
+      policies?: Record<string, unknown>;
+      additionalResources?: Record<string, unknown>;
+      labSpecific?: Record<string, unknown>;
+      textbooks?: Record<string, unknown>[];
+      gradingPolicy?: Record<string, unknown>[];
+      assignments?: Record<string, unknown>[];
       prerequisites?: string[];
     };
     syllabusFile?: {
@@ -102,7 +102,7 @@ const CourseRequestsAdminPage: React.FC = () => {
       const passcode = generatePasscode();
   
       // Prepare course document data
-      const courseData: any = {
+      const courseData: Record<string, unknown> = {
         number: currentRequestData.courseNumber,
         title: currentRequestData.courseTitle,
         description: currentRequestData.courseDescription,
@@ -290,9 +290,6 @@ const CourseRequestsAdminPage: React.FC = () => {
     setOpenSnackbar(false);
   };
 
-  const handleNavigateHome = () => {
-    navigate('/');
-  };
 
   return (
     <Box sx={{ 
