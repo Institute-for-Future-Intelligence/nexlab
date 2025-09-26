@@ -236,7 +236,7 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
           fontFamily: typography.fontFamily.display, // Use Staatliches font like app page titles
           fontWeight: isActive ? typography.fontWeight.bold : typography.fontWeight.medium,
           fontSize: typography.fontSize.lg, // Increased from md to lg
-          transition: animations.transitions.normal,
+          transition: 'all 350ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
           boxShadow: isActive ? shadows.sm : 'none',
           '&:hover': {
             backgroundColor: isActive ? item.color : colors.neutral[100],
@@ -255,22 +255,24 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
             mr: isOpen ? 2 : 'auto',
             justifyContent: 'center',
             color: isActive ? colors.text.inverse : item.color,
-            transition: animations.transitions.fast,
+            transition: 'all 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
           }}
         >
           {item.icon}
         </ListItemIcon>
         {isOpen && (
-          <ListItemText 
-            primary={item.title} 
+          <ListItemText
+            primary={item.title}
             sx={{ 
               opacity: isOpen ? 1 : 0,
+              transform: isOpen ? 'translateX(0)' : 'translateX(-20px)',
+              transition: 'opacity 350ms cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 350ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
               '& .MuiListItemText-primary': {
                 fontSize: typography.fontSize.lg, // Increased from md to lg
                 fontWeight: isActive ? typography.fontWeight.bold : typography.fontWeight.medium,
                 fontFamily: typography.fontFamily.display, // Use Staatliches font like app page titles
               }
-            }} 
+            }}
           />
         )}
         {item.expandable && isOpen && (
@@ -325,9 +327,13 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
             color: colors.primary[600],
             '&:hover': {
               backgroundColor: colors.primary[200],
-              transform: 'scale(1.05)',
+              transform: 'scale(1.08) rotate(5deg)',
+              boxShadow: shadows.md,
             },
-            transition: animations.transitions.fast,
+            '&:active': {
+              transform: 'scale(0.95)',
+            },
+            transition: 'all 250ms cubic-bezier(0.34, 1.56, 0.64, 1)',
             borderRadius: borderRadius.lg,
             zIndex: 1001, // Ensure it's always visible
           }}
@@ -345,6 +351,7 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
         // Custom scrollbar styling
         '&::-webkit-scrollbar': {
           width: isOpen ? '8px' : '6px', // Smaller when collapsed
+          transition: 'width 300ms ease',
         },
         '&::-webkit-scrollbar-track': {
           background: 'transparent',
@@ -352,6 +359,7 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
         '&::-webkit-scrollbar-thumb': {
           background: isOpen ? colors.neutral[300] : colors.neutral[200],
           borderRadius: '4px',
+          transition: 'background 300ms ease',
           '&:hover': {
             background: isOpen ? colors.neutral[400] : colors.neutral[300],
           },
@@ -593,16 +601,17 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
           width: isOpen ? 320 : 100,
           height: '100%',
           flexShrink: 0,
-          transition: animations.transitions.normal,
+          transition: 'width 400ms cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 300ms ease-out',
           backgroundColor: colors.primary[100], // Match header/footer background
           borderRight: `1px solid ${colors.primary[200]}`,
-          boxShadow: shadows.lg,
+          boxShadow: isOpen ? shadows.xl : shadows.md,
           overflow: 'hidden',
           position: 'relative',
           zIndex: 1000,
           // Custom scrollbar styling for the entire sidebar
           '&::-webkit-scrollbar': {
             width: isOpen ? '8px' : '6px',
+            transition: 'width 300ms ease',
           },
           '&::-webkit-scrollbar-track': {
             background: 'transparent',
@@ -610,6 +619,7 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
           '&::-webkit-scrollbar-thumb': {
             background: isOpen ? colors.neutral[300] : colors.neutral[200],
             borderRadius: '4px',
+            transition: 'background 300ms ease',
             '&:hover': {
               background: isOpen ? colors.neutral[400] : colors.neutral[300],
             },
@@ -628,7 +638,7 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
           height: '100%',
           backgroundColor: '#F0F4FF', // Match the profile-container background
           overflow: 'auto',
-          transition: animations.transitions.normal,
+          transition: 'margin-left 400ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
         }}
       >
         {children}
