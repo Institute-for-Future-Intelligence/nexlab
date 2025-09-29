@@ -71,12 +71,12 @@ const QuizManager: React.FC<QuizManagerProps> = ({
     fetchChatbotForMaterial();
   }, [searchParams, selectedChatbotId, setError]);
 
-  // Fetch user quiz sessions when user details are available
+  // Fetch user quiz sessions when user details are available (only for admins/educators)
   useEffect(() => {
-    if (userDetails?.uid) {
+    if (userDetails?.uid && (userDetails.isAdmin || userDetails.isSuperAdmin)) {
       fetchUserSessions(userDetails.uid);
     }
-  }, [userDetails?.uid, fetchUserSessions]);
+  }, [userDetails?.uid, userDetails?.isAdmin, userDetails?.isSuperAdmin, fetchUserSessions]);
 
   // Set default difficulty
   useEffect(() => {

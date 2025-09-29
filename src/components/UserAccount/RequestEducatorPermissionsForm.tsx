@@ -1,12 +1,6 @@
 // src/components/UserAccount/RequestEducatorPermissionsForm.tsx
 import React, { useState, useEffect } from 'react';
 import { 
-  Box, 
-  Typography, 
-  Grid, 
-  OutlinedInput, 
-  FormLabel, 
-  Button, 
   Dialog, 
   DialogActions, 
   DialogContent, 
@@ -14,12 +8,12 @@ import {
   DialogTitle, 
   CircularProgress, 
   MenuItem, 
-  Select, 
   SelectChangeEvent, 
-  Divider,
   Paper,
   ToggleButton,
-  ToggleButtonGroup
+  ToggleButtonGroup,
+  Button,
+  Grid
 } from '@mui/material';
 import { 
   CheckCircle as CheckCircleIcon,
@@ -32,6 +26,15 @@ import { useUser } from '../../hooks/useUser';
 import { useNavigate } from 'react-router-dom';
 import SyllabusImport from '../CourseManagement/SyllabusImport';
 import { useSyllabusStore } from '../../stores/syllabusStore';
+import { 
+  FormContainer, 
+  FormSection, 
+  FormField, 
+  FormSelect, 
+  FormActions, 
+  FormActionButton 
+} from '../common';
+import { colors, typography } from '../../config/designSystem';
 
 type CourseCreationMode = 'manual' | 'syllabus';
 
@@ -310,112 +313,100 @@ const RequestEducatorPermissionsForm: React.FC = () => {
     parsedCourseInfo;
 
   return (
-    <Box className="request-form-container" sx={{ padding: 3, maxWidth: '1400px', mx: 'auto' }}>
+    <FormContainer 
+      title="Request Educator Permissions"
+      subtitle="Request permissions to create courses or join existing courses as a co-instructor."
+    >
 
-      <Box className="request-form-outline" sx={{ 
-        backgroundColor: '#f8f9fa', 
-        borderRadius: 2, 
-        p: 4,
-        border: '1px solid #e3f2fd',
-        minWidth: '100%'
-      }}>
-        <Typography variant="h5" component="h1" className="request-form-title" sx={{ mb: 3 }}>
-          Request Educator Permissions
-        </Typography>
+      {/* Request Type Selection */}
+      <FormSection 
+        title="Request Type"
+        description="Select the type of educator permissions you are requesting."
+      >
+        <FormSelect
+          label="Request Type"
+          value={requestType}
+          onChange={handleSelectChange}
+          required
+          disabled={loading}
+          helperText="Choose whether you want to create a new course or join an existing one"
+        >
+          <MenuItem value="primary">I am a primary course instructor, I want to create a new course</MenuItem>
+          <MenuItem value="co-instructor">I am a co-instructor, I want to be added to an existing course</MenuItem>
+        </FormSelect>
+      </FormSection>
 
-        {/* Request Type Selection */}
-        <Grid item xs={12} sx={{ mb: 3 }}>
-          <FormLabel htmlFor="request-type" required>Request Type</FormLabel>
-          <Select
-            id="request-type"
-            name="request-type"
-            value={requestType}
-            onChange={handleSelectChange}
-            fullWidth
-            required
-            disabled={loading}
-            sx={{ mt: 1 }}
-          >
-            <MenuItem value="primary">I am a primary course instructor, I want to create a new course</MenuItem>
-            <MenuItem value="co-instructor">I am a co-instructor, I want to be added to an existing course</MenuItem>
-          </Select>
-        </Grid>
-
-        {/* Personal Information Section */}
-        <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
-          Personal Information
-        </Typography>
-
+      {/* Personal Information Section */}
+      <FormSection 
+        title="Personal Information"
+        description="Provide your contact and institutional details."
+        showDivider
+      >
+        {/* First and Last Name - Two column layout */}
         <Grid container spacing={3}>
           <Grid item xs={12} md={6}>
-            <FormLabel htmlFor="first-name" required>First Name</FormLabel>
-            <OutlinedInput
-              id="first-name"
-              name="first-name"
+            <FormField
+              label="First Name"
               value={firstName}
               onChange={handleInputChange(setFirstName)}
-              placeholder="John"
-              fullWidth
               required
               disabled={loading}
+              placeholder="John"
             />
           </Grid>
           <Grid item xs={12} md={6}>
-            <FormLabel htmlFor="last-name" required>Last Name</FormLabel>
-            <OutlinedInput
-              id="last-name"
-              name="last-name"
+            <FormField
+              label="Last Name"
               value={lastName}
               onChange={handleInputChange(setLastName)}
+              required
+              disabled={loading}
               placeholder="Doe"
-              fullWidth
-              required
-              disabled={loading}
             />
-          </Grid>
-          <Grid item xs={12}>
-            <FormLabel htmlFor="institution" required>Institution Affiliation</FormLabel>
-            <OutlinedInput
-              id="institution"
-              name="institution"
-              value={institution}
-              onChange={handleInputChange(setInstitution)}
-              placeholder="University Name"
-              fullWidth
-              required
-              disabled={loading}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <FormLabel htmlFor="email" required>Institutional Email</FormLabel>
-            <OutlinedInput
-              id="email"
-              name="email"
-              value={email}
-              onChange={handleInputChange(setEmail)}
-              placeholder="name@institution.edu"
-              fullWidth
-              required
-              disabled={loading}
-            />
-            <Typography variant="caption" sx={{ mt: 1 }}>Please use your institutional email to confirm your affiliation.</Typography>
           </Grid>
         </Grid>
 
-        <Divider sx={{ my: 4 }} />
+        {/* Institution and Email - Two column layout */}
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={6}>
+            <FormField
+              label="Institution Affiliation"
+              value={institution}
+              onChange={handleInputChange(setInstitution)}
+              required
+              disabled={loading}
+              placeholder="University Name"
+              helperText="The name of your educational institution"
+            />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <FormField
+              label="Institutional Email"
+              type="email"
+              value={email}
+              onChange={handleInputChange(setEmail)}
+              required
+              disabled={loading}
+              placeholder="name@institution.edu"
+              helperText="Please use your institutional email to confirm your affiliation"
+            />
+          </Grid>
+        </Grid>
+      </FormSection>
 
-        {/* Course Details Section */}
-        <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
-          {requestType === 'primary' ? 'New Course Details' : 'Existing Course Details'}
-        </Typography>
+      {/* Course Details Section */}
+      <FormSection 
+        title={requestType === 'primary' ? 'New Course Details' : 'Existing Course Details'}
+        description={requestType === 'primary' 
+          ? 'Provide details for the course you want to create.'
+          : 'Provide details about the existing course you want to join.'
+        }
+        showDivider
+      >
 
         {/* Course Creation Mode Toggle - Only for Primary Instructors */}
         {requestType === 'primary' && (
           <Paper sx={{ p: 3, mb: 4, backgroundColor: 'grey.50' }}>
-            <Typography variant="subtitle1" sx={{ mb: 2 }}>
-              How would you like to create your course?
-            </Typography>
-            
             <ToggleButtonGroup
               value={courseCreationMode}
               exclusive
@@ -434,110 +425,105 @@ const RequestEducatorPermissionsForm: React.FC = () => {
               </ToggleButton>
             </ToggleButtonGroup>
 
-            <Typography variant="body2" color="text.secondary">
+            <Paper sx={{ 
+              p: 2, 
+              backgroundColor: 'primary.50', 
+              border: '1px solid', 
+              borderColor: 'primary.200',
+              fontFamily: typography.fontFamily.primary,
+              fontSize: typography.fontSize.sm,
+              color: colors.text.secondary,
+            }}>
               {courseCreationMode === 'manual' 
                 ? 'Fill out the course information manually using the form below.'
                 : 'Upload your syllabus document and we\'ll automatically extract course information and generate materials.'
               }
-            </Typography>
+            </Paper>
           </Paper>
         )}
 
         {/* Syllabus Import Mode - Only for Primary Instructors */}
         {requestType === 'primary' && courseCreationMode === 'syllabus' && (
-          <Box sx={{ mb: 4 }}>
-            <SyllabusImport
-              onComplete={handleSyllabusComplete}
-              onCancel={() => setCourseCreationMode('manual')}
-            />
-          </Box>
+          <SyllabusImport
+            onComplete={handleSyllabusComplete}
+            onCancel={() => setCourseCreationMode('manual')}
+          />
         )}
 
         {/* Course Information Form Fields - Show for manual mode OR co-instructor */}
         {(requestType === 'co-instructor' || (requestType === 'primary' && courseCreationMode === 'manual')) && (
-          <Grid container spacing={3} sx={{ mb: 4 }}>
-            <Grid item xs={12} md={6}>
-              <FormLabel htmlFor="course-number" required>Course Number</FormLabel>
-              <OutlinedInput
-                id="course-number"
-                name="course-number"
-                value={courseNumber}
-                onChange={handleInputChange(setCourseNumber)}
-                placeholder="e.g., BIOL301"
-                fullWidth
-                required
-                disabled={loading}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <FormLabel htmlFor="course-title" required>Course Title</FormLabel>
-              <OutlinedInput
-                id="course-title"
-                name="course-title"
-                value={courseTitle}
-                onChange={handleInputChange(setCourseTitle)}
-                placeholder="e.g., Biotech Research Methods"
-                fullWidth
-                required
-                disabled={loading}
-              />
+          <>
+            {/* Course Number and Title - Two column layout (25%/75%) */}
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={3}>
+                <FormField
+                  label="Course Number"
+                  value={courseNumber}
+                  onChange={handleInputChange(setCourseNumber)}
+                  required
+                  disabled={loading}
+                  placeholder="e.g., BIOL301"
+                  helperText="Enter the official course number or code"
+                />
+              </Grid>
+              <Grid item xs={12} md={9}>
+                <FormField
+                  label="Course Title"
+                  value={courseTitle}
+                  onChange={handleInputChange(setCourseTitle)}
+                  required
+                  disabled={loading}
+                  placeholder="e.g., Biotech Research Methods"
+                  helperText="Enter the full course title"
+                />
+              </Grid>
             </Grid>
             
             {/* Course Description - Only for Primary Instructors */}
             {requestType === 'primary' && (
-              <Grid item xs={12}>
-                <FormLabel htmlFor="course-description" required>Course Description</FormLabel>
-                <OutlinedInput
-                  id="course-description"
-                  name="course-description"
-                  value={courseDescription}
-                  onChange={handleInputChange(setCourseDescription)}
-                  placeholder="e.g., A comprehensive course covering advanced methods and tools in modern biotech labs, focusing on CRISPR, NGS, and bioinformatics."
-                  fullWidth
-                  multiline
-                  rows={4}
-                  required
-                  disabled={loading}
-                />
-              </Grid>
+              <FormField
+                label="Course Description"
+                value={courseDescription}
+                onChange={handleInputChange(setCourseDescription)}
+                required
+                disabled={loading}
+                multiline
+                rows={4}
+                placeholder="A comprehensive course covering advanced methods and tools in modern biotech labs, focusing on CRISPR, NGS, and bioinformatics."
+                helperText="Describe the course content, objectives, and learning outcomes"
+              />
             )}
-          </Grid>
+          </>
         )}
 
-        {/* Submit Button - Show when ready */}
-        {(requestType === 'co-instructor' || 
-          (requestType === 'primary' && courseCreationMode === 'manual') || 
-          isSyllabusComplete) && (
-          <Box sx={{ mt: 4 }}>
-            <Button 
-              variant="contained" 
-              color="primary" 
-              onClick={handleRequestPermissions} 
-              fullWidth
-              className="submit-button"
-              sx={{ 
-                py: 1.5, 
-                fontWeight: 'bold', 
-                fontSize: '16px', 
-                textTransform: 'uppercase' 
-              }}
-              disabled={loading || isSyllabusInProgress}
-            >
-              {loading ? (
-                <>
-                  <CircularProgress size={24} color="inherit" sx={{ mr: 1 }} />
-                  Submitting Request...
-                </>
-              ) : (
-                `Submit Request${requestType === 'primary' && courseCreationMode === 'syllabus' && generatedMaterials.length > 0 ? ` with ${generatedMaterials.filter(m => m.published).length} Materials` : ''}`
-              )}
-            </Button>
-            
-            <Typography variant="body2" sx={{ mt: 2, textAlign: 'center' }}>
-              For any questions, please contact <a href="mailto:andriy@intofuture.org">andriy@intofuture.org</a>.
-            </Typography>
-          </Box>
-        )}
+      </FormSection>
+      
+      {/* Submit Button - Show when ready */}
+      {(requestType === 'co-instructor' || 
+        (requestType === 'primary' && courseCreationMode === 'manual') || 
+        isSyllabusComplete) && (
+        <FormActions align="space-between">
+          <FormActionButton
+            variant="text"
+            onClick={() => navigate('/my-profile')}
+            disabled={loading}
+          >
+            Cancel
+          </FormActionButton>
+          
+          <FormActionButton
+            variant="primary"
+            onClick={handleRequestPermissions}
+            disabled={loading || isSyllabusInProgress}
+            loading={loading}
+          >
+            {requestType === 'primary' && courseCreationMode === 'syllabus' && generatedMaterials.length > 0 
+              ? `Submit with ${generatedMaterials.filter(m => m.published).length} Materials`
+              : 'Submit'
+            }
+          </FormActionButton>
+        </FormActions>
+      )}
 
         {/* Success/Error Dialog */}
         <Dialog open={dialogOpen} onClose={handleCloseDialog}>
@@ -555,8 +541,7 @@ const RequestEducatorPermissionsForm: React.FC = () => {
             </Button>
           </DialogActions>
         </Dialog>
-      </Box>
-    </Box>
+    </FormContainer>
   );
 };
 

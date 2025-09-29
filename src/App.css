@@ -40,3 +40,55 @@
 .read-the-docs {
   color: #888;
 }
+
+/* Loading spinner animation for form buttons */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Comprehensive fix for form field jumping with outlined variant */
+.MuiOutlinedInput-root {
+  box-sizing: border-box !important;
+  position: relative !important;
+}
+
+/* Remove default outline completely */
+.MuiOutlinedInput-notchedOutline {
+  border: none !important;
+}
+
+/* Prevent label animations that cause jumping */
+.MuiInputLabel-root {
+  transform: none !important;
+  transition: color 0.2s ease-in-out !important;
+  position: static !important;
+}
+
+.MuiInputLabel-root.Mui-focused {
+  transform: none !important;
+}
+
+.MuiInputLabel-root.MuiInputLabel-shrink {
+  transform: none !important;
+}
+
+/* Stabilize form control dimensions */
+.MuiFormControl-root {
+  margin-top: 16px !important;
+  margin-bottom: 8px !important;
+  min-height: 56px !important; /* Reserve space to prevent jumping */
+}
+
+/* Prevent any input padding changes that could cause jumping */
+.MuiOutlinedInput-input {
+  padding: 16px 14px !important; /* Fixed padding for outlined variant */
+  box-sizing: border-box !important;
+}
+
+/* Ensure helper text doesn't cause layout shifts */
+.MuiFormHelperText-root {
+  margin-top: 3px !important;
+  margin-bottom: 0 !important;
+  min-height: 20px !important; /* Reserve space for helper text */
+}
