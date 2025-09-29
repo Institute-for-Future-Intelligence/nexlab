@@ -1,98 +1,89 @@
-// src/components/UserAccount/RetrieveCoursePasscode.tsx
-import React, { useState, useEffect } from 'react';
-import { Box, Typography, TextField, MenuItem, Snackbar, Alert, Grid } from '@mui/material';
-import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
-import { useUser } from '../../hooks/useUser';
+// src/components/CourseManagement/RetrieveCoursePasscode.tsx
+import React, { useEffect, useCallback } from 'react';
+import { Box, Typography, CircularProgress, Alert } from '@mui/material';
+import { useCoursePasscode } from '../../hooks/useCoursePasscode';
+import CopyToClipboard from './CopyToClipboard';
 
-import CopyToClipboard from './CopyToClipboard'; // Adjust the path as necessary
+interface RetrieveCoursePasscodeProps {
+  selectedCourse: string;
+  courseDetails?: {
+    number: string;
+    title: string;
+  };
+}
 
-const RetrieveCoursePasscode: React.FC = () => {
-  const { userDetails } = useUser();
-  const [selectedCourse, setSelectedCourse] = useState('');
-  const [courses, setCourses] = useState<{ id: string; number: string; title: string; passcode: string }[]>([]);
-  const [passcode, setPasscode] = useState<string | null>(null);
-  const [openSnackbar, setOpenSnackbar] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
-  const db = getFirestore();
+/**
+ * Component for retrieving and displaying course passcode
+ * Uses the already selected course from parent component to eliminate duplication
+ * Follows React best practices with proper prop interfaces and error handling
+ */
+const RetrieveCoursePasscode: React.FC<RetrieveCoursePasscodeProps> = ({ 
+  selectedCourse, 
+  courseDetails 
+}) => {
+  const { passcode, loading, error, fetchPasscode, clearPasscode, clearCache } = useCoursePasscode();
 
-  useEffect(() => {
-    const fetchCourses = async () => {
-      if (userDetails?.isAdmin) {
-        const q = query(collection(db, 'courses'), where('courseAdmin', 'array-contains', userDetails.uid));
-        const querySnapshot = await getDocs(q);
-        const fetchedCourses = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          number: doc.data().number as string,
-          title: doc.data().title as string,
-          passcode: doc.data().passcode as string,
-        })) as { id: string; number: string; title: string; passcode: string }[];        
-        setCourses(fetchedCourses);
-      }
-    };
-
-    fetchCourses();
-  }, [db, userDetails]);
-
-  const handleCourseChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const courseId = event.target.value;
-    setSelectedCourse(courseId);
-    const course = courses.find(c => c.id === courseId);
-    if (course) {
-      setPasscode(course.passcode);
-      setSnackbarMessage(`Passcode for course "${course.number} - ${course.title}" retrieved successfully.`);
-      setSnackbarSeverity('success');
-      setOpenSnackbar(true);
+  // Memoize the effect callback to prevent infinite loops
+  const handleCourseChange = useCallback(() => {
+    if (selectedCourse) {
+      fetchPasscode(selectedCourse);
     } else {
-      setPasscode(null);
-      setSnackbarMessage('Course not found.');
-      setSnackbarSeverity('error');
-      setOpenSnackbar(true);
+      clearPasscode();
+      clearCache(); // Clear cache when no course is selected
     }
-  };
+  }, [selectedCourse, fetchPasscode, clearPasscode, clearCache]);
 
-  const handleCloseSnackbar = () => {
-    setOpenSnackbar(false);
-  };
+  // Automatically fetch passcode when selectedCourse changes
+  useEffect(() => {
+    handleCourseChange();
+  }, [handleCourseChange]);
+
+  // Don't render anything if no course is selected
+  if (!selectedCourse) {
+    return (
+      <Box sx={{ mt: 2 }}>
+        <Alert severity="info">
+          Please select a course to retrieve its passcode.
+        </Alert>
+      </Box>
+    );
+  }
 
   return (
-    <Box sx={{ mt: 4 }}>
-      <Typography variant="subtitle1" component="h2" sx={{ mb: 2 }}>
-        Retrieve Course Passcode
-      </Typography>
-      <Grid container spacing={2} sx={{ maxWidth: '75%' }}>
-        <Grid item xs={12} sx={{ display: 'flex', alignItems: 'center' }}>
-          <TextField
-            select
-            label="Select Course Number"
-            value={selectedCourse}
-            onChange={handleCourseChange}
-            fullWidth
-            sx={{ mb: 2, mr: 2 }} // Added right margin here
-          >
-            {courses.map((course) => (
-              <MenuItem key={course.id} value={course.id}>
-                {`${course.number} - ${course.title}`}
-              </MenuItem>                        
-            ))}
-          </TextField>
-          {passcode && (
-            <Box sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
-              <Typography variant="body1" sx={{ mr: 1 }}>
-                Passcode:
-              </Typography>
-              <CopyToClipboard text={`${passcode}`} />
-            </Box>
-          )}
-        </Grid>
-      </Grid>
-      <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleCloseSnackbar}>
-        <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }}>
-          {snackbarMessage}
+    <Box sx={{ mt: 2 }}>
+      
+      {loading && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+          <CircularProgress size={28} />
+        </Box>
+      )}
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
         </Alert>
-      </Snackbar>
+      )}
+
+      {passcode && !loading && (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+            Passcode:
+          </Typography>
+          <CopyToClipboard 
+            text={passcode}
+            tooltipText="Click to copy passcode"
+            successText="Passcode copied!"
+          />
+        </Box>
+      )}
+
+      {!passcode && !loading && !error && (
+        <Alert severity="warning">
+          No passcode available for this course.
+        </Alert>
+      )}
     </Box>
-  );  
+  );
 };
 
 export default RetrieveCoursePasscode;
