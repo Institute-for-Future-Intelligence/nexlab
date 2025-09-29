@@ -276,8 +276,14 @@ export const useQuizStore = create<QuizState>()(
             set({ sessions, loading: false });
             get().updateStatistics();
           } catch (error) {
-            console.error('Failed to fetch quiz sessions:', error);
-            set({ error: 'Failed to fetch quiz sessions', loading: false });
+            // Handle permission errors more gracefully
+            if (error instanceof Error && error.message.includes('permissions')) {
+              console.warn('User does not have permission to access quiz sessions');
+              set({ sessions: [], loading: false, error: null }); // Don't show error for permission issues
+            } else {
+              console.error('Failed to fetch quiz sessions:', error);
+              set({ error: 'Failed to fetch quiz sessions', loading: false });
+            }
           }
         },
         

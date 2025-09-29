@@ -1,12 +1,6 @@
-// src/components/UserAccount/RequestNewCourseForm.tsx
+// src/components/CourseManagement/RequestNewCourseForm.tsx
 import React, { useState, useEffect } from 'react';
 import { 
-  Box, 
-  Typography, 
-  Grid, 
-  OutlinedInput, 
-  FormLabel, 
-  Button, 
   Dialog, 
   DialogActions, 
   DialogContent, 
@@ -16,7 +10,8 @@ import {
   Paper,
   ToggleButton,
   ToggleButtonGroup,
-
+  Button,
+  Grid,
 } from '@mui/material';
 import { 
   CheckCircle as CheckCircleIcon,
@@ -28,6 +23,14 @@ import { useUser } from '../../hooks/useUser';
 import { useNavigate } from 'react-router-dom';
 import SyllabusImport from './SyllabusImport';
 import { useSyllabusStore, ParsedCourseInfo, GeneratedMaterial } from '../../stores/syllabusStore';
+import { 
+  FormContainer, 
+  FormSection, 
+  FormField, 
+  FormActions, 
+  FormActionButton 
+} from '../common';
+import { colors, typography } from '../../config/designSystem';
 
 type CourseCreationMode = 'manual' | 'syllabus';
 
@@ -285,25 +288,17 @@ const RequestNewCourseForm: React.FC = () => {
     parsedCourseInfo;
 
   return (
-    <Box className="request-form-container" sx={{ padding: 3, maxWidth: '1400px', mx: 'auto' }}>
-      
-      <Box className="request-form-outline" sx={{ 
-        backgroundColor: '#f8f9fa', 
-        borderRadius: 2, 
-        p: 4,
-        border: '1px solid #e3f2fd',
-        minWidth: '100%'
-      }}>
-        <Typography variant="h5" component="h1" className="request-form-title" sx={{ mb: 3 }}>
-          Request Creating a New Course
-        </Typography>
+    <FormContainer 
+      title="Request New Course"
+      subtitle="Create a new course by entering course information manually or importing from a syllabus document."
+    >
 
-        {/* Mode Selection */}
+      {/* Mode Selection */}
+      <FormSection 
+        title="Course Creation Method"
+        description="Choose how you would like to create your course."
+      >
         <Paper sx={{ p: 3, mb: 4, backgroundColor: 'grey.50' }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            How would you like to create your course?
-          </Typography>
-          
           <ToggleButtonGroup
             value={creationMode}
             exclusive
@@ -322,106 +317,110 @@ const RequestNewCourseForm: React.FC = () => {
             </ToggleButton>
           </ToggleButtonGroup>
 
-          <Typography variant="body2" color="text.secondary">
+          <Paper sx={{ 
+            p: 2, 
+            backgroundColor: 'primary.50', 
+            border: '1px solid', 
+            borderColor: 'primary.200',
+            fontFamily: typography.fontFamily.primary,
+            fontSize: typography.fontSize.sm,
+            color: colors.text.secondary,
+          }}>
             {creationMode === 'manual' 
               ? 'Fill out the course information manually using the form below.'
               : 'Upload your syllabus document and we\'ll automatically extract course information and generate materials.'
             }
-          </Typography>
+          </Paper>
         </Paper>
+      </FormSection>
 
-        {/* Syllabus Import Mode */}
-        {creationMode === 'syllabus' && (
-          <Box sx={{ mb: 4 }}>
-            <SyllabusImport
-              onComplete={handleSyllabusComplete}
-              onCancel={() => setCreationMode('manual')}
-              educatorUid={userDetails?.uid}
-            />
-          </Box>
-        )}
+      {/* Syllabus Import Mode */}
+      {creationMode === 'syllabus' && (
+        <FormSection 
+          title="Syllabus Import"
+          description="Upload your syllabus document to automatically extract course information."
+          showDivider
+        >
+          <SyllabusImport
+            onComplete={handleSyllabusComplete}
+            onCancel={() => setCreationMode('manual')}
+            educatorUid={userDetails?.uid}
+          />
+        </FormSection>
+      )}
 
-        {/* Manual Form Fields - Only show in manual mode */}
-        {creationMode === 'manual' && (
+      {/* Manual Form Fields - Only show in manual mode */}
+      {creationMode === 'manual' && (
+        <FormSection 
+          title="Course Information"
+          description="Provide the basic details for your course."
+          showDivider
+        >
+          {/* Course Number and Title in one line */}
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <FormLabel htmlFor="course-number" required>Course Number</FormLabel>
-              <OutlinedInput
-                id="course-number"
-                name="course-number"
+            <Grid item xs={12} md={4}>
+              <FormField
+                label="Course Number"
                 value={courseNumber}
                 onChange={handleInputChange(setCourseNumber)}
-                placeholder="e.g., BIOL301"
-                fullWidth
                 required
                 disabled={loading}
+                placeholder="e.g., BIOL301"
+                helperText="Enter the official course number or code"
               />
             </Grid>
-
-            <Grid item xs={12} md={6}>
-              <FormLabel htmlFor="course-title" required>Course Title</FormLabel>
-              <OutlinedInput
-                id="course-title"
-                name="course-title"
+            
+            <Grid item xs={12} md={8}>
+              <FormField
+                label="Course Title"
                 value={courseTitle}
                 onChange={handleInputChange(setCourseTitle)}
+                required
+                disabled={loading}
                 placeholder="e.g., Biotech Research Methods"
-                fullWidth
-                required
-                disabled={loading}
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <FormLabel htmlFor="course-description" required>Course Description</FormLabel>
-              <OutlinedInput
-                id="course-description"
-                name="course-description"
-                value={courseDescription}
-                onChange={handleInputChange(setCourseDescription)}
-                placeholder="e.g., A comprehensive course covering advanced methods and tools in modern biotech labs, focusing on CRISPR, NGS, and bioinformatics."
-                fullWidth
-                multiline
-                rows={4}
-                required
-                disabled={loading}
+                helperText="Enter the full course title"
               />
             </Grid>
           </Grid>
-        )}
+          
+          <FormField
+            label="Course Description"
+            value={courseDescription}
+            onChange={handleInputChange(setCourseDescription)}
+            required
+            disabled={loading}
+            multiline
+            rows={4}
+            placeholder="A comprehensive course covering advanced methods and tools in modern biotech labs, focusing on CRISPR, NGS, and bioinformatics."
+            helperText="Describe the course content, objectives, and learning outcomes"
+          />
+        </FormSection>
+      )}
 
-        {/* Submit Button - Show for both modes with different conditions */}
-        {(creationMode === 'manual' || isSyllabusComplete) && (
-          <Box sx={{ mt: 4 }}>
-            <Button 
-              variant="contained" 
-              color="primary" 
-              onClick={handleRequestNewCourse} 
-              fullWidth
-              className="submit-button"
-              disabled={loading || isSyllabusInProgress}
-              sx={{ 
-                py: 1.5, 
-                fontWeight: 'bold', 
-                fontSize: '16px', 
-                textTransform: 'uppercase' 
-              }}
-            >
-              {loading ? (
-                <>
-                  <CircularProgress size={24} color="inherit" sx={{ mr: 1 }} />
-                  Submitting Request...
-                </>
-              ) : (
-                `Submit Request${creationMode === 'syllabus' && generatedMaterials.length > 0 ? ` with ${generatedMaterials.filter(m => m.published).length} Materials` : ''}`
-              )}
-            </Button>
-
-            <Typography variant="body2" sx={{ mt: 2, textAlign: 'center' }}>
-              For any questions, please contact <a href="mailto:andriy@intofuture.org">andriy@intofuture.org</a>.
-            </Typography>
-          </Box>
-        )}
+      {/* Submit Button - Show for both modes with different conditions */}
+      {(creationMode === 'manual' || isSyllabusComplete) && (
+        <FormActions align="space-between">
+          <FormActionButton
+            variant="text"
+            onClick={() => navigate('/course-management')}
+            disabled={loading}
+          >
+            Cancel
+          </FormActionButton>
+          
+          <FormActionButton
+            variant="primary"
+            onClick={handleRequestNewCourse}
+            disabled={loading || isSyllabusInProgress}
+            loading={loading}
+          >
+            {creationMode === 'syllabus' && generatedMaterials.length > 0 
+              ? `Submit Request with ${generatedMaterials.filter(m => m.published).length} Materials`
+              : 'Submit'
+            }
+          </FormActionButton>
+        </FormActions>
+      )}
 
         {/* Success/Error Dialog */}
         <Dialog open={dialogOpen} onClose={handleCloseDialog}>
@@ -439,8 +438,7 @@ const RequestNewCourseForm: React.FC = () => {
             </Button>
           </DialogActions>
         </Dialog>
-      </Box>
-    </Box>
+    </FormContainer>
   );
 };
 

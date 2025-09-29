@@ -1,21 +1,25 @@
 // src/components/Chatbot/ChatbotRequestPage.tsx
 import React, { useEffect, useState } from 'react';
 import {
-  Box,
-  Typography,
-  TextField,
-  Button,
   MenuItem,
   Snackbar,
   Alert,
   CircularProgress,
+  Grid,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../hooks/useUser';
 import { collection, addDoc } from 'firebase/firestore';
 import { getFirestore } from 'firebase/firestore';
 import FileUpload from './FileUpload';
-import { PageHeader } from '../common';
+import { 
+  FormContainer, 
+  FormSection, 
+  FormField, 
+  FormSelect, 
+  FormActions, 
+  FormActionButton 
+} from '../common';
 
 import { useMaterialsStore } from '../../stores/materialsStore';
 
@@ -133,101 +137,114 @@ const ChatbotRequestPage: React.FC = () => {
   };
 
   return (
-    <Box className="profile-container" sx={{ p: 4 }}>
-      <PageHeader title="Request to Create a Chatbot" />
-
-      <Typography variant="body1" className="profile-text" sx={{ mb: 3 }}>
-        Fill out the form below to request a chatbot. Please upload all related materials for the chatbot&apos;s knowledge base.
-      </Typography>
-
-      <TextField
-        label="Chatbot Title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        fullWidth
-        margin="normal"
-        required
-        className="form-field"
-      />
-
-      <TextField
-        label="Course ID"
-        value={courseId}
-        onChange={(e) => setCourseId(e.target.value)}
-        fullWidth
-        margin="normal"
-        required
-        select
-        helperText="Only courses where you are an admin are available for chatbot requests."
-        className="form-field"
+    <FormContainer 
+      title="Create a Chatbot"
+      subtitle="Fill out the form below to request a chatbot. Please upload all related materials for the chatbot's knowledge base."
+    >
+      {/* Basic Information Section */}
+      <FormSection 
+        title="Basic Information"
+        description="Provide the basic details for your chatbot request."
       >
-        {Object.keys(userDetails?.classes || {})
-          .filter((id) => userDetails?.classes?.[id]?.isCourseAdmin) // Ensure only courses where the educator is an admin are selectable
-          .map((id) => (
-            <MenuItem key={id} value={id}>
-              {userDetails?.classes?.[id]?.title || 'Untitled Course'}
-            </MenuItem>
-          ))}
-      </TextField>
+        <FormField
+          label="Chatbot Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          required
+          placeholder="Enter a descriptive title for your chatbot"
+          helperText="Choose a clear, descriptive name that reflects the chatbot's purpose"
+        />
 
-      <TextField
-        label="Material"
-        value={materialId}
-        onChange={(e) => setMaterialId(e.target.value)}
-        fullWidth
-        margin="normal"
-        required
-        select
-        disabled={!courseId || materialsLoading}
-        helperText={
-          !courseId
-            ? 'Please select a course first.'
-            : materialsError || (materialsLoading ? 'Loading materials...' : materials.length === 0 ? 'No materials available for this course.' : '')
-        }
+        {/* Two-column layout for Course and Material selectors */}
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={3}>
+            <FormSelect
+              label="Course"
+              value={courseId}
+              onChange={(e) => setCourseId(e.target.value as string)}
+              required
+              helperText="Only courses where you are an admin are available for chatbot requests."
+            >
+              {Object.keys(userDetails?.classes || {})
+                .filter((id) => userDetails?.classes?.[id]?.isCourseAdmin)
+                .map((id) => (
+                  <MenuItem key={id} value={id}>
+                    {userDetails?.classes?.[id]?.title || 'Untitled Course'}
+                  </MenuItem>
+                ))}
+            </FormSelect>
+          </Grid>
+
+          <Grid item xs={12} md={9}>
+            <FormSelect
+              label="Material"
+              value={materialId}
+              onChange={(e) => setMaterialId(e.target.value as string)}
+              required
+              disabled={!courseId || materialsLoading}
+              helperText={
+                !courseId
+                  ? 'Please select a course first.'
+                  : materialsError || (materialsLoading ? 'Loading materials...' : materials.length === 0 ? 'No materials available for this course.' : 'Select the primary material for your chatbot')
+              }
+            >
+              {!courseId ? (
+                <MenuItem disabled>Please select a course first</MenuItem>
+              ) : materialsLoading ? (
+                <MenuItem disabled>
+                  <CircularProgress size={20} sx={{ marginRight: 2 }} />
+                  Loading...
+                </MenuItem>
+              ) : materials.length === 0 ? (
+                <MenuItem disabled>No materials found</MenuItem>
+              ) : (
+                materials.map((material) => (
+                  <MenuItem key={material.id} value={material.id}>
+                    {material.title}
+                  </MenuItem>
+                ))
+              )}
+            </FormSelect>
+          </Grid>
+        </Grid>
+      </FormSection>
+
+      {/* File Upload Section */}
+      <FormSection 
+        title="Additional Materials"
+        description="Upload additional files to enhance your chatbot's knowledge base. Supported formats: PDF, PPT, DOC/DOCX, TXT."
+        showDivider
       >
-        {!courseId ? (
-          <MenuItem disabled>Please select a course first</MenuItem>
-        ) : materialsLoading ? (
-          <MenuItem disabled>
-            <CircularProgress size={20} sx={{ marginRight: 2 }} />
-            Loading...
-          </MenuItem>
-        ) : materials.length === 0 ? (
-          <MenuItem disabled>No materials found</MenuItem>
-        ) : (
-          materials.map((material) => (
-            <MenuItem key={material.id} value={material.id}>
-              {material.title}
-            </MenuItem>
-          ))
-        )}
-      </TextField>
-
-      <Box sx={{ mt: 3 }}>
-        <Typography variant="body1" className="profile-text" sx={{ mb: 2 }}>
-          Upload your files below (PDF, PPT, DOC/DOCX, TXT formats only):
-        </Typography>
         <FileUpload
           folderPath={`chatbotRequests/${userDetails?.uid}`}
           onUploadComplete={handleFileUploadComplete}
         />
-      </Box>
+      </FormSection>
 
-      <Button
-        variant="contained"
-        onClick={handleSubmit}
-        sx={{ mt: 4 }}
-        className="submit-button"
-      >
-        Submit Request
-      </Button>
+      {/* Form Actions */}
+      <FormActions align="space-between">
+        <FormActionButton
+          variant="text"
+          onClick={handleNavigateBack}
+        >
+          Cancel
+        </FormActionButton>
+        
+        <FormActionButton
+          variant="primary"
+          onClick={handleSubmit}
+          disabled={!title || !courseId || !materialId || uploadedFileUrls.length === 0}
+        >
+          Submit
+        </FormActionButton>
+      </FormActions>
 
       <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleCloseSnackbar}>
         <Alert severity={snackbarSeverity} onClose={handleCloseSnackbar}>
           {snackbarMessage}
         </Alert>
       </Snackbar>
-    </Box>
+    </FormContainer>
   );
 };
 
