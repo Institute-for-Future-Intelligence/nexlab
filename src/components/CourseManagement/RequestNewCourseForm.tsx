@@ -28,6 +28,7 @@ import { useUser } from '../../hooks/useUser';
 import { useNavigate } from 'react-router-dom';
 import SyllabusImport from './SyllabusImport';
 import { useSyllabusStore, ParsedCourseInfo, GeneratedMaterial } from '../../stores/syllabusStore';
+import { PageHeader } from '../common';
 
 type CourseCreationMode = 'manual' | 'syllabus';
 
@@ -285,18 +286,19 @@ const RequestNewCourseForm: React.FC = () => {
     parsedCourseInfo;
 
   return (
-    <Box className="request-form-container" sx={{ padding: 3, maxWidth: '1400px', mx: 'auto' }}>
+    <Box sx={{ p: 4 }}>
+      <PageHeader 
+        title="Request Creating a New Course"
+        subtitle="Choose how you'd like to create your course and provide the necessary information."
+      />
       
-      <Box className="request-form-outline" sx={{ 
-        backgroundColor: '#f8f9fa', 
-        borderRadius: 2, 
-        p: 4,
-        border: '1px solid #e3f2fd',
-        minWidth: '100%'
+      <Box sx={{ 
+        backgroundColor: '#FFFFFF',
+        borderRadius: 2,
+        boxShadow: '0 1px 4px rgba(0, 0, 0, 0.1)',
+        p: 3,
+        mt: 3
       }}>
-        <Typography variant="h5" component="h1" className="request-form-title" sx={{ mb: 3 }}>
-          Request Creating a New Course
-        </Typography>
 
         {/* Mode Selection */}
         <Paper sx={{ p: 3, mb: 4, backgroundColor: 'grey.50' }}>
@@ -392,34 +394,46 @@ const RequestNewCourseForm: React.FC = () => {
 
         {/* Submit Button - Show for both modes with different conditions */}
         {(creationMode === 'manual' || isSyllabusComplete) && (
-          <Box sx={{ mt: 4 }}>
-            <Button 
-              variant="contained" 
-              color="primary" 
-              onClick={handleRequestNewCourse} 
-              fullWidth
-              className="submit-button"
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            mt: 4,
+            gap: 2
+          }}>
+            <Button
+              variant="text"
+              onClick={() => navigate('/course-management')}
+              sx={{ 
+                fontFamily: 'Staatliches, sans-serif',
+                fontSize: '1rem',
+                textTransform: 'none'
+              }}
+            >
+              Cancel
+            </Button>
+            
+            <Button
+              variant="contained"
+              onClick={handleRequestNewCourse}
               disabled={loading || isSyllabusInProgress}
               sx={{ 
-                py: 1.5, 
-                fontWeight: 'bold', 
-                fontSize: '16px', 
-                textTransform: 'uppercase' 
+                fontFamily: 'Staatliches, sans-serif',
+                fontSize: '1rem',
+                textTransform: 'none',
+                px: 4,
+                py: 1.5
               }}
             >
               {loading ? (
                 <>
-                  <CircularProgress size={24} color="inherit" sx={{ mr: 1 }} />
-                  Submitting Request...
+                  <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} />
+                  Submitting...
                 </>
               ) : (
-                `Submit Request${creationMode === 'syllabus' && generatedMaterials.length > 0 ? ` with ${generatedMaterials.filter(m => m.published).length} Materials` : ''}`
+                'Submit'
               )}
             </Button>
-
-            <Typography variant="body2" sx={{ mt: 2, textAlign: 'center' }}>
-              For any questions, please contact <a href="mailto:andriy@intofuture.org">andriy@intofuture.org</a>.
-            </Typography>
           </Box>
         )}
 
