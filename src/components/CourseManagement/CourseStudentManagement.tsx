@@ -83,9 +83,6 @@ const CourseStudentManagement: React.FC<CourseStudentManagementProps> = ({ selec
 
   return (
     <Box sx={{ mt: 4 }}>
-      <Typography variant="h6" component="h2">
-        Remove Students from {selectedCourseDetails ? `${selectedCourseDetails.number}` : selectedCourse}
-      </Typography>
       <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
         <TextField
           label="Student ID"

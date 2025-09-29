@@ -135,6 +135,7 @@ const CourseManagement: React.FC = () => {
             fontFamily: 'Staatliches, sans-serif',
             mb: 2,
             color: '#0B53C0',
+            fontSize: '1.25rem',
           }}
         >
           Select a Course
@@ -223,14 +224,37 @@ const CourseManagement: React.FC = () => {
           {/* Remove Students Section */}
           {students.length > 0 && (
             <Paper sx={{ mt: 4, p: 3, borderRadius: 2, boxShadow: '0 1px 4px rgba(0, 0, 0, 0.1)' }}>
+              <Typography
+                variant="h6"
+                sx={{
+                  fontFamily: 'Staatliches, sans-serif',
+                  mb: 2,
+                  color: '#0B53C0',
+                  fontSize: '1.25rem',
+                }}
+              >
+                Remove Student(s) from the Course
+              </Typography>
               <FormControlLabel
                 control={
                   <Switch
                     checked={isRemoveStudentsOpen}
                     onChange={() => setIsRemoveStudentsOpen((prev) => !prev)}
+                    sx={{
+                      '& .MuiSwitch-thumb': {
+                        backgroundColor: '#0B53C0',
+                      },
+                      '& .MuiSwitch-track': {
+                        backgroundColor: '#E0ECFF',
+                      },
+                      '&.Mui-checked .MuiSwitch-track': {
+                        backgroundColor: '#0B53C0',
+                      },
+                    }}
                   />
                 }
-                label="Remove Student(s) from the Course"
+                label=""
+                sx={{ mb: 2 }}
               />
               {isRemoveStudentsOpen && (
                 <CourseStudentManagement
@@ -260,13 +284,38 @@ const CourseManagement: React.FC = () => {
               <Switch
                 checked={isRetrievePasscodeOpen}
                 onChange={() => setIsRetrievePasscodeOpen((prev) => !prev)}
+                sx={{
+                  '& .MuiSwitch-thumb': {
+                    backgroundColor: '#0B53C0',
+                  },
+                  '& .MuiSwitch-track': {
+                    backgroundColor: '#E0ECFF',
+                  },
+                  '&.Mui-checked .MuiSwitch-track': {
+                    backgroundColor: '#0B53C0',
+                  },
+                }}
               />
             }
             label="Retrieve Course Passcode"
+            sx={{ 
+              mb: 2,
+              '& .MuiFormControlLabel-label': {
+                fontFamily: 'Staatliches, sans-serif',
+                color: '#0B53C0',
+                fontSize: '1.25rem',
+              }
+            }}
           />
           {isRetrievePasscodeOpen && (
             <Box sx={{ mt: 2 }}>
-              <RetrieveCoursePasscode />
+              <RetrieveCoursePasscode 
+                selectedCourse={selectedCourse}
+                courseDetails={selectedCourseDetails ? {
+                  number: selectedCourseDetails.number,
+                  title: selectedCourseDetails.title
+                } : undefined}
+              />
             </Box>
           )}
         </Box>
@@ -285,9 +334,28 @@ const CourseManagement: React.FC = () => {
               <Switch
                 checked={isRequestNewCourseOpen}
                 onChange={() => setIsRequestNewCourseOpen((prev) => !prev)}
+                sx={{
+                  '& .MuiSwitch-thumb': {
+                    backgroundColor: '#0B53C0',
+                  },
+                  '& .MuiSwitch-track': {
+                    backgroundColor: '#E0ECFF',
+                  },
+                  '&.Mui-checked .MuiSwitch-track': {
+                    backgroundColor: '#0B53C0',
+                  },
+                }}
               />
             }
             label="Request Creating a New Course"
+            sx={{ 
+              mb: 2,
+              '& .MuiFormControlLabel-label': {
+                fontFamily: 'Staatliches, sans-serif',
+                color: '#0B53C0',
+                fontSize: '1.25rem',
+              }
+            }}
           />
           {isRequestNewCourseOpen && (
             <Box sx={{ mt: 2 }}>
