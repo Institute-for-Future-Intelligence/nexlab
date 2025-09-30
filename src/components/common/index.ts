@@ -10,6 +10,8 @@ export { default as RouteErrorBoundary } from './RouteErrorBoundary';
 // New reusable components
 export { default as CopyableUserID } from './CopyableUserID';
 export { default as CourseHyperlink } from './CourseHyperlink';
+export { default as CourseSelector } from './CourseSelector';
+export type { CourseOption } from './CourseSelector';
 export { default as MaterialHyperlink } from './MaterialHyperlink';
 export { default as UserStatusChip } from './UserStatusChip';
 export { default as CopyableChatbotID } from './CopyableChatbotID';

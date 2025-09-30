@@ -18,7 +18,9 @@ import {
   FormField, 
   FormSelect, 
   FormActions, 
-  FormActionButton 
+  FormActionButton,
+  CourseSelector,
+  CourseOption
 } from '../common';
 
 import { useMaterialsStore } from '../../stores/materialsStore';
@@ -37,6 +39,16 @@ const ChatbotRequestPage: React.FC = () => {
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
 
   const { materials, loading: materialsLoading, error: materialsError, fetchMaterials } = useMaterialsStore();
+
+  // Convert user courses to CourseOption format for admin courses only
+  const courseOptions: CourseOption[] = Object.entries(userDetails?.classes || {})
+    .filter(([_, course]) => course.isCourseAdmin)
+    .map(([id, course]) => ({
+      id,
+      number: course.number,
+      title: course.title,
+      isCourseAdmin: course.isCourseAdmin,
+    }));
 
   useEffect(() => {
     setMaterialId(''); // Reset materialId whenever courseId changes
@@ -158,21 +170,18 @@ const ChatbotRequestPage: React.FC = () => {
         {/* Two-column layout for Course and Material selectors */}
         <Grid container spacing={3}>
           <Grid item xs={12} md={3}>
-            <FormSelect
-              label="Course"
+            <CourseSelector
               value={courseId}
-              onChange={(e) => setCourseId(e.target.value as string)}
-              required
+              onChange={setCourseId}
+              courses={courseOptions}
+              label="Course"
+              placeholder="Select a course"
               helperText="Only courses where you are an admin are available for chatbot requests."
-            >
-              {Object.keys(userDetails?.classes || {})
-                .filter((id) => userDetails?.classes?.[id]?.isCourseAdmin)
-                .map((id) => (
-                  <MenuItem key={id} value={id}>
-                    {userDetails?.classes?.[id]?.title || 'Untitled Course'}
-                  </MenuItem>
-                ))}
-            </FormSelect>
+              required
+              showNumber={true}
+              showTitle={true}
+              showAdminBadge={false}
+            />
           </Grid>
 
           <Grid item xs={12} md={9}>

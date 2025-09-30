@@ -1,8 +1,9 @@
 // src/components/Messages/CourseSelector.tsx
 
 import React, { useEffect, useState } from 'react';
-import { MenuItem, Select, InputLabel, FormControl, FormHelperText } from '@mui/material';
+import { FormHelperText } from '@mui/material';
 import { useUser } from '../../hooks/useUser';
+import { CourseSelector as CommonCourseSelector, CourseOption } from '../common';
 
 interface CourseSelectorProps {
   value: string;
@@ -10,7 +11,7 @@ interface CourseSelectorProps {
 }
 
 const CourseSelector: React.FC<CourseSelectorProps> = ({ value, onChange }) => {
-  const [adminCourses, setAdminCourses] = useState<{ id: string; number: string; title: string }[]>([]);
+  const [adminCourses, setAdminCourses] = useState<CourseOption[]>([]);
   const { userDetails } = useUser();
 
   useEffect(() => {
@@ -22,6 +23,7 @@ const CourseSelector: React.FC<CourseSelectorProps> = ({ value, onChange }) => {
           id,
           number: course.number,
           title: course.title,
+          isCourseAdmin: course.isCourseAdmin,
         }));
       setAdminCourses(filteredCourses);
     } else {
@@ -30,26 +32,20 @@ const CourseSelector: React.FC<CourseSelectorProps> = ({ value, onChange }) => {
   }, [userDetails]);  
 
   return (
-    <FormControl fullWidth sx={{ mb: 2 }}>
-      <InputLabel id="course-selector-label">Course</InputLabel>
-      <Select
-        labelId="course-selector-label"
+    <>
+      <CommonCourseSelector
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={onChange}
+        courses={adminCourses}
         label="Course"
-      >
-        {adminCourses.length > 0 ? (
-          adminCourses.map((course) => (
-            <MenuItem key={course.id} value={course.id}>
-              {`${course.number} - ${course.title}`}
-            </MenuItem>
-          ))
-        ) : (
-          <MenuItem disabled>No courses available</MenuItem>
-        )}
-      </Select>
+        placeholder="Select a course"
+        helperText="Choose the course for this message"
+        showNumber={true}
+        showTitle={true}
+        showAdminBadge={false}
+      />
       {!value && <FormHelperText>Please select a course</FormHelperText>}
-    </FormControl>
+    </>
   );
 };
 

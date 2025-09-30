@@ -17,7 +17,7 @@ import CourseStudentManagement from './CourseStudentManagement';
 import ExportToCSV from './ExportToCSV';
 import ModernStudentsTable from './ModernStudentsTable';
 
-import CourseSelector from './CourseSelector';
+import { CourseSelector, CourseOption } from '../common';
 
 import EditCourseDetails from './EditCourseDetails';
 import EditAdditionalInfo from './EditAdditionalInfo';
@@ -61,6 +61,14 @@ const CourseManagement: React.FC = () => {
   };
 
   const adminCourses = getAdminCourses();
+
+  // Convert adminCourses to CourseOption format
+  const courseOptions: CourseOption[] = Object.entries(adminCourses).map(([id, course]) => ({
+    id,
+    number: course.number,
+    title: course.title,
+    isCourseAdmin: course.isCourseAdmin,
+  }));
 
   // Ensure `selectedCourse` is valid
   useEffect(() => {
@@ -140,11 +148,17 @@ const CourseManagement: React.FC = () => {
         >
           Select a Course
         </Typography>
-        {Object.keys(adminCourses).length > 0 ? (
+        {courseOptions.length > 0 ? (
           <CourseSelector
-            userClasses={adminCourses}
-            selectedCourse={selectedCourse}
-            onCourseChange={handleCourseChange}
+            value={selectedCourse}
+            onChange={handleCourseChange}
+            courses={courseOptions}
+            label=""
+            placeholder=""
+            helperText=""
+            showNumber={true}
+            showTitle={true}
+            showAdminBadge={false}
           />
         ) : (
           <Typography variant="body1" sx={{ color: '#9E9E9E' }}>

@@ -4,6 +4,7 @@ import { getFirestore, doc, updateDoc, getDoc, collection, getDocs } from 'fireb
 import { useNavigate } from 'react-router-dom';
 import { FirebaseTimestamp } from '../../types/firebase'; // Import proper type
 import { PageHeader } from '../common';
+import { CourseSelector, CourseOption } from '../common';
 
 import ModernUserTable from './ModernUserTable'; // Import the modern UserTable component
 import DeleteUser from './DeleteUser'; // Import the DeleteUser component
@@ -143,19 +144,21 @@ const AssignCourse: React.FC<{
               ))
             : <Typography>No courses assigned.</Typography>}
         </Box>
-        <FormControl sx={{ minWidth: 200, mr: 2 }}>
-          <InputLabel>Course</InputLabel>
-          <Select
-            value={selectedCourse}
-            onChange={(e) => setSelectedCourse(e.target.value)}
-          >
-            {courses.map((course) => (
-              <MenuItem key={course.id} value={course.id}>
-                {`${course.number} - ${course.title}`}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <CourseSelector
+          value={selectedCourse}
+          onChange={setSelectedCourse}
+          courses={courses.map(course => ({
+            id: course.id,
+            number: course.number,
+            title: course.title,
+            isCourseAdmin: false, // Default for assignment
+          }))}
+          label="Course"
+          placeholder="Select a course to assign"
+          helperText="Choose a course to assign to the user"
+          size="small"
+          sx={{ minWidth: 200, mr: 2 }}
+        />
         <FormControl sx={{ mr: 2 }}>
           <InputLabel>Role</InputLabel>
           <Select
@@ -343,10 +346,6 @@ const UserManagement: React.FC = () => {
     setOpenDialog(false);
   };
 
-  const handleCourseChange = (event: SelectChangeEvent<string>) => {
-    setSelectedCourse(event.target.value as string);
-  };
-
   // Filters users based on selected course
   const courseFilter = (user: User) =>
   selectedCourse ? user.classes && (selectedCourse in user.classes) : true;
@@ -468,18 +467,24 @@ const UserManagement: React.FC = () => {
       <Typography variant="h5" component="h2" gutterBottom>
         Current Users
       </Typography>
-      <FormControl fullWidth sx={{ mb: 3, width: '25%' }}>
-        <InputLabel>Filter by Course</InputLabel>
-        <Select
-          value={selectedCourse}
-          onChange={handleCourseChange}
-        >
-          <MenuItem value="">All Courses</MenuItem>
-          {courses.map(course => (
-            <MenuItem key={course.id} value={course.id}>{course.number}</MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+      <CourseSelector
+        value={selectedCourse}
+        onChange={setSelectedCourse}
+        courses={[
+          { id: '', number: 'All', title: 'Courses' }, // Add "All Courses" option
+          ...courses.map(course => ({
+            id: course.id,
+            number: course.number,
+            title: course.title,
+            isCourseAdmin: false,
+          }))
+        ]}
+        label="Filter by Course"
+        placeholder="All courses"
+        helperText=""
+        size="small"
+        sx={{ mb: 3, width: '25%' }}
+      />
       <FormControl fullWidth sx={{ mb: 3, width: '25%' }}>
         <InputLabel>User Status</InputLabel>
         <Select

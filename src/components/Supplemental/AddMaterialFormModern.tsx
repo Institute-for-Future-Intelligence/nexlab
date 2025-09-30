@@ -504,16 +504,16 @@ const AddMaterialFormModern: React.FC<AddMaterialFormModernProps> = ({ materialD
                 AI Import
               </ToggleButton>
             </ToggleButtonGroup>
-
-            {/* Course Selection */}
-            <Box sx={{ width: { xs: '100%', sm: '200px', md: '250px' } }}>
-              <CourseDropdown
-                value={course}
-                onChange={setCourse}
-                disabled={!!materialId}
-              />
-            </Box>
           </Box>
+        </Box>
+
+        {/* Course Selection - moved above Material Title */}
+        <Box sx={{ mb: 3 }}>
+          <CourseDropdown
+            value={course}
+            onChange={setCourse}
+            disabled={!!materialId}
+          />
         </Box>
 
         {/* Material Title */}
