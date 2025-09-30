@@ -4,18 +4,16 @@ import { Box, Button, TextField, Typography, Container, Divider, Paper } from '@
 import { useNavigate } from 'react-router-dom';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { getFirestore } from 'firebase/firestore';
+import { colors, typography, spacing, borderRadius, shadows } from '../../config/designSystem';
+import { PageHeader } from '../common';
 
 import CourseSelector from './CourseSelector';
-
-interface Link {
-  title: string;
-  url: string;
-}
+import LinksSection, { Link } from './LinksSection';
 
 const AddMessage: React.FC = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [links, setLinks] = useState<Link[]>([{ title: '', url: '' }]);
+  const [links, setLinks] = useState<Link[]>([{ id: crypto.randomUUID(), title: '', url: '' }]);
 
   const [selectedCourse, setSelectedCourse] = useState<string>('');
 
@@ -37,13 +35,13 @@ const AddMessage: React.FC = () => {
         postedOn: serverTimestamp(),
         isPinned: false,
       });
-      navigate('/');
+      navigate('/messages');
     } catch (error) {
       console.error('Error adding message: ', error);
     }
   };
 
-  const handleCancel = () => navigate('/');
+  const handleCancel = () => navigate('/messages');
 
   const handleLinkChange = (index: number, field: keyof Link, value: string) => {
     const newLinks = [...links];
@@ -51,25 +49,33 @@ const AddMessage: React.FC = () => {
     setLinks(newLinks);
   };
 
-  const addLinkField = () => setLinks([...links, { title: '', url: '' }]);
+  const addLinkField = () => setLinks([...links, { id: crypto.randomUUID(), title: '', url: '' }]);
+
+  const removeLinkField = (index: number) => {
+    const newLinks = links.filter((_, i) => i !== index);
+    setLinks(newLinks);
+  };
 
   return (
-    <Container maxWidth="md" sx={{ mt: 6, fontFamily: 'Gabarito, sans-serif' }}>
+    <Container maxWidth="md" sx={{ mt: 6, fontFamily: typography.fontFamily.primary }}>
+      {/* Header Section */}
+      <PageHeader 
+        title="Add Message"
+        subtitle="Share important announcements and updates with your course participants"
+      />
+
+      {/* Form Section */}
       <Paper
         elevation={3}
         sx={{
-          p: 4,
-          borderRadius: 2,
-          backgroundColor: '#F7F9FC', // Light email-like background
+          p: spacing[6],
+          borderRadius: borderRadius['2xl'],
+          backgroundColor: colors.background.elevated,
+          border: `1px solid ${colors.neutral[200]}`,
+          boxShadow: shadows.lg,
         }}
       >
-        <Typography variant="h4" component="h1" gutterBottom sx={{ fontFamily: 'Staatliches, sans-serif', textAlign: 'center' }}>
-          Add New Message
-        </Typography>
-
-        <Divider sx={{ mb: 3, backgroundColor: '#DADADA' }} />
-
-        <Box sx={{ mt: 4 }}>
+        <Box sx={{ mt: spacing[4] }}>
           <CourseSelector value={selectedCourse} onChange={setSelectedCourse} />
 
           <TextField
@@ -99,44 +105,13 @@ const AddMessage: React.FC = () => {
             }}
           />
 
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            🔗
-          </Typography>
-          {links.map((link, index) => (
-            <Box key={index} sx={{ mb: 2, pl: 2, borderLeft: '4px solid #CDDAFF' }}>
-              <TextField
-                label={`URL Title ${index + 1}`}
-                fullWidth
-                value={link.title}
-                onChange={(e) => handleLinkChange(index, 'title', e.target.value)}
-                sx={{ mb: 1 }}
-              />
-              <TextField
-                label={`URL Link ${index + 1}`}
-                fullWidth
-                value={link.url}
-                onChange={(e) => handleLinkChange(index, 'url', e.target.value)}
-              />
-            </Box>
-          ))}
-          <Button
-            variant="outlined"
-            onClick={addLinkField}
-            startIcon={<span style={{ fontSize: '1.2rem', lineHeight: 1 }}>+</span>}
-            sx={{
-              fontFamily: 'Staatliches, sans-serif',
-              fontSize: '1rem',
-              color: '#0B53C0',
-              padding: '8px 16px',
-              textTransform: 'none',
-              '&:hover': {
-                backgroundColor: 'rgba(11, 83, 192, 0.1)',
-                color: '#083B80',
-              },
-            }}
-          >
-            Add Link
-          </Button>
+          {/* Links Section */}
+          <LinksSection 
+            links={links}
+            onLinkChange={handleLinkChange}
+            onAddLink={addLinkField}
+            onRemoveLink={removeLinkField}
+          />
 
           <Divider sx={{ width: '100%', my: 2, backgroundColor: '#DADADA' }} />
 

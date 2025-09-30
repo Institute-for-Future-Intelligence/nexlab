@@ -39,7 +39,7 @@ const CourseSelector: React.FC<CourseSelectorProps> = ({ value, onChange }) => {
         courses={adminCourses}
         label="Course"
         placeholder="Select a course"
-        helperText="Choose the course for this message"
+        helperText=""
         showNumber={true}
         showTitle={true}
         showAdminBadge={false}
