@@ -131,6 +131,33 @@ const DesignDetailPage: React.FC = () => {
     );
   }
 
+  // Safety check: Don't render if design doesn't exist yet
+  if (!design) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '80vh',
+          gap: spacing[4],
+        }}
+      >
+        <CircularProgress size={60} sx={{ color: colors.primary[500] }} />
+        <Typography
+          variant="h6"
+          sx={{
+            fontFamily: typography.fontFamily.display,
+            color: colors.text.secondary,
+          }}
+        >
+          Loading design...
+        </Typography>
+      </Box>
+    );
+  }
+
   return (
     <ReactFlowProvider>
       <Box
