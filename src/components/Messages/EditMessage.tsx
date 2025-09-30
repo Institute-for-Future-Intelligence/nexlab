@@ -58,13 +58,13 @@ const EditMessage: React.FC = () => {
         course: selectedCourse,
         lastUpdatedOn: serverTimestamp(),
       });
-      navigate('/');
+      navigate('/messages');
     } catch (error) {
       console.error('Error editing message: ', error);
     }
   };
 
-  const handleCancel = () => navigate('/');
+  const handleCancel = () => navigate('/messages');
 
   const handleLinkChange = (index: number, field: keyof Link, value: string) => {
     const newLinks = [...links];

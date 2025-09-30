@@ -37,13 +37,13 @@ const AddMessage: React.FC = () => {
         postedOn: serverTimestamp(),
         isPinned: false,
       });
-      navigate('/');
+      navigate('/messages');
     } catch (error) {
       console.error('Error adding message: ', error);
     }
   };
 
-  const handleCancel = () => navigate('/');
+  const handleCancel = () => navigate('/messages');
 
   const handleLinkChange = (index: number, field: keyof Link, value: string) => {
     const newLinks = [...links];
