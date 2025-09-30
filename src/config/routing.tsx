@@ -25,7 +25,6 @@ interface ProtectedRouteProps {
   element: React.ComponentType;
 }
 
-// eslint-disable-next-line react/prop-types
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ element: Component }) => (
   <RouteErrorBoundary>
     <PrivateRoute element={Component} />
@@ -37,7 +36,6 @@ interface PublicRouteProps {
   element: React.ReactElement;
 }
 
-// eslint-disable-next-line react/prop-types
 const PublicRoute: React.FC<PublicRouteProps> = ({ element }) => (
   <ErrorBoundary>
     {element}
