@@ -131,7 +131,7 @@ const LaboratoryNotebookV2: React.FC = () => {
           </Typography>
           <Typography variant="body2">
             The Laboratory Notebook is accessible to users enrolled in an academic course.
-            Please enroll in a course via 'My Account' by following the instructions provided
+            Please enroll in a course via &apos;My Account&apos; by following the instructions provided
             by your academic instructor.
           </Typography>
         </Alert>

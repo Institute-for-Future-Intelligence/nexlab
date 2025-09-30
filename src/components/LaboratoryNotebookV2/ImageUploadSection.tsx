@@ -8,7 +8,6 @@ import {
   TextField,
   Dialog,
   DialogContent,
-  CircularProgress,
   Tooltip,
   Grid,
   Card,
@@ -318,7 +317,7 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
               fontSize: typography.fontSize.sm,
             }}
           >
-            Click "Upload Images" to add images to this {storagePath.includes('design') ? 'design' : storagePath.includes('build') ? 'build' : 'test'}
+            Click &quot;Upload Images&quot; to add images to this {storagePath.includes('design') ? 'design' : storagePath.includes('build') ? 'build' : 'test'}
           </Typography>
         </Box>
       )}

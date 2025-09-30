@@ -246,7 +246,9 @@ const ExpandedEditPanel: React.FC = () => {
                 ? `designs/${node.data.designId}`
                 : isBuildNode(node)
                 ? `builds/${node.data.buildId}`
-                : `tests/${node.data.testId}`
+                : isTestNode(node)
+                ? `tests/${node.data.testId}`
+                : ''
             }
             disabled={isSubmitting}
           />
@@ -263,7 +265,9 @@ const ExpandedEditPanel: React.FC = () => {
                 ? `designs/${node.data.designId}`
                 : isBuildNode(node)
                 ? `builds/${node.data.buildId}`
-                : `tests/${node.data.testId}`
+                : isTestNode(node)
+                ? `tests/${node.data.testId}`
+                : ''
             }
             disabled={isSubmitting}
             maxFileSize={10}

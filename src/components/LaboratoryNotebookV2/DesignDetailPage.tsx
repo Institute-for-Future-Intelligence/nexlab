@@ -67,20 +67,6 @@ const DesignDetailPage: React.FC = () => {
     }
   };
 
-  // Filter nodes for this design only
-  const filteredNodes = nodes.filter(node => {
-    if (node.type === 'designNode') {
-      return node.data.designId === designId;
-    }
-    if (node.type === 'buildNode') {
-      return node.data.designId === designId;
-    }
-    if (node.type === 'testNode') {
-      return node.data.designId === designId;
-    }
-    return false;
-  });
-
   // Show loading state while fetching data or if user is loading
   if (isLoading || userLoading || (initialized && !design && designs.length === 0)) {
     return (
@@ -117,7 +103,7 @@ const DesignDetailPage: React.FC = () => {
             Design Not Found
           </Typography>
           <Typography variant="body2">
-            The design you're looking for doesn't exist or you don't have permission to view it.
+            The design you&apos;re looking for doesn&apos;t exist or you don&apos;t have permission to view it.
           </Typography>
         </Alert>
         <Button

@@ -12,7 +12,6 @@ import {
   CardContent,
 } from '@mui/material';
 import {
-  Fullscreen as FullscreenIcon,
   Close as CloseIcon,
   Image as ImageIcon,
 } from '@mui/icons-material';

@@ -26,7 +26,7 @@ import {
 } from '@mui/icons-material';
 import { getStorage, ref as firebaseRef, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
 import { v4 as uuidv4 } from 'uuid';
-import { colors, typography, spacing, borderRadius, shadows } from '../../config/designSystem';
+import { colors, typography, spacing, borderRadius } from '../../config/designSystem';
 import { FileDetails } from '../../types/types';
 
 interface FileUploadSectionProps {
@@ -71,14 +71,6 @@ const getFileIcon = (fileName: string) => {
   }
 };
 
-// Utility: Format file size
-const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 Bytes';
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
-};
 
 const FileUploadSection: React.FC<FileUploadSectionProps> = ({
   files,
@@ -379,7 +371,7 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = ({
               fontSize: typography.fontSize.sm,
             }}
           >
-            Click "Upload Files" to attach documents, data files, or other resources
+            Click &quot;Upload Files&quot; to attach documents, data files, or other resources
           </Typography>
           {maxFileSize && (
             <Chip
