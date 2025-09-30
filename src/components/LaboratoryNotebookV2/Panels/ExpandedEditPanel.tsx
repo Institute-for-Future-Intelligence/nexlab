@@ -9,12 +9,15 @@ import {
   Alert,
   CircularProgress,
   Dialog,
+  Divider,
 } from '@mui/material';
 import { Close as CloseIcon, Save as SaveIcon, ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import { colors, typography, spacing, borderRadius } from '../../../config/designSystem';
 import { useLabNotebookStore } from '../../../stores/labNotebookStore';
 import { labNotebookService } from '../../../services/labNotebookService';
 import { isDesignNode, isBuildNode, isTestNode } from '../../../types/labNotebook';
+import { Image } from '../../../types/types';
+import ImageUploadSection from '../ImageUploadSection';
 
 const ExpandedEditPanel: React.FC = () => {
   const selectedNodeId = useLabNotebookStore((state) => state.selectedNodeId);
@@ -29,6 +32,7 @@ const ExpandedEditPanel: React.FC = () => {
   const [description, setDescription] = useState('');
   const [results, setResults] = useState('');
   const [conclusions, setConclusions] = useState('');
+  const [images, setImages] = useState<Image[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,6 +41,7 @@ const ExpandedEditPanel: React.FC = () => {
     if (node) {
       setTitle(node.data.title || '');
       setDescription(node.data.description || '');
+      setImages(node.data.images || []);
       if (isTestNode(node)) {
         setResults(node.data.results || '');
         setConclusions(node.data.conclusions || '');
@@ -79,12 +84,14 @@ const ExpandedEditPanel: React.FC = () => {
           id: node.data.designId,
           title: title.trim(),
           description: description.trim(),
+          images: images,
         });
       } else if (isBuildNode(node)) {
         await labNotebookService.updateBuild({
           id: node.data.buildId,
           title: title.trim(),
           description: description.trim(),
+          images: images,
         });
       } else if (isTestNode(node)) {
         await labNotebookService.updateTest({
@@ -93,6 +100,7 @@ const ExpandedEditPanel: React.FC = () => {
           description: description.trim(),
           results: results.trim(),
           conclusions: conclusions.trim(),
+          images: images,
         });
       }
 
@@ -218,6 +226,23 @@ const ExpandedEditPanel: React.FC = () => {
                 fontSize: typography.fontSize.lg,
               },
             }}
+          />
+
+          {/* Divider */}
+          <Divider sx={{ my: spacing[3] }} />
+
+          {/* Image Upload Section */}
+          <ImageUploadSection
+            images={images}
+            onImagesChange={setImages}
+            storagePath={
+              isDesignNode(node)
+                ? `designs/${node.data.designId}`
+                : isBuildNode(node)
+                ? `builds/${node.data.buildId}`
+                : `tests/${node.data.testId}`
+            }
+            disabled={isSubmitting}
           />
 
           {/* Test-specific fields */}

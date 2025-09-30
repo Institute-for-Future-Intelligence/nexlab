@@ -20,6 +20,7 @@ import {
 import { colors, typography, spacing, borderRadius } from '../../../config/designSystem';
 import { useLabNotebookStore } from '../../../stores/labNotebookStore';
 import { isDesignNode, isBuildNode, isTestNode } from '../../../types/labNotebook';
+import ImageGallery from '../ImageGallery';
 
 const ExpandedDetailPanel: React.FC = () => {
   const selectedNodeId = useLabNotebookStore((state) => state.selectedNodeId);
@@ -274,7 +275,7 @@ const ExpandedDetailPanel: React.FC = () => {
           </>
         )}
 
-        {/* Attachments */}
+        {/* Images Section */}
         <Box sx={{ mb: spacing[6] }}>
           <Typography
             variant="h5"
@@ -285,23 +286,29 @@ const ExpandedDetailPanel: React.FC = () => {
               mb: spacing[3],
             }}
           >
-            Attachments
+            Images ({node.data.images?.length || 0})
           </Typography>
-          
-          <Box sx={{ display: 'flex', gap: spacing[4] }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
-              <ImageIcon sx={{ color: colors.text.tertiary, fontSize: 24 }} />
-              <Typography variant="body1" sx={{ color: colors.text.secondary }}>
-                {node.data.images?.length || 0} image{node.data.images?.length !== 1 ? 's' : ''}
-              </Typography>
-            </Box>
-            
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
-              <FileIcon sx={{ color: colors.text.tertiary, fontSize: 24 }} />
-              <Typography variant="body1" sx={{ color: colors.text.secondary }}>
-                {node.data.files?.length || 0} file{node.data.files?.length !== 1 ? 's' : ''}
-              </Typography>
-            </Box>
+          <ImageGallery images={node.data.images || []} />
+        </Box>
+
+        {/* Files Section */}
+        <Box sx={{ mb: spacing[6] }}>
+          <Typography
+            variant="h5"
+            sx={{
+              fontFamily: typography.fontFamily.secondary,
+              fontWeight: typography.fontWeight.semibold,
+              color: colors.text.primary,
+              mb: spacing[3],
+            }}
+          >
+            Files ({node.data.files?.length || 0})
+          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
+            <FileIcon sx={{ color: colors.text.tertiary, fontSize: 24 }} />
+            <Typography variant="body1" sx={{ color: colors.text.secondary }}>
+              {node.data.files?.length || 0} file{node.data.files?.length !== 1 ? 's' : ''}
+            </Typography>
           </Box>
         </Box>
 
