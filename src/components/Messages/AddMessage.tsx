@@ -4,6 +4,8 @@ import { Box, Button, TextField, Typography, Container, Divider, Paper } from '@
 import { useNavigate } from 'react-router-dom';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { getFirestore } from 'firebase/firestore';
+import { colors, typography, spacing, borderRadius, shadows } from '../../config/designSystem';
+import { PageHeader } from '../common';
 
 import CourseSelector from './CourseSelector';
 
@@ -54,22 +56,25 @@ const AddMessage: React.FC = () => {
   const addLinkField = () => setLinks([...links, { title: '', url: '' }]);
 
   return (
-    <Container maxWidth="md" sx={{ mt: 6, fontFamily: 'Gabarito, sans-serif' }}>
+    <Container maxWidth="md" sx={{ mt: 6, fontFamily: typography.fontFamily.primary }}>
+      {/* Header Section */}
+      <PageHeader 
+        title="Add New Message"
+        subtitle="Share important announcements and updates with your course participants"
+      />
+
+      {/* Form Section */}
       <Paper
         elevation={3}
         sx={{
-          p: 4,
-          borderRadius: 2,
-          backgroundColor: '#F7F9FC', // Light email-like background
+          p: spacing[6],
+          borderRadius: borderRadius['2xl'],
+          backgroundColor: colors.background.elevated,
+          border: `1px solid ${colors.neutral[200]}`,
+          boxShadow: shadows.lg,
         }}
       >
-        <Typography variant="h4" component="h1" gutterBottom sx={{ fontFamily: 'Staatliches, sans-serif', textAlign: 'center' }}>
-          Add New Message
-        </Typography>
-
-        <Divider sx={{ mb: 3, backgroundColor: '#DADADA' }} />
-
-        <Box sx={{ mt: 4 }}>
+        <Box sx={{ mt: spacing[4] }}>
           <CourseSelector value={selectedCourse} onChange={setSelectedCourse} />
 
           <TextField
