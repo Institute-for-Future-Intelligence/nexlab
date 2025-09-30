@@ -1,10 +1,8 @@
 // src/components/Chatbot/ChatbotRequestPage.tsx
 import React, { useEffect, useState } from 'react';
 import {
-  MenuItem,
   Snackbar,
   Alert,
-  CircularProgress,
   Grid,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
@@ -16,11 +14,12 @@ import {
   FormContainer, 
   FormSection, 
   FormField, 
-  FormSelect, 
   FormActions, 
   FormActionButton,
   CourseSelector,
-  CourseOption
+  CourseOption,
+  MaterialSelector,
+  Material
 } from '../common';
 
 import { useMaterialsStore } from '../../stores/materialsStore';
@@ -169,7 +168,7 @@ const ChatbotRequestPage: React.FC = () => {
 
         {/* Two-column layout for Course and Material selectors */}
         <Grid container spacing={3}>
-          <Grid item xs={12} md={3}>
+          <Grid item xs={12} md={6}>
             <CourseSelector
               value={courseId}
               onChange={setCourseId}
@@ -184,36 +183,27 @@ const ChatbotRequestPage: React.FC = () => {
             />
           </Grid>
 
-          <Grid item xs={12} md={9}>
-            <FormSelect
-              label="Material"
+          <Grid item xs={12} md={6}>
+            <MaterialSelector
               value={materialId}
-              onChange={(e) => setMaterialId(e.target.value as string)}
-              required
-              disabled={!courseId || materialsLoading}
+              onChange={setMaterialId}
+              materials={materials.map(material => ({
+                id: material.id,
+                title: material.title,
+                course: material.course
+              }))}
+              label="Material"
+              placeholder="Select a material"
               helperText={
                 !courseId
                   ? 'Please select a course first.'
                   : materialsError || (materialsLoading ? 'Loading materials...' : materials.length === 0 ? 'No materials available for this course.' : 'Select the primary material for your chatbot')
               }
-            >
-              {!courseId ? (
-                <MenuItem disabled>Please select a course first</MenuItem>
-              ) : materialsLoading ? (
-                <MenuItem disabled>
-                  <CircularProgress size={20} sx={{ marginRight: 2 }} />
-                  Loading...
-                </MenuItem>
-              ) : materials.length === 0 ? (
-                <MenuItem disabled>No materials found</MenuItem>
-              ) : (
-                materials.map((material) => (
-                  <MenuItem key={material.id} value={material.id}>
-                    {material.title}
-                  </MenuItem>
-                ))
-              )}
-            </FormSelect>
+              required
+              disabled={!courseId || materialsLoading}
+              loading={materialsLoading}
+              error={!!materialsError}
+            />
           </Grid>
         </Grid>
       </FormSection>

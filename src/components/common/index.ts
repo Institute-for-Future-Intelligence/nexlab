@@ -12,6 +12,8 @@ export { default as CopyableUserID } from './CopyableUserID';
 export { default as CourseHyperlink } from './CourseHyperlink';
 export { default as CourseSelector } from './CourseSelector';
 export type { CourseOption } from './CourseSelector';
+export { default as MaterialSelector } from './MaterialSelector';
+export type { Material } from './MaterialSelector';
 export { default as MaterialHyperlink } from './MaterialHyperlink';
 export { default as UserStatusChip } from './UserStatusChip';
 export { default as CopyableChatbotID } from './CopyableChatbotID';
