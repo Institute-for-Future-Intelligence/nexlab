@@ -8,17 +8,13 @@ import { colors, typography, spacing, borderRadius, shadows } from '../../config
 import { PageHeader } from '../common';
 
 import CourseSelector from './CourseSelector';
-
-interface Link {
-  title: string;
-  url: string;
-}
+import LinksSection, { Link } from './LinksSection';
 
 const EditMessage: React.FC = () => {
   const { id } = useParams();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [links, setLinks] = useState<Link[]>([{ title: '', url: '' }]);
+  const [links, setLinks] = useState<Link[]>([{ id: crypto.randomUUID(), title: '', url: '' }]);
   const [selectedCourse, setSelectedCourse] = useState<string>('');
 
   const navigate = useNavigate();
@@ -34,7 +30,16 @@ const EditMessage: React.FC = () => {
           const data = docSnap.data();
           setTitle(data.title);
           setDescription(data.description);
-          setLinks(data.links || [{ title: '', url: '' }]);
+          // Convert existing links to include IDs, or create new ones if none exist
+          const existingLinks = data.links || [];
+          setLinks(existingLinks.length > 0 
+            ? existingLinks.map((link: any) => ({ 
+                id: link.id || crypto.randomUUID(), 
+                title: link.title || '', 
+                url: link.url || '' 
+              }))
+            : [{ id: crypto.randomUUID(), title: '', url: '' }]
+          );
           setSelectedCourse(data.course || '');
         }
       } catch (error) {
@@ -74,7 +79,12 @@ const EditMessage: React.FC = () => {
     setLinks(newLinks);
   };
 
-  const addLinkField = () => setLinks([...links, { title: '', url: '' }]);
+  const addLinkField = () => setLinks([...links, { id: crypto.randomUUID(), title: '', url: '' }]);
+
+  const removeLinkField = (index: number) => {
+    const newLinks = links.filter((_, i) => i !== index);
+    setLinks(newLinks);
+  };
 
   return (
     <Container maxWidth="md" sx={{ mt: 6, fontFamily: typography.fontFamily.primary }}>
@@ -124,44 +134,13 @@ const EditMessage: React.FC = () => {
               boxShadow: '0 1px 4px rgba(0, 0, 0, 0.1)',
             }}
           />
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            🔗
-          </Typography>
-          {links.map((link, index) => (
-            <Box key={index} sx={{ mb: 2, pl: 2, borderLeft: '4px solid #CDDAFF' }}>
-              <TextField
-                label={`URL Title ${index + 1}`}
-                fullWidth
-                value={link.title}
-                onChange={(e) => handleLinkChange(index, 'title', e.target.value)}
-                sx={{ mb: 1 }}
-              />
-              <TextField
-                label={`URL Link ${index + 1}`}
-                fullWidth
-                value={link.url}
-                onChange={(e) => handleLinkChange(index, 'url', e.target.value)}
-              />
-            </Box>
-          ))}
-          <Button
-            variant="outlined"
-            onClick={addLinkField}
-            startIcon={<span style={{ fontSize: '1.2rem', lineHeight: 1 }}>+</span>}
-            sx={{
-              fontFamily: 'Staatliches, sans-serif',
-              fontSize: '1rem',
-              color: '#0B53C0',
-              padding: '8px 16px',
-              textTransform: 'none',
-              '&:hover': {
-                backgroundColor: 'rgba(11, 83, 192, 0.1)',
-                color: '#083B80',
-              },
-            }}
-          >
-            Add Link
-          </Button>
+          {/* Links Section */}
+          <LinksSection 
+            links={links}
+            onLinkChange={handleLinkChange}
+            onAddLink={addLinkField}
+            onRemoveLink={removeLinkField}
+          />
           
           <Divider sx={{ width: '100%', my: 2, backgroundColor: '#DADADA' }} />
 
