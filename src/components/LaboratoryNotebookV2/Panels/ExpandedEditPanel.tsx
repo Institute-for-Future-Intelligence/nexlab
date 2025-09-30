@@ -16,8 +16,9 @@ import { colors, typography, spacing, borderRadius } from '../../../config/desig
 import { useLabNotebookStore } from '../../../stores/labNotebookStore';
 import { labNotebookService } from '../../../services/labNotebookService';
 import { isDesignNode, isBuildNode, isTestNode } from '../../../types/labNotebook';
-import { Image } from '../../../types/types';
+import { Image, FileDetails } from '../../../types/types';
 import ImageUploadSection from '../ImageUploadSection';
+import FileUploadSection from '../FileUploadSection';
 
 const ExpandedEditPanel: React.FC = () => {
   const selectedNodeId = useLabNotebookStore((state) => state.selectedNodeId);
@@ -33,6 +34,7 @@ const ExpandedEditPanel: React.FC = () => {
   const [results, setResults] = useState('');
   const [conclusions, setConclusions] = useState('');
   const [images, setImages] = useState<Image[]>([]);
+  const [files, setFiles] = useState<FileDetails[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,6 +44,7 @@ const ExpandedEditPanel: React.FC = () => {
       setTitle(node.data.title || '');
       setDescription(node.data.description || '');
       setImages(node.data.images || []);
+      setFiles(node.data.files || []);
       if (isTestNode(node)) {
         setResults(node.data.results || '');
         setConclusions(node.data.conclusions || '');
@@ -85,6 +88,7 @@ const ExpandedEditPanel: React.FC = () => {
           title: title.trim(),
           description: description.trim(),
           images: images,
+          files: files,
         });
       } else if (isBuildNode(node)) {
         await labNotebookService.updateBuild({
@@ -92,6 +96,7 @@ const ExpandedEditPanel: React.FC = () => {
           title: title.trim(),
           description: description.trim(),
           images: images,
+          files: files,
         });
       } else if (isTestNode(node)) {
         await labNotebookService.updateTest({
@@ -101,6 +106,7 @@ const ExpandedEditPanel: React.FC = () => {
           results: results.trim(),
           conclusions: conclusions.trim(),
           images: images,
+          files: files,
         });
       }
 
@@ -243,6 +249,24 @@ const ExpandedEditPanel: React.FC = () => {
                 : `tests/${node.data.testId}`
             }
             disabled={isSubmitting}
+          />
+
+          {/* Divider */}
+          <Divider sx={{ my: spacing[3] }} />
+
+          {/* File Upload Section */}
+          <FileUploadSection
+            files={files}
+            onFilesChange={setFiles}
+            storagePath={
+              isDesignNode(node)
+                ? `designs/${node.data.designId}`
+                : isBuildNode(node)
+                ? `builds/${node.data.buildId}`
+                : `tests/${node.data.testId}`
+            }
+            disabled={isSubmitting}
+            maxFileSize={10}
           />
 
           {/* Test-specific fields */}

@@ -21,6 +21,7 @@ import { colors, typography, spacing, borderRadius } from '../../../config/desig
 import { useLabNotebookStore } from '../../../stores/labNotebookStore';
 import { isDesignNode, isBuildNode, isTestNode } from '../../../types/labNotebook';
 import ImageGallery from '../ImageGallery';
+import FileAttachmentsList from '../FileAttachmentsList';
 
 const ExpandedDetailPanel: React.FC = () => {
   const selectedNodeId = useLabNotebookStore((state) => state.selectedNodeId);
@@ -304,12 +305,7 @@ const ExpandedDetailPanel: React.FC = () => {
           >
             Files ({node.data.files?.length || 0})
           </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
-            <FileIcon sx={{ color: colors.text.tertiary, fontSize: 24 }} />
-            <Typography variant="body1" sx={{ color: colors.text.secondary }}>
-              {node.data.files?.length || 0} file{node.data.files?.length !== 1 ? 's' : ''}
-            </Typography>
-          </Box>
+          <FileAttachmentsList files={node.data.files || []} />
         </Box>
 
         {/* Build/Test count for Design */}
