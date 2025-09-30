@@ -10,6 +10,7 @@ const TestNode: React.FC<NodeProps<TestNodeData>> = memo(({ id, data, selected }
   const selectNode = useLabNotebookStore((state) => state.selectNode);
   const hoveredNodeId = useLabNotebookStore((state) => state.hoveredNodeId);
   const setHoveredNode = useLabNotebookStore((state) => state.setHoveredNode);
+  const openDeleteDialog = useLabNotebookStore((state) => state.openDeleteDialog);
 
   const nodeColor = {
     bg: '#FFF7ED', // Orange tint
@@ -28,8 +29,7 @@ const TestNode: React.FC<NodeProps<TestNodeData>> = memo(({ id, data, selected }
   };
 
   const handleDelete = () => {
-    // Will implement delete confirmation modal
-    console.log('Delete test:', data.testId);
+    openDeleteDialog(data.testId, 'test', data.title);
   };
 
   return (

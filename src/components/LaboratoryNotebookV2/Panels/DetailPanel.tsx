@@ -1,5 +1,5 @@
 // src/components/LaboratoryNotebookV2/Panels/DetailPanel.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -20,8 +20,10 @@ import {
 import { colors, typography, spacing, borderRadius, shadows } from '../../../config/designSystem';
 import { useLabNotebookStore } from '../../../stores/labNotebookStore';
 import { isDesignNode, isBuildNode, isTestNode } from '../../../types/labNotebook';
+import { labNotebookService } from '../../../services/labNotebookService';
 import ImageGallery from '../ImageGallery';
 import FileAttachmentsList from '../FileAttachmentsList';
+import ConfirmationDialog from '../ConfirmationDialog';
 
 const DetailPanel: React.FC = () => {
   const selectedNodeId = useLabNotebookStore((state) => state.selectedNodeId);
@@ -29,6 +31,10 @@ const DetailPanel: React.FC = () => {
   const selectNode = useLabNotebookStore((state) => state.selectNode);
   const setActivePanel = useLabNotebookStore((state) => state.setActivePanel);
   const setIsExpanded = useLabNotebookStore((state) => state.setIsExpanded);
+  const fetchAllData = useLabNotebookStore((state) => state.fetchAllData);
+
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const node = selectedNodeId ? getNodeById(selectedNodeId) : null;
 
@@ -46,8 +52,35 @@ const DetailPanel: React.FC = () => {
   };
 
   const handleDelete = () => {
-    // TODO: Implement delete confirmation
-    console.log('Delete:', node.id);
+    setShowDeleteDialog(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    setIsDeleting(true);
+    
+    try {
+      if (isBuildNode(node)) {
+        await labNotebookService.deleteBuild(node.data.buildId, node.data.userId);
+      } else if (isTestNode(node)) {
+        await labNotebookService.deleteTest(node.data.testId, node.data.userId);
+      }
+
+      // Close dialog and panel
+      setShowDeleteDialog(false);
+      handleClose();
+
+      // Refresh data
+      await fetchAllData(node.data.userId, false, []);
+    } catch (error) {
+      console.error('Error deleting:', error);
+      alert('Failed to delete. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteDialog(false);
   };
 
   const handleAddBuild = () => {
@@ -415,6 +448,22 @@ const DetailPanel: React.FC = () => {
           )}
         </Box>
       </Box>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmationDialog
+        open={showDeleteDialog}
+        title={`Delete ${isBuildNode(node) ? 'Build' : 'Test'}?`}
+        message={`Are you sure you want to delete "${node.data.title}"? ${
+          isBuildNode(node) 
+            ? 'This will also delete all associated tests. ' 
+            : ''
+        }This action cannot be undone.`}
+        confirmLabel={isDeleting ? 'Deleting...' : 'Delete'}
+        cancelLabel="Cancel"
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        isDestructive={true}
+      />
     </Box>
   );
 };

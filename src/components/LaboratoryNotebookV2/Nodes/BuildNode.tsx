@@ -10,6 +10,7 @@ const BuildNode: React.FC<NodeProps<BuildNodeData>> = memo(({ id, data, selected
   const selectNode = useLabNotebookStore((state) => state.selectNode);
   const hoveredNodeId = useLabNotebookStore((state) => state.hoveredNodeId);
   const setHoveredNode = useLabNotebookStore((state) => state.setHoveredNode);
+  const openDeleteDialog = useLabNotebookStore((state) => state.openDeleteDialog);
 
   const nodeColor = {
     bg: colors.secondary[50],
@@ -28,8 +29,7 @@ const BuildNode: React.FC<NodeProps<BuildNodeData>> = memo(({ id, data, selected
   };
 
   const handleDelete = () => {
-    // Will implement delete confirmation modal
-    console.log('Delete build:', data.buildId);
+    openDeleteDialog(data.buildId, 'build', data.title);
   };
 
   const badge = data.testCount > 0 ? {

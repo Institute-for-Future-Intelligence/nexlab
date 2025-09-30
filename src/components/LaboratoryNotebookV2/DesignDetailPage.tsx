@@ -16,6 +16,7 @@ import AddBuildPanel from './Panels/AddBuildPanel';
 import ExpandedAddBuildPanel from './Panels/ExpandedAddBuildPanel';
 import AddTestPanel from './Panels/AddTestPanel';
 import ExpandedAddTestPanel from './Panels/ExpandedAddTestPanel';
+import ConfirmationDialog from './ConfirmationDialog';
 
 /**
  * Design Detail Page - Shows mind-map for a specific design only
@@ -23,7 +24,7 @@ import ExpandedAddTestPanel from './Panels/ExpandedAddTestPanel';
 const DesignDetailPage: React.FC = () => {
   const { designId } = useParams<{ designId: string }>();
   const navigate = useNavigate();
-  const { userDetails } = useUser();
+  const { userDetails, loading: userLoading } = useUser();
   
   const designs = useLabNotebookStore((state) => state.designs);
   const nodes = useLabNotebookStore((state) => state.nodes);
@@ -31,8 +32,24 @@ const DesignDetailPage: React.FC = () => {
   const activePanel = useLabNotebookStore((state) => state.activePanel);
   const isExpanded = useLabNotebookStore((state) => state.isExpanded);
   const buildGraph = useLabNotebookStore((state) => state.buildGraph);
+  const fetchAllData = useLabNotebookStore((state) => state.fetchAllData);
+  const deleteDialog = useLabNotebookStore((state) => state.deleteDialog);
+  const closeDeleteDialog = useLabNotebookStore((state) => state.closeDeleteDialog);
+  const confirmDelete = useLabNotebookStore((state) => state.confirmDelete);
+  
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [initialized, setInitialized] = useState(false);
 
   const design = designs.find(d => d.id === designId);
+
+  // Fetch data when component mounts if store is empty
+  useEffect(() => {
+    if (!userLoading && userDetails && !initialized && designs.length === 0) {
+      const courses = Object.keys(userDetails.classes || {});
+      fetchAllData(userDetails.uid, userDetails.isAdmin, courses);
+      setInitialized(true);
+    }
+  }, [userDetails, userLoading, fetchAllData, initialized, designs.length]);
 
   // Filter nodes to show only this design's hierarchy
   useEffect(() => {
@@ -40,6 +57,15 @@ const DesignDetailPage: React.FC = () => {
       buildGraph();
     }
   }, [design, buildGraph]);
+
+  const handleConfirmDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await confirmDelete();
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   // Filter nodes for this design only
   const filteredNodes = nodes.filter(node => {
@@ -55,7 +81,8 @@ const DesignDetailPage: React.FC = () => {
     return false;
   });
 
-  if (isLoading) {
+  // Show loading state while fetching data or if user is loading
+  if (isLoading || userLoading || (initialized && !design && designs.length === 0)) {
     return (
       <Box
         sx={{
@@ -81,7 +108,8 @@ const DesignDetailPage: React.FC = () => {
     );
   }
 
-  if (!design) {
+  // Only show "not found" if we've finished loading and the design still doesn't exist
+  if (initialized && !design && designs.length > 0) {
     return (
       <Box sx={{ p: spacing[6] }}>
         <Alert severity="error" sx={{ borderRadius: '12px', mb: spacing[4] }}>
@@ -97,7 +125,7 @@ const DesignDetailPage: React.FC = () => {
           startIcon={<ArrowBackIcon />}
           onClick={() => navigate('/laboratory-notebook')}
         >
-          Back to Designs
+          All Designs
         </Button>
       </Box>
     );
@@ -132,7 +160,7 @@ const DesignDetailPage: React.FC = () => {
             onClick={() => navigate('/laboratory-notebook')}
             sx={{ borderRadius: borderRadius.lg }}
           >
-            Back to Designs
+            All Designs
           </Button>
           
           <Box>
@@ -145,15 +173,6 @@ const DesignDetailPage: React.FC = () => {
               }}
             >
               {design.title}
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{
-                color: colors.text.tertiary,
-                mt: spacing[1],
-              }}
-            >
-              {design.description}
             </Typography>
           </Box>
         </Box>
@@ -179,6 +198,22 @@ const DesignDetailPage: React.FC = () => {
             {activePanel === 'addTest' && <AddTestPanel designId={designId} />}
           </>
         )}
+        
+        {/* Global Delete Confirmation Dialog */}
+        <ConfirmationDialog
+          open={deleteDialog.open}
+          title={`Delete ${deleteDialog.nodeType === 'build' ? 'Build' : 'Test'}?`}
+          message={`Are you sure you want to delete "${deleteDialog.nodeName}"? ${
+            deleteDialog.nodeType === 'build' 
+              ? 'This will also delete all associated tests. ' 
+              : ''
+          }This action cannot be undone.`}
+          confirmLabel={isDeleting ? 'Deleting...' : 'Delete'}
+          cancelLabel="Cancel"
+          onConfirm={handleConfirmDelete}
+          onCancel={closeDeleteDialog}
+          isDestructive={true}
+        />
       </Box>
     </ReactFlowProvider>
   );

@@ -189,16 +189,6 @@ const CreatePanel: React.FC = () => {
         />
 
         <Box>
-          <Typography
-            variant="body2"
-            sx={{
-              mb: spacing[1],
-              color: colors.text.secondary,
-              fontWeight: typography.fontWeight.medium,
-            }}
-          >
-            Select Course
-          </Typography>
           <CourseSelector
             value={course}
             onChange={(courseId) => setCourse(courseId || '')}

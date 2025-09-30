@@ -27,11 +27,6 @@ const DesignNode: React.FC<NodeProps<DesignNodeData>> = memo(({ id, data, select
     useLabNotebookStore.setState({ activePanel: 'edit' });
   };
 
-  const handleDelete = () => {
-    // Will implement delete confirmation modal
-    console.log('Delete design:', data.designId);
-  };
-
   const badge = data.buildCount > 0 || data.testCount > 0 ? {
     label: `${data.buildCount} builds, ${data.testCount} tests`,
     color: colors.primary[500],
@@ -51,7 +46,6 @@ const DesignNode: React.FC<NodeProps<DesignNodeData>> = memo(({ id, data, select
         fileCount={data.files?.length || 0}
         onView={handleView}
         onEdit={handleEdit}
-        onDelete={handleDelete}
         nodeColor={nodeColor}
         showSourceHandle={true}
         showTargetHandle={false}

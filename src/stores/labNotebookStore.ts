@@ -64,6 +64,12 @@ interface LabNotebookState {
   layoutType: LayoutType;
   viewMode: ViewMode;
   isExpanded: boolean;
+  deleteDialog: {
+    open: boolean;
+    nodeId: string | null;
+    nodeType: 'build' | 'test' | null;
+    nodeName: string | null;
+  };
   
   // ============================================================================
   // Filter State
@@ -120,6 +126,9 @@ interface LabNotebookState {
   setLayoutType: (type: LayoutType) => void;
   setViewMode: (mode: ViewMode) => void;
   setIsExpanded: (expanded: boolean) => void;
+  openDeleteDialog: (nodeId: string, nodeType: 'build' | 'test', nodeName: string) => void;
+  closeDeleteDialog: () => void;
+  confirmDelete: () => Promise<void>;
   
   // ============================================================================
   // Filter Actions
@@ -192,6 +201,12 @@ export const useLabNotebookStore = create<LabNotebookState>()(
         layoutType: 'horizontal',
         viewMode: 'graph',
         isExpanded: false,
+        deleteDialog: {
+          open: false,
+          nodeId: null,
+          nodeType: null,
+          nodeName: null,
+        },
         filters: initialFilterState,
         viewport: initialViewportState,
         
@@ -581,6 +596,54 @@ export const useLabNotebookStore = create<LabNotebookState>()(
         setLayoutType: (type) => set({ layoutType: type }),
         setViewMode: (mode) => set({ viewMode: mode }),
         setIsExpanded: (expanded) => set({ isExpanded: expanded }),
+        
+        openDeleteDialog: (nodeId, nodeType, nodeName) => set({
+          deleteDialog: { open: true, nodeId, nodeType, nodeName }
+        }),
+        
+        closeDeleteDialog: () => set({
+          deleteDialog: { open: false, nodeId: null, nodeType: null, nodeName: null }
+        }),
+        
+        confirmDelete: async () => {
+          const state = get();
+          const { nodeId, nodeType } = state.deleteDialog;
+          
+          if (!nodeId || !nodeType) return;
+          
+          try {
+            // Import dynamically to avoid circular dependencies
+            const { labNotebookService } = await import('../services/labNotebookService');
+            
+            // Get userId from the node data
+            const node = state.nodes.find(n => n.id.includes(nodeId));
+            if (!node) return;
+            
+            const userId = node.data.userId;
+            
+            // Delete from Firestore
+            if (nodeType === 'build') {
+              await labNotebookService.deleteBuild(nodeId, userId);
+              // Update local state
+              get().removeBuild(nodeId);
+            } else if (nodeType === 'test') {
+              await labNotebookService.deleteTest(nodeId, userId);
+              // Update local state
+              get().removeTest(nodeId);
+            }
+            
+            // Close dialog and deselect node
+            get().closeDeleteDialog();
+            get().selectNode(null);
+            get().setActivePanel(null);
+            
+            // Refresh data to ensure consistency
+            await get().fetchAllData(userId, false, []);
+          } catch (error) {
+            console.error('Error deleting:', error);
+            set({ error: error instanceof Error ? error.message : 'Failed to delete' });
+          }
+        },
         
         // ========================================================================
         // Filter Actions Implementation
