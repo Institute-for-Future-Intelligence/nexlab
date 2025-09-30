@@ -8,7 +8,6 @@ interface HeaderProps {
   setIsAdding: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-// eslint-disable-next-line react/prop-types
 const Header: React.FC<HeaderProps> = memo(({ setIsAdding }) => {
   console.log("Header loaded");
 

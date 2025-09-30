@@ -30,5 +30,6 @@ module.exports = {
     "react/react-in-jsx-scope": "off",
     '@typescript-eslint/no-explicit-any': 'warn',
     '@typescript-eslint/no-unused-vars': 'warn',
+    'react/prop-types': 'off', // TypeScript provides type checking
   },
 }

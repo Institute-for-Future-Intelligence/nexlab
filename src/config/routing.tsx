@@ -7,6 +7,8 @@ import RouteErrorBoundary from '../components/common/RouteErrorBoundary';
 // Lazy loading components
 const Login = lazy(() => import('../components/Login/index'));
 const Dashboard = lazy(() => import('../components/Dashboard/index'));
+const LaboratoryNotebookV2 = lazy(() => import('../components/LaboratoryNotebookV2/index'));
+const DesignDetailPage = lazy(() => import('../components/LaboratoryNotebookV2/DesignDetailPage'));
 const SupplementalMaterials = lazy(() => import('../components/Supplemental/SupplementalMaterials'));
 const MessagesPage = lazy(() => import('../components/Messages/MessagesPage'));
 
@@ -23,7 +25,6 @@ interface ProtectedRouteProps {
   element: React.ComponentType;
 }
 
-// eslint-disable-next-line react/prop-types
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ element: Component }) => (
   <RouteErrorBoundary>
     <PrivateRoute element={Component} />
@@ -35,7 +36,6 @@ interface PublicRouteProps {
   element: React.ReactElement;
 }
 
-// eslint-disable-next-line react/prop-types
 const PublicRoute: React.FC<PublicRouteProps> = ({ element }) => (
   <ErrorBoundary>
     {element}
@@ -80,6 +80,14 @@ export const createRoutes = (userDetails: any, isSuperAdmin: boolean): RouteObje
   {
     path: "/laboratory-notebooks",
     element: <ProtectedRoute element={Dashboard} />
+  },
+  {
+    path: "/laboratory-notebook",
+    element: <ProtectedRoute element={LaboratoryNotebookV2} />
+  },
+  {
+    path: "/laboratory-notebook/:designId",
+    element: <ProtectedRoute element={DesignDetailPage} />
   },
   {
     path: "/supplemental-materials",
@@ -169,7 +177,7 @@ export const createRoutes = (userDetails: any, isSuperAdmin: boolean): RouteObje
 // Route groups for better organization
 export const routeGroups = {
   public: ['/request-new-course', '/course-requests', '/super-admin-course-management'],
-  authenticated: ['/laboratory-notebooks', '/supplemental-materials', '/my-profile'],
+  authenticated: ['/laboratory-notebooks', '/laboratory-notebook', '/supplemental-materials', '/my-profile'],
   materials: ['/add-material', '/edit-material/:id', '/view-material/:id'],
   messages: ['/add-message', '/edit-message/:id'],
   educator: ['/chatbot-management', '/course-management', '/request-chatbot', '/request-educator-permissions', '/educator-requests'],

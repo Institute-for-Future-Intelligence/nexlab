@@ -14,6 +14,7 @@ export interface Build {
   description: string;
   design_ID: string;
   dateCreated: FirebaseTimestamp;
+  dateModified: FirebaseTimestamp;
   userId: string;
   images: Image[];
   files: FileDetails[];
@@ -29,6 +30,7 @@ export interface Test {
   build_ID: string;
   design_ID: string;
   dateCreated: FirebaseTimestamp;
+  dateModified: FirebaseTimestamp;
   userId: string;
   images: Image[];
   files: FileDetails[];

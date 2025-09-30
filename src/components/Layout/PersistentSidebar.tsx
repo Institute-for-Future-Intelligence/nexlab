@@ -200,6 +200,13 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
       path: '/super-admin-course-management',
       roles: ['superadmin'],
       color: colors.secondary[700]
+    },
+    {
+      title: 'Lab Notebook (New)',
+      icon: <LabIcon />,
+      path: '/laboratory-notebook',
+      roles: ['superadmin'],
+      color: colors.secondary[600]
     }
   ];
 
