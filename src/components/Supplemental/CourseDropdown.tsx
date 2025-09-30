@@ -1,8 +1,9 @@
 // src/components/Supplemental/CourseDropdown.tsx
 
 import React, { useState, useEffect } from 'react';
-import { TextField, MenuItem, CircularProgress, Box } from '@mui/material';
+import { CircularProgress, Box } from '@mui/material';
 import { useUser } from '../../hooks/useUser';
+import { CourseSelector, CourseOption } from '../common';
 
 interface CourseDropdownProps {
   value: string;
@@ -11,8 +12,8 @@ interface CourseDropdownProps {
 }
 
 const CourseDropdown: React.FC<CourseDropdownProps> = ({ value, onChange, disabled = false }) => {
-  const [adminCourses, setAdminCourses] = useState<{ id: string; number: string; title: string }[]>([]);
-  const [loading, setLoading] = useState(true); // Add loading state
+  const [adminCourses, setAdminCourses] = useState<CourseOption[]>([]);
+  const [loading, setLoading] = useState(true);
   const { userDetails } = useUser();
 
   useEffect(() => {
@@ -26,6 +27,7 @@ const CourseDropdown: React.FC<CourseDropdownProps> = ({ value, onChange, disabl
           id,
           number: course.number,
           title: course.title,
+          isCourseAdmin: course.isCourseAdmin,
         }));
       
       console.log("Filtered Courses for Dropdown:", filteredCourses);
@@ -48,27 +50,20 @@ const CourseDropdown: React.FC<CourseDropdownProps> = ({ value, onChange, disabl
   }
 
   return (
-    <TextField
-      select
-      label="Select Course"
+    <CourseSelector
       value={isValidValue ? value : ''}
-      onChange={(e) => onChange(e.target.value)}
-      fullWidth
-      disabled={disabled}
-      sx={{ mb: 2 }}
-      error={!isValidValue && value !== ''}
+      onChange={onChange}
+      courses={adminCourses}
+      label="Select Course"
+      placeholder="Choose a course"
       helperText={!isValidValue && value !== '' ? 'Invalid course selected' : ''}
-    >
-      {adminCourses.length > 0 ? (
-        adminCourses.map((course) => (
-          <MenuItem key={course.id} value={course.id}>
-            {course.number} - {course.title}
-          </MenuItem>
-        ))
-      ) : (
-        <MenuItem disabled>No courses available</MenuItem>
-      )}
-    </TextField>
+      error={!isValidValue && value !== ''}
+      disabled={disabled}
+      loading={loading}
+      showNumber={true}
+      showTitle={true}
+      showAdminBadge={false}
+    />
   );
 };
 

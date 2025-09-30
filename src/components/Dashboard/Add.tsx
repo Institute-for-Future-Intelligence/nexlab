@@ -23,6 +23,7 @@ import {
   Divider
 } from '@mui/material';
 import { colors, typography, spacing, borderRadius, shadows, animations } from '../../config/designSystem';
+import { CourseSelector, CourseOption } from '../common';
 
 import { useUser } from '../../hooks/useUser';
 import { collection, addDoc, serverTimestamp } from "firebase/firestore"; 
@@ -47,6 +48,14 @@ const Add: React.FC<AddProps> = ({ designs, setDesigns, setIsAdding, getDesigns,
   const { userDetails } = useUser();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+  // Convert user courses to CourseOption format
+  const courseOptions: CourseOption[] = Object.entries(userDetails?.classes || {}).map(([id, course]) => ({
+    id,
+    number: course.number,
+    title: course.title,
+    isCourseAdmin: course.isCourseAdmin,
+  }));
 
   console.log("Add Design loaded");
 
@@ -259,35 +268,19 @@ const Add: React.FC<AddProps> = ({ designs, setDesigns, setIsAdding, getDesigns,
 
           {/* Course Selection */}
           <Box sx={{ mb: spacing[5] }}>
-            <FormControl fullWidth required>
-              <InputLabel 
-                sx={{
-                  fontFamily: typography.fontFamily.secondary,
-                  fontSize: typography.fontSize.base,
-                  fontWeight: typography.fontWeight.medium,
-                }}
-              >
-                Course
-              </InputLabel>
-              <Select
-                id="course"
-                value={course}
-                onChange={e => setCourse(e.target.value)}
-                disabled={!userDetails?.classes || Object.keys(userDetails.classes).length === 0}
-                sx={{
-                  borderRadius: borderRadius.lg,
-                  fontFamily: typography.fontFamily.primary,
-                  fontSize: typography.fontSize.base,
-                }}
-              >
-                {(userDetails?.classes ? Object.entries(userDetails.classes) : [])
-                  .map(([courseId, courseDetails]) => (
-                    <MenuItem key={courseId} value={courseId}>
-                      {`${courseDetails.number} - ${courseDetails.title}`}
-                    </MenuItem>
-                  ))}
-              </Select>
-            </FormControl>
+            <CourseSelector
+              value={course}
+              onChange={setCourse}
+              courses={courseOptions}
+              label="Course"
+              placeholder="Select a course"
+              helperText="Choose the course this design belongs to"
+              required
+              disabled={!userDetails?.classes || Object.keys(userDetails.classes).length === 0}
+              showNumber={true}
+              showTitle={true}
+              showAdminBadge={false}
+            />
           </Box>
 
           {/* Description Section */}
