@@ -124,6 +124,15 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
       disabled: userDetails && !userDetails.isAdmin && 
         (!userDetails.classes || Object.keys(userDetails.classes).length === 0),
       color: colors.secondary[500]
+    },
+    {
+      title: 'Lab Notebook (New)',
+      icon: <LabIcon />,
+      path: '/laboratory-notebook',
+      roles: ['student', 'educator', 'superadmin'],
+      disabled: userDetails && !userDetails.isAdmin && 
+        (!userDetails.classes || Object.keys(userDetails.classes).length === 0),
+      color: colors.secondary[600]
     }
   ];
 
