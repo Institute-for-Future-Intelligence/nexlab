@@ -1,4 +1,5 @@
 // src/components/LaboratoryNotebookV2/Nodes/DesignNode.tsx
+/* eslint-disable react/prop-types */
 import React, { memo } from 'react';
 import { NodeProps } from 'reactflow';
 import NodeBase from './NodeBase';

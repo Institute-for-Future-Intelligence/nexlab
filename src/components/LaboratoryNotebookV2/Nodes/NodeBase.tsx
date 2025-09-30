@@ -38,7 +38,6 @@ export interface NodeBaseProps {
 }
 
 const NodeBase: React.FC<NodeBaseProps> = memo(({
-  id,
   title,
   description,
   dateCreated,
@@ -52,7 +51,6 @@ const NodeBase: React.FC<NodeBaseProps> = memo(({
   showTargetHandle = true,
   badge,
   isSelected = false,
-  isHovered = false,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));

@@ -155,11 +155,8 @@ const LabCanvas: React.FC<LabCanvasProps> = ({ designIdFilter }) => {
         <Controls
           showInteractive={false}
           style={{
-            button: {
-              backgroundColor: colors.background.primary,
-              color: colors.text.primary,
-              borderColor: colors.neutral[300],
-            },
+            backgroundColor: colors.background.primary,
+            border: `1px solid ${colors.neutral[300]}`,
           }}
         />
 

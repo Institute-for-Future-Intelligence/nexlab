@@ -82,9 +82,10 @@ const LabToolbar: React.FC = () => {
           <CourseSelector
             value={selectedCourse || ''}
             onChange={(courseId) => setSelectedCourse(courseId || null)}
-            courses={courseOptions}
-            includeAllOption
-            allOptionLabel="All Courses"
+            courses={[
+              { id: '', number: 'All', title: 'All Courses', isCourseAdmin: false },
+              ...courseOptions
+            ]}
             size="medium"
             showAdminBadge={false}
           />
