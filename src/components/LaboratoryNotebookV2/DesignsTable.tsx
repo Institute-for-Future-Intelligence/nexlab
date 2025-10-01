@@ -1,5 +1,5 @@
 // src/components/LaboratoryNotebookV2/DesignsTable.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Paper,
@@ -24,6 +24,8 @@ import { useNavigate } from 'react-router-dom';
 import { colors, typography, spacing, borderRadius, shadows, animations } from '../../config/designSystem';
 import { Design } from '../../types/types';
 import { useLabNotebookStore } from '../../stores/labNotebookStore';
+import { labNotebookService } from '../../services/labNotebookService';
+import ConfirmationDialog from './ConfirmationDialog';
 
 interface DesignsTableProps {
   designs: Design[];
@@ -36,6 +38,22 @@ const DesignsTable: React.FC<DesignsTableProps> = ({ designs }) => {
   
   const builds = useLabNotebookStore((state) => state.builds);
   const tests = useLabNotebookStore((state) => state.tests);
+  const fetchAllData = useLabNotebookStore((state) => state.fetchAllData);
+  
+  const [deleteDialog, setDeleteDialog] = useState<{
+    open: boolean;
+    designId: string | null;
+    designTitle: string | null;
+    buildCount: number;
+    testCount: number;
+  }>({
+    open: false,
+    designId: null,
+    designTitle: null,
+    buildCount: 0,
+    testCount: 0,
+  });
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const getDesignStats = (designId: string) => {
     const designBuilds = builds.filter(b => b.design_ID === designId);
@@ -77,6 +95,51 @@ const DesignsTable: React.FC<DesignsTableProps> = ({ designs }) => {
 
   const handleViewDesign = (designId: string) => {
     navigate(`/laboratory-notebook/${designId}`);
+  };
+
+  const handleDeleteClick = (design: Design) => {
+    const stats = getDesignStats(design.id);
+    setDeleteDialog({
+      open: true,
+      designId: design.id,
+      designTitle: design.title,
+      buildCount: stats.buildCount,
+      testCount: stats.testCount,
+    });
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteDialog({
+      open: false,
+      designId: null,
+      designTitle: null,
+      buildCount: 0,
+      testCount: 0,
+    });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteDialog.designId) return;
+
+    setIsDeleting(true);
+    try {
+      const design = designs.find(d => d.id === deleteDialog.designId);
+      if (!design) return;
+
+      // Delete from Firestore (this will cascade delete builds and tests)
+      await labNotebookService.deleteDesign(deleteDialog.designId, design.userId);
+
+      // Refresh data
+      await fetchAllData(design.userId, false, []);
+
+      // Close dialog
+      handleCancelDelete();
+    } catch (error) {
+      console.error('Error deleting design:', error);
+      alert('Failed to delete design. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   if (designs.length === 0) {
@@ -320,8 +383,7 @@ const DesignsTable: React.FC<DesignsTableProps> = ({ designs }) => {
                         size="small"
                         onClick={(e) => {
                           e.stopPropagation();
-                          // TODO: Implement delete confirmation
-                          console.log('Delete design:', design.id);
+                          handleDeleteClick(design);
                         }}
                         sx={{
                           color: colors.error,
@@ -338,6 +400,22 @@ const DesignsTable: React.FC<DesignsTableProps> = ({ designs }) => {
           })}
         </TableBody>
       </Table>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmationDialog
+        open={deleteDialog.open}
+        title="Delete Design?"
+        message={`Are you sure you want to delete "${deleteDialog.designTitle}"? ${
+          deleteDialog.buildCount > 0 || deleteDialog.testCount > 0
+            ? `This will also delete ${deleteDialog.buildCount} build${deleteDialog.buildCount !== 1 ? 's' : ''} and ${deleteDialog.testCount} test${deleteDialog.testCount !== 1 ? 's' : ''}. `
+            : ''
+        }This action cannot be undone.`}
+        confirmLabel={isDeleting ? 'Deleting...' : 'Delete'}
+        cancelLabel="Cancel"
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        isDestructive={true}
+      />
     </TableContainer>
   );
 };
