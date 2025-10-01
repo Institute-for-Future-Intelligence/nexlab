@@ -10,6 +10,7 @@ import {
   Image as ImageIcon,
 } from '@mui/icons-material';
 import { colors, typography, spacing, borderRadius, shadows, animations } from '../../../config/designSystem';
+import RichTextDisplay from '../RichTextDisplay';
 
 export interface NodeBaseProps {
   id: string;
@@ -134,22 +135,12 @@ const NodeBase: React.FC<NodeBaseProps> = memo(({
       </Box>
 
       {/* Description */}
-      <Typography
-        variant="body2"
-        sx={{
-          color: colors.text.secondary,
-          fontSize: typography.fontSize.sm,
-          mb: spacing[3],
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          display: '-webkit-box',
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: 'vertical',
-          lineHeight: typography.lineHeight.snug,
-        }}
-      >
-        {description || 'No description provided'}
-      </Typography>
+      <Box sx={{ mb: spacing[3] }}>
+        <RichTextDisplay 
+          content={description || '<p>No description provided</p>'} 
+          maxLines={2}
+        />
+      </Box>
 
       {/* Metadata */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: spacing[3], mb: spacing[3] }}>

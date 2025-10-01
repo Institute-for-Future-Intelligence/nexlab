@@ -26,6 +26,7 @@ import { Design } from '../../types/types';
 import { useLabNotebookStore } from '../../stores/labNotebookStore';
 import { labNotebookService } from '../../services/labNotebookService';
 import ConfirmationDialog from './ConfirmationDialog';
+import RichTextDisplay from './RichTextDisplay';
 
 interface DesignsTableProps {
   designs: Design[];
@@ -301,20 +302,12 @@ const DesignsTable: React.FC<DesignsTableProps> = ({ designs }) => {
                 </TableCell>
                 {!isMobile && (
                   <TableCell>
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        color: colors.text.secondary,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        maxWidth: 400,
-                      }}
-                    >
-                      {design.description || 'No description'}
-                    </Typography>
+                    <Box sx={{ maxWidth: 400 }}>
+                      <RichTextDisplay 
+                        content={design.description || '<p>No description</p>'} 
+                        maxLines={2}
+                      />
+                    </Box>
                   </TableCell>
                 )}
                 <TableCell align="center">
