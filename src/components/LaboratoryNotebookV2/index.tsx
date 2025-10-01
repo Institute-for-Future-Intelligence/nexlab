@@ -8,6 +8,7 @@ import { PageHeader } from '../common';
 import LabToolbar from './Toolbar/LabToolbar';
 import DesignsTable from './DesignsTable';
 import CreatePanel from './Panels/CreatePanel';
+import ExpandedCreatePanel from './Panels/ExpandedCreatePanel';
 
 /**
  * Laboratory Notebook V2 - Main Page
@@ -25,6 +26,7 @@ const LaboratoryNotebookV2: React.FC = () => {
   const fetchAllData = useLabNotebookStore((state) => state.fetchAllData);
   const designs = useLabNotebookStore((state) => state.designs);
   const activePanel = useLabNotebookStore((state) => state.activePanel);
+  const isExpanded = useLabNotebookStore((state) => state.isExpanded);
   const searchQuery = useLabNotebookStore((state) => state.filters.searchQuery);
   const selectedCourse = useLabNotebookStore((state) => state.filters.courseId);
 
@@ -207,7 +209,9 @@ const LaboratoryNotebookV2: React.FC = () => {
       )}
 
       {/* Create Panel */}
-      {activePanel === 'create' && <CreatePanel />}
+      {activePanel === 'create' && (
+        isExpanded ? <ExpandedCreatePanel /> : <CreatePanel />
+      )}
     </Box>
   );
 };
