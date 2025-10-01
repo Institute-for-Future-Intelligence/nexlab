@@ -117,7 +117,6 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
     'underline',
     'strike',
     'list',
-    'bullet',
     'script',
     'indent',
     'blockquote',
