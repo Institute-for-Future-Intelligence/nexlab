@@ -176,6 +176,18 @@ const CreatePanel: React.FC = () => {
           </Alert>
         )}
 
+        {/* Course Selection - moved to top */}
+        <Box>
+          <CourseSelector
+            value={course}
+            onChange={(courseId) => setCourse(courseId || '')}
+            courses={courseOptions}
+            disabled={isSubmitting}
+            size="medium"
+            showAdminBadge={false}
+          />
+        </Box>
+
         <TextField
           label="Title"
           value={title}
@@ -208,17 +220,6 @@ const CreatePanel: React.FC = () => {
             placeholder="Describe your design, its purpose, and goals..."
             minHeight={200}
             disabled={isSubmitting}
-          />
-        </Box>
-
-        <Box>
-          <CourseSelector
-            value={course}
-            onChange={(courseId) => setCourse(courseId || '')}
-            courses={courseOptions}
-            disabled={isSubmitting}
-            size="medium"
-            showAdminBadge={false}
           />
         </Box>
 
