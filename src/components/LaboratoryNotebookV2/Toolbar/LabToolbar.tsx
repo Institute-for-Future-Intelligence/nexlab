@@ -77,22 +77,30 @@ const LabToolbar: React.FC = () => {
         alignItems: isMobile ? 'stretch' : 'center',
       }}
     >
-        {/* Left side - Course filter (larger) */}
-        <Box sx={{ minWidth: isMobile ? '100%' : 300 }}>
+        {/* Left side - Course filter (40% width) */}
+        <Box sx={{ 
+          flex: isMobile ? '1' : '0 0 40%',
+          minWidth: isMobile ? '100%' : 'auto'
+        }}>
           <CourseSelector
             value={selectedCourse || ''}
             onChange={(courseId) => setSelectedCourse(courseId || null)}
             courses={[
-              { id: '', number: 'All', title: 'All Courses', isCourseAdmin: false },
+              { id: '', number: 'All', title: 'My Designs', isCourseAdmin: false },
               ...courseOptions
             ]}
             size="medium"
             showAdminBadge={false}
+            label="" // Remove the "Course" label
+            placeholder="Filter by course..."
           />
         </Box>
 
-        {/* Middle - Search */}
-        <Box sx={{ flex: 1 }}>
+        {/* Middle - Search (60% width) */}
+        <Box sx={{ 
+          flex: isMobile ? '1' : '0 0 60%',
+          minWidth: isMobile ? '100%' : 'auto'
+        }}>
           <TextField
             placeholder="Search designs..."
             value={localSearchQuery}
@@ -122,32 +130,6 @@ const LabToolbar: React.FC = () => {
               },
             }}
           />
-        </Box>
-
-        {/* Right side - Add button */}
-        <Box>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={handleAddDesign}
-            sx={{
-              backgroundColor: colors.primary[500],
-              color: colors.text.inverse,
-              fontFamily: typography.fontFamily.secondary,
-              fontWeight: typography.fontWeight.semibold,
-              fontSize: typography.fontSize.base,
-              padding: `${spacing[3]} ${spacing[6]}`,
-              borderRadius: borderRadius.xl,
-              textTransform: 'none',
-              boxShadow: shadows.sm,
-              '&:hover': {
-                backgroundColor: colors.primary[600],
-                boxShadow: shadows.md,
-              },
-            }}
-          >
-            {isMobile ? 'New' : 'New Design'}
-          </Button>
         </Box>
       </Box>
   );

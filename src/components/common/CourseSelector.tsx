@@ -167,21 +167,26 @@ const CourseSelector: React.FC<CourseSelectorProps> = ({
         },
       }}
     >
-      <InputLabel 
-        id={`course-selector-label-${Math.random().toString(36).substr(2, 9)}`}
-        aria-label={ariaLabel}
-      >
-        {label}
-      </InputLabel>
+      {label && (
+        <InputLabel 
+          id={`course-selector-label-${Math.random().toString(36).substr(2, 9)}`}
+          aria-label={ariaLabel}
+        >
+          {label}
+        </InputLabel>
+      )}
       
       <Select
-        labelId={`course-selector-label-${Math.random().toString(36).substr(2, 9)}`}
+        labelId={label ? `course-selector-label-${Math.random().toString(36).substr(2, 9)}` : undefined}
         value={value}
         onChange={handleChange}
-        label={label}
-        displayEmpty={!value}
+        label={label || undefined}
+        displayEmpty={!value || value === ''}
         renderValue={(selected) => {
-          if (!selected) {
+          const course = getSelectedCourse();
+          
+          // If no course is selected or course not found, show placeholder
+          if (!course) {
             return (
               <Typography 
                 sx={{ 
@@ -195,9 +200,7 @@ const CourseSelector: React.FC<CourseSelectorProps> = ({
             );
           }
           
-          const course = getSelectedCourse();
-          if (!course) return '';
-          
+          // Display the selected course (including "All-My Designs")
           return (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
               {/* Combined Course Number and Title in one box */}

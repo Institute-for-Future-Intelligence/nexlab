@@ -1,9 +1,10 @@
 // src/components/LaboratoryNotebookV2/index.tsx
 import React, { useEffect, useState } from 'react';
-import { Box, CircularProgress, Typography, Alert, useTheme, useMediaQuery } from '@mui/material';
+import { Box, CircularProgress, Typography, Alert, useTheme, useMediaQuery, Button } from '@mui/material';
+import { Add as AddIcon } from '@mui/icons-material';
 import { useUser } from '../../hooks/useUser';
 import { useLabNotebookStore } from '../../stores/labNotebookStore';
-import { colors, spacing, typography, borderRadius } from '../../config/designSystem';
+import { colors, spacing, typography, borderRadius, shadows } from '../../config/designSystem';
 import { PageHeader } from '../common';
 import LabToolbar from './Toolbar/LabToolbar';
 import DesignsTable from './DesignsTable';
@@ -29,6 +30,7 @@ const LaboratoryNotebookV2: React.FC = () => {
   const isExpanded = useLabNotebookStore((state) => state.isExpanded);
   const searchQuery = useLabNotebookStore((state) => state.filters.searchQuery);
   const selectedCourse = useLabNotebookStore((state) => state.filters.courseId);
+  const setActivePanel = useLabNotebookStore((state) => state.setActivePanel);
 
   // Filter designs based on search and course
   const filteredDesigns = React.useMemo(() => {
@@ -178,13 +180,14 @@ const LaboratoryNotebookV2: React.FC = () => {
       {/* Table Content */}
       {initialized && (
         <>
-          {/* Summary Stats */}
+          {/* Summary Stats with New Design Button */}
           <Box
             sx={{
               display: 'flex',
               gap: spacing[4],
               mb: spacing[4],
               flexWrap: 'wrap',
+              alignItems: 'center',
             }}
           >
             <Box
@@ -195,25 +198,55 @@ const LaboratoryNotebookV2: React.FC = () => {
                 backgroundColor: colors.primary[50],
                 borderRadius: borderRadius.xl,
                 border: `1px solid ${colors.primary[200]}`,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
               }}
             >
-              <Typography
-                variant="h3"
+              {/* Left side - New Design Button */}
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => setActivePanel('create')}
                 sx={{
-                  fontFamily: typography.fontFamily.display,
-                  fontWeight: typography.fontWeight.bold,
-                  color: colors.primary[700],
-                  mb: spacing[1],
+                  backgroundColor: colors.primary[500],
+                  color: colors.text.inverse,
+                  fontFamily: typography.fontFamily.secondary,
+                  fontWeight: typography.fontWeight.semibold,
+                  fontSize: typography.fontSize.base,
+                  padding: `${spacing[2]} ${spacing[4]}`,
+                  borderRadius: borderRadius.lg,
+                  textTransform: 'none',
+                  boxShadow: shadows.sm,
+                  '&:hover': {
+                    backgroundColor: colors.primary[600],
+                    boxShadow: shadows.md,
+                  },
                 }}
               >
-                {filteredDesigns.length}
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{ color: colors.text.secondary, fontWeight: typography.fontWeight.medium }}
-              >
-                Total Designs
-              </Typography>
+                {isMobile ? 'New' : 'New Design'}
+              </Button>
+
+              {/* Right side - Counter */}
+              <Box sx={{ textAlign: 'right' }}>
+                <Typography
+                  variant="h3"
+                  sx={{
+                    fontFamily: typography.fontFamily.display,
+                    fontWeight: typography.fontWeight.bold,
+                    color: colors.primary[700],
+                    mb: spacing[1],
+                  }}
+                >
+                  {filteredDesigns.length}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{ color: colors.text.secondary, fontWeight: typography.fontWeight.medium }}
+                >
+                  Total Designs
+                </Typography>
+              </Box>
             </Box>
           </Box>
 
