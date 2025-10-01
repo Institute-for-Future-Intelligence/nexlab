@@ -154,35 +154,49 @@ const DesignDetailPage: React.FC = () => {
           height: '100vh',
           backgroundColor: colors.background.secondary,
           overflow: 'hidden',
+          p: spacing[6],
         }}
       >
         {/* Header */}
         <Box
           sx={{
-            p: spacing[4],
-            backgroundColor: colors.background.primary,
-            borderBottom: `1px solid ${colors.neutral[200]}`,
+            p: spacing[6],
+            backgroundColor: colors.primary[100],
+            borderRadius: borderRadius['2xl'],
+            mb: spacing[6],
+            border: `1px solid ${colors.primary[200]}`,
+            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
             display: 'flex',
             alignItems: 'center',
-            gap: spacing[3],
+            gap: spacing[4],
           }}
         >
           <Button
             variant="outlined"
             startIcon={<ArrowBackIcon />}
             onClick={() => navigate('/laboratory-notebook')}
-            sx={{ borderRadius: borderRadius.lg }}
+            sx={{ 
+              borderRadius: borderRadius.lg,
+              borderColor: colors.primary[300],
+              color: colors.primary[700],
+              '&:hover': {
+                borderColor: colors.primary[400],
+                backgroundColor: colors.primary[50],
+              }
+            }}
           >
             All Designs
           </Button>
           
-          <Box>
+          <Box sx={{ flex: 1 }}>
             <Typography
-              variant="h4"
+              variant="h2"
               sx={{
                 fontFamily: typography.fontFamily.display,
+                fontSize: typography.fontSize['4xl'],
                 fontWeight: typography.fontWeight.bold,
-                color: colors.text.primary,
+                color: colors.primary[700],
+                lineHeight: typography.lineHeight.tight,
               }}
             >
               {design.title}
@@ -191,7 +205,7 @@ const DesignDetailPage: React.FC = () => {
         </Box>
 
         {/* Canvas */}
-        <Box sx={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+        <Box sx={{ flex: 1, position: 'relative', overflow: 'hidden', borderRadius: borderRadius.xl, backgroundColor: colors.background.primary }}>
           <LabCanvas designIdFilter={designId} />
         </Box>
 

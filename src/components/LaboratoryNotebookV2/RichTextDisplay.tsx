@@ -21,6 +21,7 @@ const RichTextDisplay: React.FC<RichTextDisplayProps> = ({ content, maxLines }) 
           marginBottom: spacing[2],
           color: colors.text.primary,
           fontSize: typography.fontSize.base,
+          fontFamily: typography.fontFamily.secondary,
           lineHeight: 1.6,
         },
         '& p:last-child': {
@@ -64,9 +65,11 @@ const RichTextDisplay: React.FC<RichTextDisplayProps> = ({ content, maxLines }) 
         '& ul, & ol': {
           paddingLeft: spacing[6],
           marginBottom: spacing[2],
+          fontFamily: typography.fontFamily.secondary,
         },
         '& li': {
           marginBottom: spacing[1],
+          fontFamily: typography.fontFamily.secondary,
         },
         '& blockquote': {
           borderLeft: `4px solid ${colors.primary[500]}`,
@@ -75,6 +78,7 @@ const RichTextDisplay: React.FC<RichTextDisplayProps> = ({ content, maxLines }) 
           marginBottom: spacing[2],
           fontStyle: 'italic',
           color: colors.text.secondary,
+          fontFamily: typography.fontFamily.secondary,
         },
         '& code': {
           backgroundColor: colors.background.secondary,
