@@ -119,7 +119,7 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
     {
       title: 'Laboratory Notebook',
       icon: <LabIcon />,
-      path: '/laboratory-notebooks',
+      path: '/laboratory-notebook',
       roles: ['student', 'educator', 'superadmin'],
       disabled: userDetails && !userDetails.isAdmin && 
         (!userDetails.classes || Object.keys(userDetails.classes).length === 0),
@@ -200,13 +200,6 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
       path: '/super-admin-course-management',
       roles: ['superadmin'],
       color: colors.secondary[700]
-    },
-    {
-      title: 'Lab Notebook (New)',
-      icon: <LabIcon />,
-      path: '/laboratory-notebook',
-      roles: ['superadmin'],
-      color: colors.secondary[600]
     }
   ];
 
