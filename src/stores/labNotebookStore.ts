@@ -230,19 +230,15 @@ export const useLabNotebookStore = create<LabNotebookState>()(
                 where('course', 'in', courses),
                 orderBy('dateCreated', 'desc')
               );
-              console.log('Admin query: designs by courses', courses);
             } else {
               designsQuery = query(
                 collection(db, 'designs'),
                 where('userId', '==', userId),
                 orderBy('dateCreated', 'desc')
               );
-              console.log('Student query: designs by userId', userId);
             }
             
-            console.log('Executing designs query...');
             const designsSnapshot = await getDocs(designsQuery);
-            console.log('Designs query successful, found', designsSnapshot.docs.length, 'designs');
             const designs: Design[] = designsSnapshot.docs.map(doc => {
               const data = doc.data() as any;
               return {
@@ -264,7 +260,6 @@ export const useLabNotebookStore = create<LabNotebookState>()(
             // Fetch builds (in batches if needed due to Firestore 'in' query limit of 10)
             let builds: Build[] = [];
             if (designIds.length > 0) {
-              console.log('Fetching builds for designIds:', designIds);
               const buildBatches = [];
               for (let i = 0; i < designIds.length; i += 10) {
                 const batch = designIds.slice(i, i + 10);
@@ -275,9 +270,7 @@ export const useLabNotebookStore = create<LabNotebookState>()(
                 buildBatches.push(getDocs(buildsQuery));
               }
               
-              console.log('Executing builds queries...');
               const buildSnapshots = await Promise.all(buildBatches);
-              console.log('Builds queries successful');
               builds = buildSnapshots.flatMap(snapshot =>
                 snapshot.docs.map(doc => {
                   const data = doc.data() as any;
@@ -301,7 +294,6 @@ export const useLabNotebookStore = create<LabNotebookState>()(
             // Fetch tests (in batches if needed)
             let tests: Test[] = [];
             if (buildIds.length > 0) {
-              console.log('Fetching tests for buildIds:', buildIds);
               const testBatches = [];
               for (let i = 0; i < buildIds.length; i += 10) {
                 const batch = buildIds.slice(i, i + 10);
@@ -312,9 +304,7 @@ export const useLabNotebookStore = create<LabNotebookState>()(
                 testBatches.push(getDocs(testsQuery));
               }
               
-              console.log('Executing tests queries...');
               const testSnapshots = await Promise.all(testBatches);
-              console.log('Tests queries successful');
               tests = testSnapshots.flatMap(snapshot =>
                 snapshot.docs.map(doc => {
                   const data = doc.data() as any;
