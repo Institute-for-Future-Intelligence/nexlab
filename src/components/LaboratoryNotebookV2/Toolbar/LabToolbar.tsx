@@ -86,7 +86,7 @@ const LabToolbar: React.FC = () => {
             value={selectedCourse || ''}
             onChange={(courseId) => setSelectedCourse(courseId || null)}
             courses={[
-              { id: '', number: 'All', title: 'My Designs', isCourseAdmin: false },
+              { id: '', number: 'All', title: 'Designs', isCourseAdmin: false },
               ...courseOptions
             ]}
             size="medium"

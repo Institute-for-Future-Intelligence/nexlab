@@ -17,31 +17,31 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     <Box sx={{ 
       display: 'flex', 
       flexDirection: 'column', 
-      height: '100vh', // Full viewport height
+      minHeight: '100vh', // Minimum viewport height, can grow
       backgroundColor: colors.background.primary,
-      overflow: 'hidden', // Prevent scrollbars on main container
     }}>
-      {/* Header - 12.5% of viewport height */}
+      {/* Header - Fixed height */}
       <Box 
         component="header" 
         sx={{ 
           height: '12.5vh',
           minHeight: 90,
-          zIndex: 1100,
+          maxHeight: 120,
+          zIndex: 1000, // Lower z-index to prevent overlap
           flexShrink: 0,
+          position: 'relative', // Ensure proper stacking context
         }}
       >
         <DashboardHeader />
       </Box>
       
-      {/* Main Content Area - 77.5% of viewport height */}
+      {/* Main Content Area - Flexible height, grows with content */}
       <Box 
         component="main" 
         sx={{ 
-          height: '77.5vh',
+          flex: 1, // Takes remaining space and grows with content
           display: 'flex',
-          flexGrow: 1,
-          overflow: 'hidden',
+          minHeight: 0, // Allow shrinking below content size
         }}
       >
         <PersistentSidebar>
@@ -49,12 +49,13 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         </PersistentSidebar>
       </Box>
       
-      {/* Footer - 10% of viewport height */}
+      {/* Footer - Fixed height, pushed down by content */}
       <Box 
         component="footer"
         sx={{
           height: '10vh',
           minHeight: 70,
+          maxHeight: 100,
           flexShrink: 0,
         }}
       >

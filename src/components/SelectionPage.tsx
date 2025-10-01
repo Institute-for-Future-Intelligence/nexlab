@@ -541,65 +541,6 @@ const SelectionPage: React.FC = () => {
       </Box>
 
 
-      {/* Additional info for students */}
-      {!userDetails?.isAdmin && (
-        <Box sx={{ 
-          mt: spacing[6], 
-          p: spacing[4], 
-          backgroundColor: colors.background.secondary,
-          borderRadius: borderRadius.xl,
-          border: `1px solid ${colors.neutral[200]}`,
-          boxShadow: shadows.sm,
-        }}>
-          <Typography 
-            variant="h5" 
-            gutterBottom 
-            sx={{
-              fontFamily: typography.fontFamily.display,
-              fontSize: typography.fontSize.xl,
-              fontWeight: typography.fontWeight.bold,
-              color: colors.text.primary,
-              mb: spacing[3],
-            }}
-          >
-            Getting Started
-          </Typography>
-          <Typography 
-            variant="body1" 
-            paragraph 
-            sx={{
-              fontFamily: typography.fontFamily.secondary,
-              fontSize: typography.fontSize.base,
-              color: colors.text.secondary,
-              lineHeight: 1.6,
-              mb: spacing[4],
-            }}
-          >
-            Welcome to NexLab! To get started, you&apos;ll need to enroll in a course. 
-            Use the &quot;My Account&quot; section to add course access codes provided by your instructor.
-          </Typography>
-          <Button 
-            variant="contained" 
-            onClick={() => navigate('/my-profile')}
-            startIcon={<AccountIcon />}
-            sx={{
-              backgroundColor: colors.primary[500],
-              color: colors.text.inverse,
-              fontFamily: typography.fontFamily.secondary,
-              fontSize: typography.fontSize.base,
-              fontWeight: typography.fontWeight.medium,
-              borderRadius: borderRadius.lg,
-              px: spacing[4],
-              py: spacing[2],
-              '&:hover': {
-                backgroundColor: colors.primary[600],
-              },
-            }}
-          >
-            Go to My Account
-          </Button>
-        </Box>
-      )}
     </Box>
   );
 };
