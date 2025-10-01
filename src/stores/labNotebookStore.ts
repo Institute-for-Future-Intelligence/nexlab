@@ -332,8 +332,17 @@ export const useLabNotebookStore = create<LabNotebookState>()(
             get().buildGraph();
           } catch (error) {
             console.error('Error fetching lab notebook data:', error);
+            
+            // Check if it's a permission error
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            const isPermissionError = errorMessage.includes('permission') || 
+                                     errorMessage.includes('insufficient') ||
+                                     errorMessage.includes('PERMISSION_DENIED');
+            
             set({ 
-              error: error instanceof Error ? error.message : 'Failed to fetch data',
+              error: isPermissionError 
+                ? 'Database permissions not configured. Please contact your administrator or deploy Firebase security rules. See docs/FIREBASE_RULES_SETUP.md for instructions.'
+                : (error instanceof Error ? error.message : 'Failed to fetch data'),
               isLoading: false 
             });
           }

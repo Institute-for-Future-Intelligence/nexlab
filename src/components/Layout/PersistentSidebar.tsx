@@ -30,8 +30,6 @@ import {
   SmartToy as ChatbotIcon,
   Group as UserManagementIcon,
   Chat as ConversationsIcon,
-  ExpandLess as ExpandLessIcon,
-  ExpandMore as ExpandMoreIcon,
   Feedback as FeedbackIcon,
   Logout as LogoutIcon,
 } from '@mui/icons-material';
@@ -54,9 +52,7 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
   const { 
     isOpen, 
     isMobile, 
-    messagesExpanded, 
     setOpen, 
-    toggleMessages, 
     toggleSidebar 
   } = useSidebar();
 
@@ -106,7 +102,6 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
       icon: <MessageIcon />,
       path: '/messages',
       roles: ['student', 'educator', 'superadmin'],
-      expandable: true,
       color: colors.info
     },
     {
@@ -212,18 +207,7 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
 
     const content = (
       <ListItemButton
-        onClick={() => {
-          if (item.expandable) {
-            if (isOpen) {
-              toggleMessages();
-            } else {
-              // When sidebar is collapsed, navigate to messages page directly
-              handleNavigation(item.path);
-            }
-          } else {
-            handleNavigation(item.path);
-          }
-        }}
+        onClick={() => handleNavigation(item.path)}
         disabled={item.disabled}
         sx={{
           minHeight: 56,
@@ -274,11 +258,6 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
               }
             }}
           />
-        )}
-        {item.expandable && isOpen && (
-          <Box sx={{ ml: 'auto' }}>
-            {messagesExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-          </Box>
         )}
       </ListItemButton>
     );
@@ -375,56 +354,6 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
           {navigationItems.map((item, index) => (
             <ListItem key={index} disablePadding sx={{ display: 'block', mb: 0.5 }}>
               {renderNavigationItem(item)}
-              {item.expandable && isOpen && (
-                <Collapse in={messagesExpanded} timeout="auto" unmountOnExit>
-                  <List component="div" disablePadding sx={{ mt: 1 }}>
-                    <ListItemButton
-                      sx={{ 
-                        pl: 6, 
-                        mx: 1,
-                        borderRadius: borderRadius.lg,
-                        backgroundColor: colors.neutral[50],
-                        '&:hover': {
-                          backgroundColor: colors.neutral[100],
-                        },
-                      }}
-                      onClick={() => handleNavigation('/messages')}
-                    >
-                      <ListItemText 
-                        primary="View Messages" 
-                        sx={{
-                          '& .MuiListItemText-primary': {
-                            fontSize: typography.fontSize.sm,
-                            fontFamily: typography.fontFamily.secondary,
-                          }
-                        }}
-                      />
-                    </ListItemButton>
-                    <ListItemButton
-                      sx={{ 
-                        pl: 6, 
-                        mx: 1,
-                        borderRadius: borderRadius.lg,
-                        backgroundColor: colors.neutral[50],
-                        '&:hover': {
-                          backgroundColor: colors.neutral[100],
-                        },
-                      }}
-                      onClick={() => handleNavigation('/add-message')}
-                    >
-                      <ListItemText 
-                        primary="Add Message" 
-                        sx={{
-                          '& .MuiListItemText-primary': {
-                            fontSize: typography.fontSize.sm,
-                            fontFamily: typography.fontFamily.secondary,
-                          }
-                        }}
-                      />
-                    </ListItemButton>
-                  </List>
-                </Collapse>
-              )}
             </ListItem>
           ))}
         </List>

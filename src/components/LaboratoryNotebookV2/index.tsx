@@ -8,6 +8,7 @@ import { PageHeader } from '../common';
 import LabToolbar from './Toolbar/LabToolbar';
 import DesignsTable from './DesignsTable';
 import CreatePanel from './Panels/CreatePanel';
+import ExpandedCreatePanel from './Panels/ExpandedCreatePanel';
 
 /**
  * Laboratory Notebook V2 - Main Page
@@ -25,6 +26,7 @@ const LaboratoryNotebookV2: React.FC = () => {
   const fetchAllData = useLabNotebookStore((state) => state.fetchAllData);
   const designs = useLabNotebookStore((state) => state.designs);
   const activePanel = useLabNotebookStore((state) => state.activePanel);
+  const isExpanded = useLabNotebookStore((state) => state.isExpanded);
   const searchQuery = useLabNotebookStore((state) => state.filters.searchQuery);
   const selectedCourse = useLabNotebookStore((state) => state.filters.courseId);
 
@@ -87,6 +89,8 @@ const LaboratoryNotebookV2: React.FC = () => {
 
   // Show error state
   if (error) {
+    const isPermissionError = error.includes('permission') || error.includes('rules');
+    
     return (
       <Box sx={{ p: spacing[6] }}>
         <PageHeader
@@ -100,9 +104,21 @@ const LaboratoryNotebookV2: React.FC = () => {
           <Typography variant="h6" sx={{ mb: 1 }}>
             Error Loading Data
           </Typography>
-          <Typography variant="body2">
+          <Typography variant="body2" sx={{ mb: isPermissionError ? 2 : 0 }}>
             {error}
           </Typography>
+          {isPermissionError && (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+                To fix this issue:
+              </Typography>
+              <Typography variant="body2" component="ul" sx={{ pl: 2, mb: 0 }}>
+                <li>Deploy Firebase security rules using: <code>firebase deploy --only firestore:rules</code></li>
+                <li>Or manually update rules in Firebase Console</li>
+                <li>See <code>docs/FIREBASE_RULES_SETUP.md</code> for detailed instructions</li>
+              </Typography>
+            </Box>
+          )}
         </Alert>
       </Box>
     );
@@ -207,7 +223,9 @@ const LaboratoryNotebookV2: React.FC = () => {
       )}
 
       {/* Create Panel */}
-      {activePanel === 'create' && <CreatePanel />}
+      {activePanel === 'create' && (
+        isExpanded ? <ExpandedCreatePanel /> : <CreatePanel />
+      )}
     </Box>
   );
 };

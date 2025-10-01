@@ -39,11 +39,9 @@ const MaterialsTabsModern: React.FC<MaterialsTabsModernProps> = ({
   const navigate = useNavigate();
   const db = getFirestore();
 
-  const categories = [
-    { key: 'published', label: 'Published', icon: '📚' },
-    { key: 'scheduled', label: 'Scheduled', icon: '⏰' },
-    { key: 'saved', label: 'Drafts', icon: '💾' },
-  ];
+  // For students, don't show tabs at all - just show published materials
+  // For admins, show all tabs
+  const showTabs = isCourseAdmin;
 
   // Fetch materials from Firestore
   useEffect(() => {
@@ -112,7 +110,11 @@ const MaterialsTabsModern: React.FC<MaterialsTabsModernProps> = ({
     return getFilteredMaterials(category).length;
   };
 
-  const filteredMaterials = getFilteredMaterials(categories[tabIndex].key);
+  // For students, show only published materials
+  // For admins, show materials based on selected tab
+  const filteredMaterials = showTabs 
+    ? getFilteredMaterials(['published', 'scheduled', 'saved'][tabIndex])
+    : materials.filter(material => material.published === true);
 
   if (loading) {
     return (
@@ -169,76 +171,83 @@ const MaterialsTabsModern: React.FC<MaterialsTabsModernProps> = ({
 
   return (
     <Box sx={{ width: '100%' }}>
-      <Box sx={{ mb: 4 }}>
-        <Tabs
-          value={tabIndex}
-          onChange={handleTabChange}
-          variant="fullWidth"
-          sx={{
-            backgroundColor: designSystemTheme.palette.background.paper,
-            borderRadius: borderRadius.xl,
-            boxShadow: designSystemTheme.shadows[1],
-            '& .MuiTabs-indicator': {
-              backgroundColor: designSystemTheme.palette.primary.main,
-              height: 3,
-              borderRadius: '3px 3px 0 0',
-            },
-            '& .MuiTabs-flexContainer': {
-              gap: 1,
-            },
-          }}
-        >
-          {categories.map((category, index) => {
-            const count = getCategoryCount(category.key);
-            return (
-              <Tab
-                key={category.key}
-                label={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography
-                      variant="button"
-                      sx={{
-                        fontWeight: 600,
-                        textTransform: 'none',
-                        fontSize: '0.875rem',
-                      }}
-                    >
-                      {category.label}
-                    </Typography>
-                    <Chip
-                      label={count}
-                      size="small"
-                      sx={{
-                        backgroundColor: designSystemTheme.palette.primary.light,
-                        color: designSystemTheme.palette.primary.main,
-                        fontWeight: 600,
-                        minWidth: 24,
-                        height: 20,
-                        fontSize: '0.75rem',
-                      }}
-                    />
-                  </Box>
-                }
-                sx={{
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  minHeight: 48,
-                  color: designSystemTheme.palette.text.primary,
-                  '&.Mui-selected': {
-                    color: designSystemTheme.palette.primary.main,
-                    backgroundColor: designSystemTheme.palette.primary.light,
-                    borderRadius: borderRadius.xl,
-                  },
-                  '&:hover': {
-                    backgroundColor: designSystemTheme.palette.action.hover,
-                    borderRadius: borderRadius.xl,
-                  },
-                }}
-              />
-            );
-          })}
-        </Tabs>
-      </Box>
+      {/* Only show tabs for course admins */}
+      {showTabs && (
+        <Box sx={{ mb: 4 }}>
+          <Tabs
+            value={tabIndex}
+            onChange={handleTabChange}
+            variant="fullWidth"
+            sx={{
+              backgroundColor: designSystemTheme.palette.background.paper,
+              borderRadius: borderRadius.xl,
+              boxShadow: designSystemTheme.shadows[1],
+              '& .MuiTabs-indicator': {
+                backgroundColor: designSystemTheme.palette.primary.main,
+                height: 3,
+                borderRadius: '3px 3px 0 0',
+              },
+              '& .MuiTabs-flexContainer': {
+                gap: 1,
+              },
+            }}
+          >
+            {[
+              { key: 'published', label: 'Published', icon: '📚' },
+              { key: 'scheduled', label: 'Scheduled', icon: '⏰' },
+              { key: 'saved', label: 'Drafts', icon: '💾' },
+            ].map((category, index) => {
+              const count = getCategoryCount(category.key);
+              return (
+                <Tab
+                  key={category.key}
+                  label={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography
+                        variant="button"
+                        sx={{
+                          fontWeight: 600,
+                          textTransform: 'none',
+                          fontSize: '0.875rem',
+                        }}
+                      >
+                        {category.label}
+                      </Typography>
+                      <Chip
+                        label={count}
+                        size="small"
+                        sx={{
+                          backgroundColor: designSystemTheme.palette.primary.light,
+                          color: designSystemTheme.palette.primary.main,
+                          fontWeight: 600,
+                          minWidth: 24,
+                          height: 20,
+                          fontSize: '0.75rem',
+                        }}
+                      />
+                    </Box>
+                  }
+                  sx={{
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    minHeight: 48,
+                    color: designSystemTheme.palette.text.primary,
+                    '&.Mui-selected': {
+                      color: designSystemTheme.palette.primary.main,
+                      backgroundColor: designSystemTheme.palette.primary.light,
+                      borderRadius: borderRadius.xl,
+                    },
+                    '&:hover': {
+                      backgroundColor: designSystemTheme.palette.action.hover,
+                      borderRadius: borderRadius.xl,
+                    },
+                  }}
+                />
+              );
+            })}
+          </Tabs>
+        </Box>
+      )}
 
       {filteredMaterials.length === 0 ? (
         <Container maxWidth="md">
@@ -259,9 +268,15 @@ const MaterialsTabsModern: React.FC<MaterialsTabsModernProps> = ({
                 mb: 2,
               }}
             >
-              {tabIndex === 0 && 'No published materials yet.'}
-              {tabIndex === 1 && 'No scheduled materials.'}
-              {tabIndex === 2 && 'No draft materials saved.'}
+              {showTabs ? (
+                <>
+                  {tabIndex === 0 && 'No published materials yet.'}
+                  {tabIndex === 1 && 'No scheduled materials.'}
+                  {tabIndex === 2 && 'No draft materials saved.'}
+                </>
+              ) : (
+                'No published materials available.'
+              )}
             </Typography>
             <Typography
               variant="body2"
@@ -269,9 +284,15 @@ const MaterialsTabsModern: React.FC<MaterialsTabsModernProps> = ({
                 color: designSystemTheme.palette.text.disabled,
               }}
             >
-              {tabIndex === 0 && 'Published materials will appear here once you publish them.'}
-              {tabIndex === 1 && 'Scheduled materials will appear here once you schedule them.'}
-              {tabIndex === 2 && 'Draft materials will appear here as you work on them.'}
+              {showTabs ? (
+                <>
+                  {tabIndex === 0 && 'Published materials will appear here once you publish them.'}
+                  {tabIndex === 1 && 'Scheduled materials will appear here once you schedule them.'}
+                  {tabIndex === 2 && 'Draft materials will appear here as you work on them.'}
+                </>
+              ) : (
+                'Published materials will appear here once they are made available.'
+              )}
             </Typography>
           </Box>
         </Container>
