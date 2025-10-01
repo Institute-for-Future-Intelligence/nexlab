@@ -51,22 +51,24 @@ const MessagesPage: React.FC = () => {
         </Grid>
       </Grid>
 
-      {/* Floating Action Button for adding messages */}
-      <Tooltip title="Add New Message" placement="left">
-        <Fab
-          color="primary"
-          aria-label="add message"
-          onClick={handleAddMessage}
-          sx={{
-            position: 'fixed',
-            bottom: 16,
-            right: 16,
-            zIndex: 1000,
-          }}
-        >
-          <AddIcon />
-        </Fab>
-      </Tooltip>
+      {/* Floating Action Button for adding messages - Only for admins/super-admins */}
+      {(userDetails?.isAdmin || userDetails?.isSuperAdmin) && (
+        <Tooltip title="Add New Message" placement="left">
+          <Fab
+            color="primary"
+            aria-label="add message"
+            onClick={handleAddMessage}
+            sx={{
+              position: 'fixed',
+              bottom: 16,
+              right: 16,
+              zIndex: 1000,
+            }}
+          >
+            <AddIcon />
+          </Fab>
+        </Tooltip>
+      )}
       
       <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleCloseSnackbar}>
         <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>

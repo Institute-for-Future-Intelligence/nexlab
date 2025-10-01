@@ -28,3 +28,14 @@ dist-ssr
 
 # Auto-generated PDF.js worker
 public/js/
+
+# Firebase security rules (sensitive - keep private)
+firestore.rules
+storage.rules
+
+# Firebase configuration (sensitive - keep private)
+firebase.json
+
+# Documentation with sensitive information
+docs/FIREBASE_RULES_SETUP.md
+docs/STUDENT_PERMISSIONS_FIX.md
