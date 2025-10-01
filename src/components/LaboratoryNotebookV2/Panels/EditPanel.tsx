@@ -241,46 +241,7 @@ const EditPanel: React.FC = () => {
           />
         </Box>
 
-        {/* Divider */}
-        <Divider sx={{ my: spacing[2] }} />
-
-        {/* Image Upload Section */}
-        <ImageUploadSection
-          images={images}
-          onImagesChange={setImages}
-          storagePath={
-            isDesignNode(node)
-              ? `designs/${node.data.designId}`
-              : isBuildNode(node)
-              ? `builds/${node.data.buildId}`
-              : isTestNode(node)
-              ? `tests/${node.data.testId}`
-              : ''
-          }
-          disabled={isSubmitting}
-        />
-
-        {/* Divider */}
-        <Divider sx={{ my: spacing[2] }} />
-
-        {/* File Upload Section */}
-        <FileUploadSection
-          files={files}
-          onFilesChange={setFiles}
-          storagePath={
-            isDesignNode(node)
-              ? `designs/${node.data.designId}`
-              : isBuildNode(node)
-              ? `builds/${node.data.buildId}`
-              : isTestNode(node)
-              ? `tests/${node.data.testId}`
-              : ''
-          }
-          disabled={isSubmitting}
-          maxFileSize={10}
-        />
-
-        {/* Test-specific fields */}
+        {/* Test-specific fields - Results and Conclusions come before Images/Files */}
         {isTestNode(node) && (
           <>
             <Box>
@@ -324,6 +285,45 @@ const EditPanel: React.FC = () => {
             </Box>
           </>
         )}
+
+        {/* Divider */}
+        <Divider sx={{ my: spacing[2] }} />
+
+        {/* Image Upload Section */}
+        <ImageUploadSection
+          images={images}
+          onImagesChange={setImages}
+          storagePath={
+            isDesignNode(node)
+              ? `designs/${node.data.designId}`
+              : isBuildNode(node)
+              ? `builds/${node.data.buildId}`
+              : isTestNode(node)
+              ? `tests/${node.data.testId}`
+              : ''
+          }
+          disabled={isSubmitting}
+        />
+
+        {/* Divider */}
+        <Divider sx={{ my: spacing[2] }} />
+
+        {/* File Upload Section */}
+        <FileUploadSection
+          files={files}
+          onFilesChange={setFiles}
+          storagePath={
+            isDesignNode(node)
+              ? `designs/${node.data.designId}`
+              : isBuildNode(node)
+              ? `builds/${node.data.buildId}`
+              : isTestNode(node)
+              ? `tests/${node.data.testId}`
+              : ''
+          }
+          disabled={isSubmitting}
+          maxFileSize={10}
+        />
       </Box>
 
       {/* Actions */}

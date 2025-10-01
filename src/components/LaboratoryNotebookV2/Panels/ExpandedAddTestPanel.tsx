@@ -18,7 +18,10 @@ import { Close as CloseIcon, Add as AddIcon, ArrowBack as ArrowBackIcon } from '
 import { colors, typography, spacing, borderRadius } from '../../../config/designSystem';
 import { useLabNotebookStore } from '../../../stores/labNotebookStore';
 import { labNotebookService } from '../../../services/labNotebookService';
+import { Image, FileDetails } from '../../../types/types';
 import RichTextEditor from '../RichTextEditor';
+import ImageUploadSection from '../ImageUploadSection';
+import FileUploadSection from '../FileUploadSection';
 
 interface ExpandedAddTestPanelProps {
   designId?: string;
@@ -68,6 +71,8 @@ const ExpandedAddTestPanel: React.FC<ExpandedAddTestPanelProps> = ({ designId: p
   const [description, setDescription] = useState('');
   const [results, setResults] = useState('');
   const [conclusions, setConclusions] = useState('');
+  const [images, setImages] = useState<Image[]>([]);
+  const [files, setFiles] = useState<FileDetails[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -121,6 +126,8 @@ const ExpandedAddTestPanel: React.FC<ExpandedAddTestPanelProps> = ({ designId: p
         description: description.trim(),
         results: results.trim(),
         conclusions: conclusions.trim(),
+        images: images,
+        files: files,
       });
 
       // Refresh data
@@ -314,6 +321,33 @@ const ExpandedAddTestPanel: React.FC<ExpandedAddTestPanelProps> = ({ designId: p
                 disabled={isSubmitting}
               />
             </Box>
+
+            {/* Divider */}
+            <Box sx={{ my: spacing[3] }}>
+              <hr style={{ border: 'none', borderTop: `1px solid ${colors.neutral[200]}`, margin: 0 }} />
+            </Box>
+
+            {/* Image Upload Section */}
+            <ImageUploadSection
+              images={images}
+              onImagesChange={setImages}
+              storagePath="" // Will be set after creation
+              disabled={isSubmitting}
+            />
+
+            {/* Divider */}
+            <Box sx={{ my: spacing[3] }}>
+              <hr style={{ border: 'none', borderTop: `1px solid ${colors.neutral[200]}`, margin: 0 }} />
+            </Box>
+
+            {/* File Upload Section */}
+            <FileUploadSection
+              files={files}
+              onFilesChange={setFiles}
+              storagePath="" // Will be set after creation
+              disabled={isSubmitting}
+              maxFileSize={10}
+            />
           </Box>
         )}
       </Box>
