@@ -5,12 +5,13 @@ import 'react-quill-new/dist/quill.snow.css';
 import DOMPurify from 'dompurify';
 import {
   Box,
-  FormControl,
-  Select,
-  MenuItem,
   Typography,
-  SelectChangeEvent,
+  IconButton,
+  Popover,
+  Tooltip,
+  ButtonBase,
 } from '@mui/material';
+import { Functions as FunctionsIcon } from '@mui/icons-material';
 import { colors, typography, spacing, borderRadius } from '../../config/designSystem';
 import { QuillInstance } from '../../types/textEditor';
 
@@ -30,7 +31,8 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   disabled = false,
 }) => {
   const [editorValue, setEditorValue] = useState<string>(DOMPurify.sanitize(value || ''));
-  const [selectedSymbol, setSelectedSymbol] = useState<string>('');
+  const [mathAnchor, setMathAnchor] = useState<HTMLButtonElement | null>(null);
+  const [greekAnchor, setGreekAnchor] = useState<HTMLButtonElement | null>(null);
   const quillRef = useRef<ReactQuill>(null);
   const isMounted = useRef(false);
 
@@ -73,15 +75,25 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
       editor.setSelection(length + symbol.length);
     }
 
-    setSelectedSymbol('');
+    // Close popovers and focus editor
+    setMathAnchor(null);
+    setGreekAnchor(null);
     editor.focus();
   };
 
-  const handleSymbolChange = (event: SelectChangeEvent<string>) => {
-    const symbol = event.target.value;
-    if (symbol) {
-      insertSymbol(symbol);
-    }
+  const handleMathOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setMathAnchor(event.currentTarget);
+    setGreekAnchor(null); // Close Greek if open
+  };
+
+  const handleGreekOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setGreekAnchor(event.currentTarget);
+    setMathAnchor(null); // Close Math if open
+  };
+
+  const handleClose = () => {
+    setMathAnchor(null);
+    setGreekAnchor(null);
   };
 
   const greekLetters = [
@@ -132,7 +144,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           display: 'flex',
           justifyContent: 'flex-end',
           alignItems: 'center',
-          gap: spacing[2],
+          gap: spacing[1],
           mb: spacing[2],
         }}
       >
@@ -142,73 +154,189 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
             color: colors.text.secondary,
             fontSize: typography.fontSize.sm,
             fontWeight: typography.fontWeight.medium,
+            mr: spacing[1],
           }}
         >
-          Insert Symbols:
+          Insert:
         </Typography>
 
-        <FormControl size="small" sx={{ minWidth: 100 }}>
-          <Select
-            value={selectedSymbol}
-            onChange={handleSymbolChange}
-            displayEmpty
+        {/* Math Symbols Button */}
+        <Tooltip title="Math Symbols" placement="top">
+          <IconButton
+            onClick={handleMathOpen}
             disabled={disabled}
+            size="small"
             sx={{
+              border: `1px solid ${colors.neutral[300]}`,
               borderRadius: borderRadius.md,
-              fontSize: typography.fontSize.sm,
-              '& .MuiOutlinedInput-notchedOutline': {
-                borderColor: colors.neutral[300],
-              },
-              '&:hover .MuiOutlinedInput-notchedOutline': {
+              backgroundColor: mathAnchor ? colors.primary[50] : colors.background.primary,
+              '&:hover': {
+                backgroundColor: colors.primary[50],
                 borderColor: colors.primary[400],
-              },
-              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                borderColor: colors.primary[500],
               },
             }}
           >
-            <MenuItem value="" disabled>
-              Math
-            </MenuItem>
-            {mathOperators.map((op) => (
-              <MenuItem key={op} value={op}>
-                {op}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+            <FunctionsIcon sx={{ fontSize: 18, color: colors.primary[600] }} />
+          </IconButton>
+        </Tooltip>
 
-        <FormControl size="small" sx={{ minWidth: 100 }}>
-          <Select
-            value={selectedSymbol}
-            onChange={handleSymbolChange}
-            displayEmpty
+        {/* Greek Letters Button */}
+        <Tooltip title="Greek Letters" placement="top">
+          <IconButton
+            onClick={handleGreekOpen}
             disabled={disabled}
+            size="small"
             sx={{
+              border: `1px solid ${colors.neutral[300]}`,
               borderRadius: borderRadius.md,
-              fontSize: typography.fontSize.sm,
-              '& .MuiOutlinedInput-notchedOutline': {
-                borderColor: colors.neutral[300],
-              },
-              '&:hover .MuiOutlinedInput-notchedOutline': {
+              backgroundColor: greekAnchor ? colors.primary[50] : colors.background.primary,
+              fontWeight: typography.fontWeight.bold,
+              fontSize: typography.fontSize.lg,
+              color: colors.primary[600],
+              '&:hover': {
+                backgroundColor: colors.primary[50],
                 borderColor: colors.primary[400],
-              },
-              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                borderColor: colors.primary[500],
               },
             }}
           >
-            <MenuItem value="" disabled>
-              Greek
-            </MenuItem>
-            {greekLetters.map((letter) => (
-              <MenuItem key={letter} value={letter}>
-                {letter}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+            Ω
+          </IconButton>
+        </Tooltip>
       </Box>
+
+      {/* Math Symbols Popover */}
+      <Popover
+        open={Boolean(mathAnchor)}
+        anchorEl={mathAnchor}
+        onClose={handleClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+        sx={{
+          '& .MuiPopover-paper': {
+            borderRadius: borderRadius.lg,
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+            mt: spacing[1],
+          },
+        }}
+      >
+        <Box sx={{ p: spacing[2], maxWidth: 320 }}>
+          <Typography
+            variant="subtitle2"
+            sx={{
+              fontWeight: typography.fontWeight.semibold,
+              color: colors.text.primary,
+              mb: spacing[2],
+            }}
+          >
+            Math Symbols
+          </Typography>
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(8, 1fr)',
+              gap: spacing[1],
+            }}
+          >
+            {mathOperators.map((symbol) => (
+              <ButtonBase
+                key={symbol}
+                onClick={() => insertSymbol(symbol)}
+                sx={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: borderRadius.md,
+                  border: `1px solid ${colors.neutral[200]}`,
+                  backgroundColor: colors.background.primary,
+                  fontSize: typography.fontSize.lg,
+                  fontWeight: typography.fontWeight.medium,
+                  color: colors.text.primary,
+                  transition: 'all 0.2s',
+                  '&:hover': {
+                    backgroundColor: colors.primary[50],
+                    borderColor: colors.primary[400],
+                    transform: 'scale(1.1)',
+                  },
+                }}
+              >
+                {symbol}
+              </ButtonBase>
+            ))}
+          </Box>
+        </Box>
+      </Popover>
+
+      {/* Greek Letters Popover */}
+      <Popover
+        open={Boolean(greekAnchor)}
+        anchorEl={greekAnchor}
+        onClose={handleClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+        sx={{
+          '& .MuiPopover-paper': {
+            borderRadius: borderRadius.lg,
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+            mt: spacing[1],
+          },
+        }}
+      >
+        <Box sx={{ p: spacing[2], maxWidth: 360 }}>
+          <Typography
+            variant="subtitle2"
+            sx={{
+              fontWeight: typography.fontWeight.semibold,
+              color: colors.text.primary,
+              mb: spacing[2],
+            }}
+          >
+            Greek Letters
+          </Typography>
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(12, 1fr)',
+              gap: spacing[1],
+            }}
+          >
+            {greekLetters.map((letter) => (
+              <ButtonBase
+                key={letter}
+                onClick={() => insertSymbol(letter)}
+                sx={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: borderRadius.md,
+                  border: `1px solid ${colors.neutral[200]}`,
+                  backgroundColor: colors.background.primary,
+                  fontSize: typography.fontSize.base,
+                  fontWeight: typography.fontWeight.medium,
+                  color: colors.text.primary,
+                  transition: 'all 0.2s',
+                  '&:hover': {
+                    backgroundColor: colors.primary[50],
+                    borderColor: colors.primary[400],
+                    transform: 'scale(1.15)',
+                  },
+                }}
+              >
+                {letter}
+              </ButtonBase>
+            ))}
+          </Box>
+        </Box>
+      </Popover>
 
       {/* ReactQuill Editor */}
       <Box
