@@ -19,6 +19,7 @@ import { isDesignNode, isBuildNode, isTestNode } from '../../../types/labNoteboo
 import { Image, FileDetails } from '../../../types/types';
 import ImageUploadSection from '../ImageUploadSection';
 import FileUploadSection from '../FileUploadSection';
+import RichTextEditor from '../RichTextEditor';
 
 const ExpandedEditPanel: React.FC = () => {
   const selectedNodeId = useLabNotebookStore((state) => state.selectedNodeId);
@@ -217,22 +218,26 @@ const ExpandedEditPanel: React.FC = () => {
             }}
           />
 
-          <TextField
-            label="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            required
-            fullWidth
-            multiline
-            rows={10}
-            disabled={isSubmitting}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: borderRadius.lg,
+          <Box>
+            <Typography
+              variant="body1"
+              sx={{
+                mb: spacing[2],
+                color: colors.text.secondary,
+                fontWeight: typography.fontWeight.medium,
                 fontSize: typography.fontSize.lg,
-              },
-            }}
-          />
+              }}
+            >
+              Description *
+            </Typography>
+            <RichTextEditor
+              value={description}
+              onChange={setDescription}
+              placeholder="Enter description..."
+              minHeight={300}
+              disabled={isSubmitting}
+            />
+          </Box>
 
           {/* Divider */}
           <Divider sx={{ my: spacing[3] }} />
@@ -276,39 +281,47 @@ const ExpandedEditPanel: React.FC = () => {
           {/* Test-specific fields */}
           {isTestNode(node) && (
             <>
-              <TextField
-                label="Results"
-                value={results}
-                onChange={(e) => setResults(e.target.value)}
-                fullWidth
-                multiline
-                rows={8}
-                disabled={isSubmitting}
-                placeholder="Describe the test results..."
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: borderRadius.lg,
+              <Box>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    mb: spacing[2],
+                    color: colors.text.secondary,
+                    fontWeight: typography.fontWeight.medium,
                     fontSize: typography.fontSize.lg,
-                  },
-                }}
-              />
+                  }}
+                >
+                  Results
+                </Typography>
+                <RichTextEditor
+                  value={results}
+                  onChange={setResults}
+                  placeholder="Describe the test results..."
+                  minHeight={250}
+                  disabled={isSubmitting}
+                />
+              </Box>
 
-              <TextField
-                label="Conclusions"
-                value={conclusions}
-                onChange={(e) => setConclusions(e.target.value)}
-                fullWidth
-                multiline
-                rows={8}
-                disabled={isSubmitting}
-                placeholder="What conclusions can you draw?"
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: borderRadius.lg,
+              <Box>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    mb: spacing[2],
+                    color: colors.text.secondary,
+                    fontWeight: typography.fontWeight.medium,
                     fontSize: typography.fontSize.lg,
-                  },
-                }}
-              />
+                  }}
+                >
+                  Conclusions
+                </Typography>
+                <RichTextEditor
+                  value={conclusions}
+                  onChange={setConclusions}
+                  placeholder="What conclusions can you draw?"
+                  minHeight={250}
+                  disabled={isSubmitting}
+                />
+              </Box>
             </>
           )}
         </Box>
