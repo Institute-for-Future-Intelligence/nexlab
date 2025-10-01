@@ -12,14 +12,18 @@ import {
   InputLabel,
   Alert,
   CircularProgress,
+  Divider,
 } from '@mui/material';
-import { Close as CloseIcon, Save as SaveIcon } from '@mui/icons-material';
+import { Close as CloseIcon, Save as SaveIcon, Fullscreen as FullscreenIcon } from '@mui/icons-material';
 import { colors, typography, spacing, borderRadius, shadows } from '../../../config/designSystem';
 import { useLabNotebookStore } from '../../../stores/labNotebookStore';
 import { labNotebookService } from '../../../services/labNotebookService';
 import { useUser } from '../../../hooks/useUser';
 import { CourseSelector, CourseOption } from '../../common';
 import RichTextEditor from '../RichTextEditor';
+import ImageUploadSection from '../ImageUploadSection';
+import FileUploadSection from '../FileUploadSection';
+import { Image, FileDetails } from '../../../types/types';
 
 const CreatePanel: React.FC = () => {
   const { userDetails } = useUser();
@@ -30,8 +34,12 @@ const CreatePanel: React.FC = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [course, setCourse] = useState('');
+  const [images, setImages] = useState<Image[]>([]);
+  const [files, setFiles] = useState<FileDetails[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  const setIsExpanded = useLabNotebookStore((state) => state.setIsExpanded);
 
   // Convert user courses to CourseOption format
   const courseOptions: CourseOption[] = Object.entries(userDetails?.classes || {}).map(([id, course]) => ({
@@ -43,6 +51,10 @@ const CreatePanel: React.FC = () => {
 
   const handleClose = () => {
     setActivePanel(null);
+  };
+
+  const handleExpand = () => {
+    setIsExpanded(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -77,6 +89,8 @@ const CreatePanel: React.FC = () => {
         description: description.trim(),
         course,
         userId: userDetails.uid,
+        images,
+        files,
       });
 
       // Refresh data to show the new design
@@ -132,9 +146,14 @@ const CreatePanel: React.FC = () => {
           >
             Create New Design
           </Typography>
-          <IconButton size="small" onClick={handleClose} disabled={isSubmitting}>
-            <CloseIcon />
-          </IconButton>
+          <Box sx={{ display: 'flex', gap: spacing[1] }}>
+            <IconButton size="small" onClick={handleExpand} disabled={isSubmitting}>
+              <FullscreenIcon />
+            </IconButton>
+            <IconButton size="small" onClick={handleClose} disabled={isSubmitting}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
         </Box>
       </Box>
 
@@ -202,6 +221,29 @@ const CreatePanel: React.FC = () => {
             showAdminBadge={false}
           />
         </Box>
+
+        {/* Divider */}
+        <Divider sx={{ my: spacing[2] }} />
+
+        {/* Image Upload Section */}
+        <ImageUploadSection
+          images={images}
+          onImagesChange={setImages}
+          storagePath=""
+          disabled={isSubmitting}
+        />
+
+        {/* Divider */}
+        <Divider sx={{ my: spacing[2] }} />
+
+        {/* File Upload Section */}
+        <FileUploadSection
+          files={files}
+          onFilesChange={setFiles}
+          storagePath=""
+          disabled={isSubmitting}
+          maxFileSize={10}
+        />
 
         <Alert severity="info" sx={{ borderRadius: borderRadius.lg }}>
           <Typography variant="body2">

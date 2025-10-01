@@ -12,12 +12,16 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Divider,
 } from '@mui/material';
 import { Close as CloseIcon, Add as AddIcon, Fullscreen as FullscreenIcon } from '@mui/icons-material';
 import { colors, typography, spacing, borderRadius, shadows } from '../../../config/designSystem';
 import { useLabNotebookStore } from '../../../stores/labNotebookStore';
 import { labNotebookService } from '../../../services/labNotebookService';
 import RichTextEditor from '../RichTextEditor';
+import ImageUploadSection from '../ImageUploadSection';
+import FileUploadSection from '../FileUploadSection';
+import { Image, FileDetails } from '../../../types/types';
 
 interface AddTestPanelProps {
   designId?: string;
@@ -69,6 +73,8 @@ const AddTestPanel: React.FC<AddTestPanelProps> = ({ designId: propDesignId }) =
   const [description, setDescription] = useState('');
   const [results, setResults] = useState('');
   const [conclusions, setConclusions] = useState('');
+  const [images, setImages] = useState<Image[]>([]);
+  const [files, setFiles] = useState<FileDetails[]>([]);
 
   // Update buildId when initialBuildId changes
   React.useEffect(() => {
@@ -121,6 +127,8 @@ const AddTestPanel: React.FC<AddTestPanelProps> = ({ designId: propDesignId }) =
         description: description.trim(),
         results: results.trim(),
         conclusions: conclusions.trim(),
+        images,
+        files,
       });
 
       // Refresh data
@@ -311,6 +319,29 @@ const AddTestPanel: React.FC<AddTestPanelProps> = ({ designId: propDesignId }) =
                 disabled={isSubmitting}
               />
             </Box>
+
+            {/* Divider */}
+            <Divider sx={{ my: spacing[2] }} />
+
+            {/* Image Upload Section */}
+            <ImageUploadSection
+              images={images}
+              onImagesChange={setImages}
+              storagePath=""
+              disabled={isSubmitting}
+            />
+
+            {/* Divider */}
+            <Divider sx={{ my: spacing[2] }} />
+
+            {/* File Upload Section */}
+            <FileUploadSection
+              files={files}
+              onFilesChange={setFiles}
+              storagePath=""
+              disabled={isSubmitting}
+              maxFileSize={10}
+            />
           </>
         )}
       </Box>

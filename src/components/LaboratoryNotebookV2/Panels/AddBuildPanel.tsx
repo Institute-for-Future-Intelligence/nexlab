@@ -8,12 +8,16 @@ import {
   TextField,
   Alert,
   CircularProgress,
+  Divider,
 } from '@mui/material';
 import { Close as CloseIcon, Add as AddIcon, Fullscreen as FullscreenIcon } from '@mui/icons-material';
 import { colors, typography, spacing, borderRadius, shadows } from '../../../config/designSystem';
 import { useLabNotebookStore } from '../../../stores/labNotebookStore';
 import { labNotebookService } from '../../../services/labNotebookService';
 import RichTextEditor from '../RichTextEditor';
+import ImageUploadSection from '../ImageUploadSection';
+import FileUploadSection from '../FileUploadSection';
+import { Image, FileDetails } from '../../../types/types';
 
 interface AddBuildPanelProps {
   designId?: string;
@@ -45,6 +49,8 @@ const AddBuildPanel: React.FC<AddBuildPanelProps> = ({ designId: propDesignId })
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [images, setImages] = useState<Image[]>([]);
+  const [files, setFiles] = useState<FileDetails[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -82,6 +88,8 @@ const AddBuildPanel: React.FC<AddBuildPanelProps> = ({ designId: propDesignId })
         userId: design.userId,
         title: title.trim(),
         description: description.trim(),
+        images,
+        files,
       });
 
       // Refresh data
@@ -208,6 +216,29 @@ const AddBuildPanel: React.FC<AddBuildPanelProps> = ({ designId: propDesignId })
             disabled={isSubmitting}
           />
         </Box>
+
+        {/* Divider */}
+        <Divider sx={{ my: spacing[2] }} />
+
+        {/* Image Upload Section */}
+        <ImageUploadSection
+          images={images}
+          onImagesChange={setImages}
+          storagePath=""
+          disabled={isSubmitting}
+        />
+
+        {/* Divider */}
+        <Divider sx={{ my: spacing[2] }} />
+
+        {/* File Upload Section */}
+        <FileUploadSection
+          files={files}
+          onFilesChange={setFiles}
+          storagePath=""
+          disabled={isSubmitting}
+          maxFileSize={10}
+        />
       </Box>
 
       {/* Actions */}
