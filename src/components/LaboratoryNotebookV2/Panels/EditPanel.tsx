@@ -18,6 +18,7 @@ import { isDesignNode, isBuildNode, isTestNode } from '../../../types/labNoteboo
 import { Image, FileDetails } from '../../../types/types';
 import ImageUploadSection from '../ImageUploadSection';
 import FileUploadSection from '../FileUploadSection';
+import RichTextEditor from '../RichTextEditor';
 
 const EditPanel: React.FC = () => {
   const selectedNodeId = useLabNotebookStore((state) => state.selectedNodeId);
@@ -220,21 +221,25 @@ const EditPanel: React.FC = () => {
           }}
         />
 
-        <TextField
-          label="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          required
-          fullWidth
-          multiline
-          rows={6}
-          disabled={isSubmitting}
-          sx={{
-            '& .MuiOutlinedInput-root': {
-              borderRadius: borderRadius.lg,
-            },
-          }}
-        />
+        <Box>
+          <Typography
+            variant="body2"
+            sx={{
+              mb: spacing[1],
+              color: colors.text.secondary,
+              fontWeight: typography.fontWeight.medium,
+            }}
+          >
+            Description *
+          </Typography>
+          <RichTextEditor
+            value={description}
+            onChange={setDescription}
+            placeholder="Enter description..."
+            minHeight={200}
+            disabled={isSubmitting}
+          />
+        </Box>
 
         {/* Divider */}
         <Divider sx={{ my: spacing[2] }} />
@@ -278,37 +283,45 @@ const EditPanel: React.FC = () => {
         {/* Test-specific fields */}
         {isTestNode(node) && (
           <>
-            <TextField
-              label="Results"
-              value={results}
-              onChange={(e) => setResults(e.target.value)}
-              fullWidth
-              multiline
-              rows={4}
-              disabled={isSubmitting}
-              placeholder="Describe the test results..."
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: borderRadius.lg,
-                },
-              }}
-            />
+            <Box>
+              <Typography
+                variant="body2"
+                sx={{
+                  mb: spacing[1],
+                  color: colors.text.secondary,
+                  fontWeight: typography.fontWeight.medium,
+                }}
+              >
+                Results
+              </Typography>
+              <RichTextEditor
+                value={results}
+                onChange={setResults}
+                placeholder="Describe the test results..."
+                minHeight={150}
+                disabled={isSubmitting}
+              />
+            </Box>
 
-            <TextField
-              label="Conclusions"
-              value={conclusions}
-              onChange={(e) => setConclusions(e.target.value)}
-              fullWidth
-              multiline
-              rows={4}
-              disabled={isSubmitting}
-              placeholder="What conclusions can you draw?"
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: borderRadius.lg,
-                },
-              }}
-            />
+            <Box>
+              <Typography
+                variant="body2"
+                sx={{
+                  mb: spacing[1],
+                  color: colors.text.secondary,
+                  fontWeight: typography.fontWeight.medium,
+                }}
+              >
+                Conclusions
+              </Typography>
+              <RichTextEditor
+                value={conclusions}
+                onChange={setConclusions}
+                placeholder="What conclusions can you draw?"
+                minHeight={150}
+                disabled={isSubmitting}
+              />
+            </Box>
           </>
         )}
       </Box>

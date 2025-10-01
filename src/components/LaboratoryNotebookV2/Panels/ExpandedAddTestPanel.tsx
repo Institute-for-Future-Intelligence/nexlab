@@ -18,6 +18,7 @@ import { Close as CloseIcon, Add as AddIcon, ArrowBack as ArrowBackIcon } from '
 import { colors, typography, spacing, borderRadius } from '../../../config/designSystem';
 import { useLabNotebookStore } from '../../../stores/labNotebookStore';
 import { labNotebookService } from '../../../services/labNotebookService';
+import RichTextEditor from '../RichTextEditor';
 
 interface ExpandedAddTestPanelProps {
   designId?: string;
@@ -251,57 +252,68 @@ const ExpandedAddTestPanel: React.FC<ExpandedAddTestPanelProps> = ({ designId: p
               }}
             />
 
-            <TextField
-              label="Description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              required
-              fullWidth
-              multiline
-              rows={8}
-              disabled={isSubmitting}
-              placeholder="Describe the test methodology..."
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: borderRadius.lg,
+            <Box>
+              <Typography
+                variant="body1"
+                sx={{
+                  mb: spacing[2],
+                  color: colors.text.secondary,
+                  fontWeight: typography.fontWeight.medium,
                   fontSize: typography.fontSize.lg,
-                },
-              }}
-            />
+                }}
+              >
+                Description *
+              </Typography>
+              <RichTextEditor
+                value={description}
+                onChange={setDescription}
+                placeholder="Describe the test methodology..."
+                minHeight={250}
+                disabled={isSubmitting}
+              />
+            </Box>
 
-            <TextField
-              label="Results (Optional)"
-              value={results}
-              onChange={(e) => setResults(e.target.value)}
-              fullWidth
-              multiline
-              rows={8}
-              disabled={isSubmitting}
-              placeholder="Document the test results..."
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: borderRadius.lg,
+            <Box>
+              <Typography
+                variant="body1"
+                sx={{
+                  mb: spacing[2],
+                  color: colors.text.secondary,
+                  fontWeight: typography.fontWeight.medium,
                   fontSize: typography.fontSize.lg,
-                },
-              }}
-            />
+                }}
+              >
+                Results (Optional)
+              </Typography>
+              <RichTextEditor
+                value={results}
+                onChange={setResults}
+                placeholder="Document the test results..."
+                minHeight={250}
+                disabled={isSubmitting}
+              />
+            </Box>
 
-            <TextField
-              label="Conclusions (Optional)"
-              value={conclusions}
-              onChange={(e) => setConclusions(e.target.value)}
-              fullWidth
-              multiline
-              rows={8}
-              disabled={isSubmitting}
-              placeholder="What conclusions can you draw?"
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: borderRadius.lg,
+            <Box>
+              <Typography
+                variant="body1"
+                sx={{
+                  mb: spacing[2],
+                  color: colors.text.secondary,
+                  fontWeight: typography.fontWeight.medium,
                   fontSize: typography.fontSize.lg,
-                },
-              }}
-            />
+                }}
+              >
+                Conclusions (Optional)
+              </Typography>
+              <RichTextEditor
+                value={conclusions}
+                onChange={setConclusions}
+                placeholder="What conclusions can you draw?"
+                minHeight={250}
+                disabled={isSubmitting}
+              />
+            </Box>
           </Box>
         )}
       </Box>

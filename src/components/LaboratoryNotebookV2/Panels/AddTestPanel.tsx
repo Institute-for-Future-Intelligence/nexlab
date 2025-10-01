@@ -17,6 +17,7 @@ import { Close as CloseIcon, Add as AddIcon, Fullscreen as FullscreenIcon } from
 import { colors, typography, spacing, borderRadius, shadows } from '../../../config/designSystem';
 import { useLabNotebookStore } from '../../../stores/labNotebookStore';
 import { labNotebookService } from '../../../services/labNotebookService';
+import RichTextEditor from '../RichTextEditor';
 
 interface AddTestPanelProps {
   designId?: string;
@@ -251,54 +252,65 @@ const AddTestPanel: React.FC<AddTestPanelProps> = ({ designId: propDesignId }) =
               }}
             />
 
-            <TextField
-              label="Description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              required
-              fullWidth
-              multiline
-              rows={4}
-              disabled={isSubmitting}
-              placeholder="Describe the test methodology..."
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: borderRadius.lg,
-                },
-              }}
-            />
+            <Box>
+              <Typography
+                variant="body2"
+                sx={{
+                  mb: spacing[1],
+                  color: colors.text.secondary,
+                  fontWeight: typography.fontWeight.medium,
+                }}
+              >
+                Description *
+              </Typography>
+              <RichTextEditor
+                value={description}
+                onChange={setDescription}
+                placeholder="Describe the test methodology..."
+                minHeight={150}
+                disabled={isSubmitting}
+              />
+            </Box>
 
-            <TextField
-              label="Results (Optional)"
-              value={results}
-              onChange={(e) => setResults(e.target.value)}
-              fullWidth
-              multiline
-              rows={4}
-              disabled={isSubmitting}
-              placeholder="Document the test results..."
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: borderRadius.lg,
-                },
-              }}
-            />
+            <Box>
+              <Typography
+                variant="body2"
+                sx={{
+                  mb: spacing[1],
+                  color: colors.text.secondary,
+                  fontWeight: typography.fontWeight.medium,
+                }}
+              >
+                Results (Optional)
+              </Typography>
+              <RichTextEditor
+                value={results}
+                onChange={setResults}
+                placeholder="Document the test results..."
+                minHeight={150}
+                disabled={isSubmitting}
+              />
+            </Box>
 
-            <TextField
-              label="Conclusions (Optional)"
-              value={conclusions}
-              onChange={(e) => setConclusions(e.target.value)}
-              fullWidth
-              multiline
-              rows={4}
-              disabled={isSubmitting}
-              placeholder="What conclusions can you draw?"
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: borderRadius.lg,
-                },
-              }}
-            />
+            <Box>
+              <Typography
+                variant="body2"
+                sx={{
+                  mb: spacing[1],
+                  color: colors.text.secondary,
+                  fontWeight: typography.fontWeight.medium,
+                }}
+              >
+                Conclusions (Optional)
+              </Typography>
+              <RichTextEditor
+                value={conclusions}
+                onChange={setConclusions}
+                placeholder="What conclusions can you draw?"
+                minHeight={150}
+                disabled={isSubmitting}
+              />
+            </Box>
           </>
         )}
       </Box>

@@ -13,6 +13,7 @@ import { Close as CloseIcon, Add as AddIcon, Fullscreen as FullscreenIcon } from
 import { colors, typography, spacing, borderRadius, shadows } from '../../../config/designSystem';
 import { useLabNotebookStore } from '../../../stores/labNotebookStore';
 import { labNotebookService } from '../../../services/labNotebookService';
+import RichTextEditor from '../RichTextEditor';
 
 interface AddBuildPanelProps {
   designId?: string;
@@ -188,22 +189,25 @@ const AddBuildPanel: React.FC<AddBuildPanelProps> = ({ designId: propDesignId })
           }}
         />
 
-        <TextField
-          label="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          required
-          fullWidth
-          multiline
-          rows={8}
-          disabled={isSubmitting}
-          placeholder="Describe the build details, materials, methods, etc."
-          sx={{
-            '& .MuiOutlinedInput-root': {
-              borderRadius: borderRadius.lg,
-            },
-          }}
-        />
+        <Box>
+          <Typography
+            variant="body2"
+            sx={{
+              mb: spacing[1],
+              color: colors.text.secondary,
+              fontWeight: typography.fontWeight.medium,
+            }}
+          >
+            Description *
+          </Typography>
+          <RichTextEditor
+            value={description}
+            onChange={setDescription}
+            placeholder="Describe the build details, materials, methods, etc..."
+            minHeight={250}
+            disabled={isSubmitting}
+          />
+        </Box>
       </Box>
 
       {/* Actions */}

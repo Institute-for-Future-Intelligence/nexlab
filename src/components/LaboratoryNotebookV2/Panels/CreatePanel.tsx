@@ -19,6 +19,7 @@ import { useLabNotebookStore } from '../../../stores/labNotebookStore';
 import { labNotebookService } from '../../../services/labNotebookService';
 import { useUser } from '../../../hooks/useUser';
 import { CourseSelector, CourseOption } from '../../common';
+import RichTextEditor from '../RichTextEditor';
 
 const CreatePanel: React.FC = () => {
   const { userDetails } = useUser();
@@ -171,22 +172,25 @@ const CreatePanel: React.FC = () => {
           }}
         />
 
-        <TextField
-          label="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          required
-          fullWidth
-          multiline
-          rows={6}
-          disabled={isSubmitting}
-          placeholder="Describe your design, its purpose, and goals"
-          sx={{
-            '& .MuiOutlinedInput-root': {
-              borderRadius: borderRadius.lg,
-            },
-          }}
-        />
+        <Box>
+          <Typography
+            variant="body2"
+            sx={{
+              mb: spacing[1],
+              color: colors.text.secondary,
+              fontWeight: typography.fontWeight.medium,
+            }}
+          >
+            Description *
+          </Typography>
+          <RichTextEditor
+            value={description}
+            onChange={setDescription}
+            placeholder="Describe your design, its purpose, and goals..."
+            minHeight={200}
+            disabled={isSubmitting}
+          />
+        </Box>
 
         <Box>
           <CourseSelector

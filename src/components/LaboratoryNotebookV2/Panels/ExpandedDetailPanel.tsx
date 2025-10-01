@@ -22,6 +22,7 @@ import { useLabNotebookStore } from '../../../stores/labNotebookStore';
 import { isDesignNode, isBuildNode, isTestNode } from '../../../types/labNotebook';
 import ImageGallery from '../ImageGallery';
 import FileAttachmentsList from '../FileAttachmentsList';
+import RichTextDisplay from '../RichTextDisplay';
 
 const ExpandedDetailPanel: React.FC = () => {
   const selectedNodeId = useLabNotebookStore((state) => state.selectedNodeId);
@@ -207,16 +208,9 @@ const ExpandedDetailPanel: React.FC = () => {
           >
             Description
           </Typography>
-          <Typography
-            variant="body1"
-            sx={{
-              color: colors.text.secondary,
-              lineHeight: typography.lineHeight.relaxed,
-              fontSize: typography.fontSize.lg,
-            }}
-          >
-            {node.data.description || 'No description provided'}
-          </Typography>
+          <RichTextDisplay 
+            content={node.data.description || '<p>No description provided</p>'} 
+          />
         </Box>
 
         <Divider sx={{ my: spacing[6] }} />
@@ -236,16 +230,9 @@ const ExpandedDetailPanel: React.FC = () => {
               >
                 Results
               </Typography>
-              <Typography
-                variant="body1"
-                sx={{
-                  color: colors.text.secondary,
-                  lineHeight: typography.lineHeight.relaxed,
-                  fontSize: typography.fontSize.lg,
-                }}
-              >
-                {node.data.results || 'No results provided'}
-              </Typography>
+              <RichTextDisplay 
+                content={node.data.results || '<p>No results provided</p>'} 
+              />
             </Box>
 
             <Box sx={{ mb: spacing[6] }}>
@@ -260,16 +247,9 @@ const ExpandedDetailPanel: React.FC = () => {
               >
                 Conclusions
               </Typography>
-              <Typography
-                variant="body1"
-                sx={{
-                  color: colors.text.secondary,
-                  lineHeight: typography.lineHeight.relaxed,
-                  fontSize: typography.fontSize.lg,
-                }}
-              >
-                {node.data.conclusions || 'No conclusions provided'}
-              </Typography>
+              <RichTextDisplay 
+                content={node.data.conclusions || '<p>No conclusions provided</p>'} 
+              />
             </Box>
 
             <Divider sx={{ my: spacing[6] }} />
