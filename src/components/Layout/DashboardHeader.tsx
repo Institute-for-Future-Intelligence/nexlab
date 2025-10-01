@@ -13,8 +13,10 @@ const DashboardHeader: React.FC = () => {
         backgroundColor: colors.primary[100], // Slightly darker primary background
         borderBottom: `1px solid ${colors.primary[200]}`,
         boxShadow: shadows.sm,
-        height: '12.5vh', // 12.5% of viewport height
-        minHeight: 90,
+        height: '100%', // Use full height of parent container
+        width: '100%',
+        position: 'relative',
+        zIndex: 1, // Ensure proper stacking within header
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: spacing[4], width: '100%' }}>

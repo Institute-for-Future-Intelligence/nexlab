@@ -162,8 +162,7 @@ const LaboratoryNotebookV2: React.FC = () => {
     <Box
       sx={{
         p: isMobile ? spacing[3] : spacing[6],
-        backgroundColor: colors.background.primary,
-        minHeight: '100vh',
+        minHeight: '100%', // Use full available height
       }}
     >
       {/* Header */}

@@ -10,9 +10,11 @@ const DashboardFooter: React.FC = () => {
         borderTop: `1px solid ${colors.primary[200]}`,
         height: '10vh', // 10% of viewport height
         minHeight: 70,
+        maxHeight: 100,
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
+        flexShrink: 0, // Prevent footer from shrinking
       }}
     >
       <Divider />

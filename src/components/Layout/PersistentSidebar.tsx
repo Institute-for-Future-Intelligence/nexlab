@@ -275,7 +275,7 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
 
   const drawer = (
     <Box sx={{ 
-      height: '100%', 
+      height: '100%', // Use full height
       display: 'flex', 
       flexDirection: 'column',
       backgroundColor: colors.background.secondary,
@@ -314,7 +314,7 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
             },
             transition: 'all 250ms cubic-bezier(0.34, 1.56, 0.64, 1)',
             borderRadius: borderRadius.lg,
-            zIndex: 1001, // Ensure it's always visible
+            zIndex: 101, // Ensure it's visible but below header
           }}
         >
           {isOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
@@ -523,20 +523,20 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
   );
 
   return (
-    <Box sx={{ display: 'flex', height: '100%', width: '100%' }}>
+    <Box sx={{ display: 'flex', flex: 1, width: '100%' }}>
       {/* Sidebar */}
       <Box
         sx={{
           width: isOpen ? 320 : 100,
-          height: '100%',
+          height: '100%', // Use full height of parent
           flexShrink: 0,
           transition: 'width 400ms cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 300ms ease-out',
           backgroundColor: colors.primary[100], // Match header/footer background
           borderRight: `1px solid ${colors.primary[200]}`,
           boxShadow: isOpen ? shadows.xl : shadows.md,
-          overflow: 'hidden',
+          overflow: 'auto', // Allow scrolling within sidebar if needed
           position: 'relative',
-          zIndex: 1000,
+          zIndex: 100, // Lower z-index to prevent overlap with header
           // Custom scrollbar styling for the entire sidebar
           '&::-webkit-scrollbar': {
             width: isOpen ? '8px' : '6px',
@@ -563,10 +563,9 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
       {/* Content Area */}
       <Box
         sx={{
-          flexGrow: 1,
-          height: '100%',
+          flex: 1, // Take remaining space
           backgroundColor: '#F0F4FF', // Match the profile-container background
-          overflow: 'auto',
+          overflow: 'auto', // Allow scrolling within content area
           transition: 'margin-left 400ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
         }}
       >
