@@ -1,7 +1,7 @@
 // src/components/SA_CourseManagement/SuperAdminCourseManagement.tsx
 
 import React, { useState, useEffect } from 'react';
-import { getFirestore, collection, getDocs, updateDoc, doc, deleteDoc, writeBatch, getDoc } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, updateDoc, doc, deleteDoc, writeBatch, getDoc, Timestamp } from 'firebase/firestore';
 import { useUser } from '../../hooks/useUser';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -17,6 +17,9 @@ interface Course {
   title: string;
   number: string;
   courseAdmin: string[];
+  createdAt?: Date;
+  courseCreatedAt?: Date;
+  timestamp?: Date;
 }
 
 const SuperAdminCourseManagement: React.FC = () => {
@@ -40,14 +43,40 @@ const SuperAdminCourseManagement: React.FC = () => {
         const querySnapshot = await getDocs(collection(db, 'courses'));
         const coursesList = querySnapshot.docs.map(doc => {
           const data = doc.data();
+          
+          // Helper function to convert Firestore timestamp to Date
+          const convertTimestamp = (timestamp: any): Date | undefined => {
+            if (!timestamp) return undefined;
+            if (timestamp instanceof Date) return timestamp;
+            if (timestamp instanceof Timestamp) return timestamp.toDate();
+            if (timestamp.seconds) return new Timestamp(timestamp.seconds, timestamp.nanoseconds || 0).toDate();
+            return undefined;
+          };
+
           return {
             id: doc.id,
             title: data.title || 'Untitled',
             number: data.number || 'N/A',
-            courseAdmin: data.courseAdmin || []
+            courseAdmin: data.courseAdmin || [],
+            createdAt: convertTimestamp(data.createdAt),
+            courseCreatedAt: convertTimestamp(data.courseCreatedAt),
+            timestamp: convertTimestamp(data.timestamp)
           } as Course;
         });
-        setCourses(coursesList);
+
+        // Sort courses by creation date (newest first)
+        const sortedCourses = coursesList.sort((a, b) => {
+          const dateA = a.courseCreatedAt || a.createdAt || a.timestamp;
+          const dateB = b.courseCreatedAt || b.createdAt || b.timestamp;
+          
+          if (!dateA && !dateB) return 0;
+          if (!dateA) return 1;
+          if (!dateB) return -1;
+          
+          return dateB.getTime() - dateA.getTime();
+        });
+
+        setCourses(sortedCourses);
       } catch (error) {
         console.error('Error fetching courses: ', error);
       } finally {
