@@ -1,7 +1,7 @@
 // src/components/EducatorRequests/EducatorRequestsAdminPage.tsx
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Button, Snackbar, Alert, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Select, MenuItem } from '@mui/material';
-import { getFirestore, collection, getDocs, getDoc, doc, updateDoc, addDoc, arrayUnion } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, getDoc, doc, updateDoc, addDoc, arrayUnion, deleteDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../common';
 import { colors, typography, spacing } from '../../config/designSystem';
@@ -32,7 +32,7 @@ const EducatorRequestsAdminPage: React.FC = () => {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'warning'>('success');
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [currentAction, setCurrentAction] = useState<'approve' | 'deny' | null>(null);
+  const [currentAction, setCurrentAction] = useState<'approve' | 'deny' | 'delete' | null>(null);
   const [currentRequestId, setCurrentRequestId] = useState<string | null>(null);
   const [currentRequestData, setCurrentRequestData] = useState<EducatorRequest | null>(null);
   const db = getFirestore();
@@ -52,7 +52,25 @@ const EducatorRequestsAdminPage: React.FC = () => {
         ...doc.data()
       }));
 
-      setRequests(fetchedRequests);
+      // Sort requests by timestamp (newest first), then by status (pending first)
+      const sortedRequests = fetchedRequests.sort((a, b) => {
+        // First sort by timestamp (newest first)
+        const timestampA = a.timestamp?.seconds || 0;
+        const timestampB = b.timestamp?.seconds || 0;
+        const timestampDiff = timestampB - timestampA;
+        
+        if (timestampDiff !== 0) {
+          return timestampDiff;
+        }
+        
+        // If timestamps are equal, sort by status (pending first)
+        if (a.status === 'pending' && b.status !== 'pending') return -1;
+        if (a.status === 'approved' && b.status === 'denied') return -1;
+        if (a.status === 'denied' && b.status === 'approved') return 1;
+        return 0;
+      });
+
+      setRequests(sortedRequests);
       setCourses(fetchedCourses);
     };
     fetchRequestsAndCourses();
@@ -175,11 +193,27 @@ const EducatorRequestsAdminPage: React.FC = () => {
   
       setSnackbarMessage('Request approved, and user promoted to educator.');
       setSnackbarSeverity('success');
-      setRequests((prevRequests) =>
-        prevRequests.map((request) =>
-          request.id === currentRequestId ? { ...request, status: 'approved' } : request
-        )
-      );
+      setRequests((prevRequests) => {
+        const updatedRequests = prevRequests.map((request) =>
+          request.id === currentRequestId ? { ...request, status: 'approved' as const } : request
+        );
+        
+        // Re-sort after update
+        return updatedRequests.sort((a, b) => {
+          const timestampA = a.timestamp?.seconds || 0;
+          const timestampB = b.timestamp?.seconds || 0;
+          const timestampDiff = timestampB - timestampA;
+          
+          if (timestampDiff !== 0) {
+            return timestampDiff;
+          }
+          
+          if (a.status === 'pending' && b.status !== 'pending') return -1;
+          if (a.status === 'approved' && b.status === 'denied') return -1;
+          if (a.status === 'denied' && b.status === 'approved') return 1;
+          return 0;
+        });
+      });
     } catch (error) {
       console.error('Error approving request: ', error);
       setSnackbarMessage('Error approving the request. Please try again.');
@@ -198,7 +232,27 @@ const EducatorRequestsAdminPage: React.FC = () => {
       });
       setSnackbarMessage('Request denied.');
       setSnackbarSeverity('success');
-      setRequests(requests.map(request => request.id === currentRequestId ? { ...request, status: 'denied' } : request));
+      setRequests((prevRequests) => {
+        const updatedRequests = prevRequests.map(request => 
+          request.id === currentRequestId ? { ...request, status: 'denied' as const } : request
+        );
+        
+        // Re-sort after update
+        return updatedRequests.sort((a, b) => {
+          const timestampA = a.timestamp?.seconds || 0;
+          const timestampB = b.timestamp?.seconds || 0;
+          const timestampDiff = timestampB - timestampA;
+          
+          if (timestampDiff !== 0) {
+            return timestampDiff;
+          }
+          
+          if (a.status === 'pending' && b.status !== 'pending') return -1;
+          if (a.status === 'approved' && b.status === 'denied') return -1;
+          if (a.status === 'denied' && b.status === 'approved') return 1;
+          return 0;
+        });
+      });
     } catch (error) {
       console.error('Error denying request: ', error);
       setSnackbarMessage('Error denying the request. Please try again.');
@@ -208,7 +262,42 @@ const EducatorRequestsAdminPage: React.FC = () => {
     handleCloseDialog();
   };
 
-  const handleOpenDialog = (action: 'approve' | 'deny', requestId: string, requestData: EducatorRequest) => {
+  const handleDelete = async () => {
+    if (!currentRequestId) return;
+
+    try {
+      await deleteDoc(doc(db, 'educatorRequests', currentRequestId));
+      setSnackbarMessage('Educator request deleted successfully.');
+      setSnackbarSeverity('success');
+      setRequests((prevRequests) => {
+        const updatedRequests = prevRequests.filter(request => request.id !== currentRequestId);
+        
+        // Re-sort after deletion
+        return updatedRequests.sort((a, b) => {
+          const timestampA = a.timestamp?.seconds || 0;
+          const timestampB = b.timestamp?.seconds || 0;
+          const timestampDiff = timestampB - timestampA;
+          
+          if (timestampDiff !== 0) {
+            return timestampDiff;
+          }
+          
+          if (a.status === 'pending' && b.status !== 'pending') return -1;
+          if (a.status === 'approved' && b.status === 'denied') return -1;
+          if (a.status === 'denied' && b.status === 'approved') return 1;
+          return 0;
+        });
+      });
+    } catch (error) {
+      console.error('Error deleting request: ', error);
+      setSnackbarMessage('Error deleting the request. Please try again.');
+      setSnackbarSeverity('error');
+    }
+    setOpenSnackbar(true);
+    handleCloseDialog();
+  };
+
+  const handleOpenDialog = (action: 'approve' | 'deny' | 'delete', requestId: string, requestData: EducatorRequest) => {
     setCurrentAction(action);
     setCurrentRequestId(requestId);
     setCurrentRequestData(requestData);
@@ -256,7 +345,14 @@ const EducatorRequestsAdminPage: React.FC = () => {
           const request = requests.find(r => r.id === requestId);
           if (request) handleOpenDialog('approve', requestId, request);
         }}
-        onDeny={(requestId) => handleOpenDialog('deny', requestId, null)}
+        onDeny={(requestId) => {
+          const request = requests.find(r => r.id === requestId);
+          if (request) handleOpenDialog('deny', requestId, request);
+        }}
+        onDelete={(requestId) => {
+          const request = requests.find(r => r.id === requestId);
+          if (request) handleOpenDialog('delete', requestId, request);
+        }}
       />
 
       <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleCloseSnackbar}>
@@ -273,11 +369,17 @@ const EducatorRequestsAdminPage: React.FC = () => {
         aria-describedby="confirmation-dialog-description"
       >
         <DialogTitle id="confirmation-dialog-title">
-          {currentAction === 'approve' ? 'Confirm Approval' : 'Confirm Denial'}
+          {currentAction === 'approve' ? 'Confirm Approval' : 
+           currentAction === 'deny' ? 'Confirm Denial' : 
+           'Delete Request'}
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="confirmation-dialog-description">
-            Are you sure you want to {currentAction} this request for {currentRequestData?.firstName} {currentRequestData?.lastName}?
+            {currentAction === 'delete' ? (
+              `Are you sure you want to delete this request for ${currentRequestData?.firstName} ${currentRequestData?.lastName}? This action cannot be undone.`
+            ) : (
+              `Are you sure you want to ${currentAction} this request for ${currentRequestData?.firstName} ${currentRequestData?.lastName}?`
+            )}
           </DialogContentText>
 
           {currentAction === 'approve' && currentRequestData?.requestType === 'co-instructor' && (
@@ -302,13 +404,17 @@ const EducatorRequestsAdminPage: React.FC = () => {
             Cancel
           </Button>
           <Button
-            onClick={currentAction === 'approve' ? handleApprove : handleDeny}
-            color="primary"
+            onClick={currentAction === 'approve' ? handleApprove : 
+                    currentAction === 'deny' ? handleDeny : 
+                    handleDelete}
+            color={currentAction === 'delete' ? 'error' : 'primary'}
             variant="contained"
             autoFocus
-            disabled={currentRequestData?.requestType === 'co-instructor' && !selectedCourseId} // Disable if no course is selected for co-instructor
+            disabled={currentRequestData?.requestType === 'co-instructor' && currentAction === 'approve' && !selectedCourseId} // Disable if no course is selected for co-instructor
           >
-            Confirm
+            {currentAction === 'approve' ? 'Approve' : 
+             currentAction === 'deny' ? 'Deny' : 
+             'Delete'}
           </Button>
         </DialogActions>
       </Dialog>
