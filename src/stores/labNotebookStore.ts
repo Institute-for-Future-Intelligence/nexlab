@@ -222,15 +222,161 @@ export const useLabNotebookStore = create<LabNotebookState>()(
             const { collection, query, where, getDocs, orderBy } = await import('firebase/firestore');
             const { db } = await import('../config/firestore');
             
-            // Fetch designs
+            // Fetch designs based on user role and course permissions
             let designsQuery;
             if (isAdmin && courses.length > 0) {
-              designsQuery = query(
-                collection(db, 'designs'),
-                where('course', 'in', courses),
-                orderBy('dateCreated', 'desc')
-              );
+              // For educators: show their own designs + their students' designs for courses they admin
+              // We need to get the user's course admin status to determine which courses they can see all designs for
+              const { doc, getDoc } = await import('firebase/firestore');
+              const userDoc = await getDoc(doc(db, 'users', userId));
+              const userData = userDoc.exists() ? userDoc.data() : null;
+              const userClasses = userData?.classes || {};
+              
+              // Get courses where user is course admin
+              const adminCourses = Object.entries(userClasses)
+                .filter(([_, courseData]) => (courseData as any).isCourseAdmin)
+                .map(([courseId, _]) => courseId);
+              
+              // Get courses where user is just a student
+              const studentCourses = Object.entries(userClasses)
+                .filter(([_, courseData]) => !(courseData as any).isCourseAdmin)
+                .map(([courseId, _]) => courseId);
+              
+              // For admin courses: show all designs in those courses
+              // For student courses: show only user's own designs
+              if (adminCourses.length > 0 && studentCourses.length > 0) {
+                // User has both admin and student courses - need to fetch both types
+                const adminDesignsQuery = query(
+                  collection(db, 'designs'),
+                  where('course', 'in', adminCourses),
+                  orderBy('dateCreated', 'desc')
+                );
+                const studentDesignsQuery = query(
+                  collection(db, 'designs'),
+                  where('course', 'in', studentCourses),
+                  where('userId', '==', userId),
+                  orderBy('dateCreated', 'desc')
+                );
+                
+                // Execute both queries
+                const [adminSnapshot, studentSnapshot] = await Promise.all([
+                  getDocs(adminDesignsQuery),
+                  getDocs(studentDesignsQuery)
+                ]);
+                
+                // Combine results
+                const adminDesigns = adminSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const studentDesigns = studentSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const allDesigns = [...adminDesigns, ...studentDesigns];
+                
+                // Process designs (moved outside the query logic)
+                const designs: Design[] = allDesigns.map((data: any) => ({
+                  id: data.id,
+                  title: data.title || '',
+                  description: data.description || '',
+                  course: data.course || '',
+                  dateCreated: data.dateCreated,
+                  dateModified: data.dateModified,
+                  userId: data.userId || '',
+                  images: data.images || [],
+                  files: data.files || [],
+                } as Design));
+                
+                // Continue with builds and tests using the design IDs
+                const designIds = designs.map(d => d.id);
+                
+                // Fetch builds (in batches if needed due to Firestore 'in' query limit of 10)
+                let builds: Build[] = [];
+                if (designIds.length > 0) {
+                  const buildBatches = [];
+                  for (let i = 0; i < designIds.length; i += 10) {
+                    const batch = designIds.slice(i, i + 10);
+                    const buildsQuery = query(
+                      collection(db, 'builds'),
+                      where('design_ID', 'in', batch)
+                    );
+                    buildBatches.push(getDocs(buildsQuery));
+                  }
+                  
+                  const buildSnapshots = await Promise.all(buildBatches);
+                  builds = buildSnapshots.flatMap(snapshot =>
+                    snapshot.docs.map(doc => {
+                      const data = doc.data() as any;
+                      return {
+                        id: doc.id,
+                        title: data.title || '',
+                        description: data.description || '',
+                        design_ID: data.design_ID || '',
+                        dateCreated: data.dateCreated,
+                        userId: data.userId || '',
+                        images: data.images || [],
+                        files: data.files || [],
+                      } as Build;
+                    })
+                  );
+                }
+                
+                // Get all build IDs for fetching tests
+                const buildIds = builds.map(b => b.id);
+                
+                // Fetch tests (in batches if needed)
+                let tests: Test[] = [];
+                if (buildIds.length > 0) {
+                  const testBatches = [];
+                  for (let i = 0; i < buildIds.length; i += 10) {
+                    const batch = buildIds.slice(i, i + 10);
+                    const testsQuery = query(
+                      collection(db, 'tests'),
+                      where('build_ID', 'in', batch)
+                    );
+                    testBatches.push(getDocs(testsQuery));
+                  }
+                  
+                  const testSnapshots = await Promise.all(testBatches);
+                  tests = testSnapshots.flatMap(snapshot =>
+                    snapshot.docs.map(doc => {
+                      const data = doc.data() as any;
+                      return {
+                        id: doc.id,
+                        title: data.title || '',
+                        description: data.description || '',
+                        build_ID: data.build_ID || '',
+                        dateCreated: data.dateCreated,
+                        userId: data.userId || '',
+                        images: data.images || [],
+                        files: data.files || [],
+                      } as Test;
+                    })
+                  );
+                }
+                
+                // Update state with all fetched data
+                set({ 
+                  designs, 
+                  builds, 
+                  tests, 
+                  isLoading: false 
+                });
+                
+                return; // Early return to avoid the single query logic below
+              } else if (adminCourses.length > 0) {
+                // User is only admin in courses
+                designsQuery = query(
+                  collection(db, 'designs'),
+                  where('course', 'in', adminCourses),
+                  orderBy('dateCreated', 'desc')
+                );
+              } else {
+                // User is only student in courses
+                designsQuery = query(
+                  collection(db, 'designs'),
+                  where('course', 'in', studentCourses),
+                  where('userId', '==', userId),
+                  orderBy('dateCreated', 'desc')
+                );
+              }
             } else {
+              // For non-admin users: show only their own designs
               designsQuery = query(
                 collection(db, 'designs'),
                 where('userId', '==', userId),

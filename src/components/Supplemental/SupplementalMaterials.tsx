@@ -6,6 +6,7 @@ import AddMaterialButtonModern from './AddMaterialButtonModern';
 import MaterialGridModern from './MaterialGridModern';
 import CourseSelector from './CourseSelector';
 import { useUser } from '../../hooks/useUser';
+import { useCourses } from '../../hooks/useCourses';
 import { useSearchParams } from 'react-router-dom';
 
 import BackToAllMaterialsButton from './BackToAllMaterialsButton';
@@ -13,33 +14,28 @@ import AdditionalCourseInfo from './AdditionalCourseInfo';
 
 const SupplementalMaterials: React.FC = () => {
   const { userDetails } = useUser();
+  const { userCourses } = useCourses();
   const [searchParams] = useSearchParams();
   const selectedCourse = searchParams.get('course') || null; // Get selected course ID from URL. Ensure it's either a string or null
 
-  // Convert user classes object into an array for course selection, using useMemo() for performance
-  const userCourses = useMemo(() => {
-    const courses = userDetails?.classes
-      ? Object.entries(userDetails.classes).map(([id, course]) => ({
-          id,
-          number: course.number,
-          title: course.title,
-        }))
-      : [];
-    
-    // Debug logging for course list changes
-    console.log('[SupplementalMaterials] Course list updated:', {
-      count: courses.length,
-      courses: courses.map(c => `${c.number} - ${c.title}`),
-      timestamp: new Date().toISOString()
-    });
-    
-    return courses;
-  }, [userDetails?.classes]);
-
   // Find selected course data
   const selectedCourseData = useMemo(() => {
-    return userCourses.find(course => course.id === selectedCourse);
-  }, [userCourses, selectedCourse]);
+    const courseData = userCourses.find(course => course.id === selectedCourse);
+    
+    // Debug logging for course admin status
+    if (selectedCourse && courseData) {
+      console.log('[SupplementalMaterials] Selected course data:', {
+        courseId: selectedCourse,
+        courseTitle: courseData.title,
+        isCourseAdmin: courseData.isCourseAdmin,
+        userIsAdmin: userDetails?.isAdmin,
+        shouldShowAddButton: userDetails?.isAdmin && courseData.isCourseAdmin,
+        timestamp: new Date().toISOString()
+      });
+    }
+    
+    return courseData;
+  }, [userCourses, selectedCourse, userDetails?.isAdmin]);
 
   return (
     <Box className="supplemental-container">
@@ -81,10 +77,10 @@ const SupplementalMaterials: React.FC = () => {
           {/* Show Additional Course Information */}
           <AdditionalCourseInfo courseId={selectedCourse} isAdmin={userDetails?.isAdmin} />
           
-          {/* Show Add Material Button for Educators & Super-Admins */}
+          {/* Show Add Material Button for Course Admins & Super-Admins */}
           <Box className="supplemental-content">
-            {/* Add Material Button for Admins */}
-            {userDetails?.isAdmin && <AddMaterialButtonModern selectedCourse={selectedCourse} />}
+            {/* Add Material Button for Course Admins */}
+            {userDetails?.isAdmin && selectedCourseData?.isCourseAdmin && <AddMaterialButtonModern selectedCourse={selectedCourse} />}
 
             {/* Show the Material Grid for the selected course */}
             <MaterialGridModern initialCourse={selectedCourse} />
