@@ -125,7 +125,6 @@ const ModernChatbotRequestsTable: React.FC<ModernChatbotRequestsTableProps> = ({
       columns={columns}
       loading={loading}
       emptyMessage="No chatbot requests found. Submit your first request to get started!"
-      maxHeight="600px"
       stickyHeader={true}
     />
   );
