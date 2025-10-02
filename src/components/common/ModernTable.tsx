@@ -52,7 +52,7 @@ const EmptyState: React.FC<{ message: string }> = ({ message }) => (
       color: colors.text.secondary,
     }}
   >
-    <Typography variant="body1" sx={{ fontStyle: 'italic', textAlign: 'center' }}>
+    <Typography variant="body1" sx={{ fontStyle: 'italic', textAlign: 'center', fontFamily: 'Gabarito, sans-serif' }}>
       {message}
     </Typography>
   </Box>

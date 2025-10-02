@@ -333,6 +333,7 @@ const EducatorRequestsAdminPage: React.FC = () => {
         sx={{ 
           mb: spacing[4],
           color: colors.text.secondary,
+          fontFamily: 'Gabarito, sans-serif',
         }}
       >
         Review and manage educator permission requests from users seeking to become course instructors.
