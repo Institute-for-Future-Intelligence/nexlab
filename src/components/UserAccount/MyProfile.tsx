@@ -96,11 +96,70 @@ const MyProfile: React.FC = () => {
         </Box>
       )}
 
-      {/* Enroll in a Course Section - Hidden for educators */}
-      {!userDetails?.isAdmin && (
+      {/* Toggles Section - Side by side layout */}
+      <Box 
+        sx={{
+          display: 'flex',
+          gap: spacing[4],
+          mb: spacing[4],
+          alignItems: 'flex-start',
+        }}
+      >
+        {/* Enroll in a Course Section - Hidden for educators */}
+        {!userDetails?.isAdmin && (
+          <Box 
+            sx={{
+              flex: 1,
+              p: spacing[4],
+              backgroundColor: colors.background.primary,
+              borderRadius: borderRadius.lg,
+              border: `1px solid ${colors.neutral[200]}`,
+              boxShadow: shadows.sm,
+            }}
+          >
+            <FormControlLabel
+              control={
+                <Switch 
+                  checked={isEnrollOpen} 
+                  onChange={handleToggleEnroll}
+                  sx={{
+                    '& .MuiSwitch-thumb': {
+                      backgroundColor: colors.primary[500],
+                    },
+                    '& .MuiSwitch-track': {
+                      backgroundColor: colors.primary[100],
+                    },
+                    '&.Mui-checked .MuiSwitch-track': {
+                      backgroundColor: colors.primary[500],
+                    },
+                  }}
+                />
+              }
+              label={
+                <Typography
+                  sx={{
+                    fontFamily: typography.fontFamily.display,
+                    fontWeight: typography.fontWeight.semibold,
+                    color: colors.text.primary,
+                    fontSize: typography.fontSize.xl,
+                  }}
+                >
+                  Enroll in a Course
+                </Typography>
+              }
+            />
+            {isEnrollOpen && (
+              <Box sx={{ mt: spacing[3] }}>
+                <AddCourseForm onCourseAdded={handleCourseAdded} />
+              </Box>
+            )}
+          </Box>
+        )}
+
+        {/* Advanced Section */}
         <Box 
           sx={{
-            mb: spacing[4],
+            flex: 1,
             p: spacing[4],
             backgroundColor: colors.background.primary,
             borderRadius: borderRadius.lg,
@@ -111,14 +170,17 @@ const MyProfile: React.FC = () => {
           <FormControlLabel
             control={
               <Switch 
-                checked={isEnrollOpen} 
-                onChange={handleToggleEnroll}
+                checked={isAdvancedOpen} 
+                onChange={handleToggleAdvanced}
                 sx={{
-                  '& .MuiSwitch-switchBase.Mui-checked': {
-                    color: colors.primary[600],
+                  '& .MuiSwitch-thumb': {
+                    backgroundColor: colors.primary[500],
                   },
-                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                    backgroundColor: colors.primary[600],
+                  '& .MuiSwitch-track': {
+                    backgroundColor: colors.primary[100],
+                  },
+                  '&.Mui-checked .MuiSwitch-track': {
+                    backgroundColor: colors.primary[500],
                   },
                 }}
               />
@@ -126,119 +188,65 @@ const MyProfile: React.FC = () => {
             label={
               <Typography
                 sx={{
-                  fontFamily: typography.fontFamily.secondary,
+                  fontFamily: typography.fontFamily.display,
                   fontWeight: typography.fontWeight.semibold,
                   color: colors.text.primary,
+                  fontSize: typography.fontSize.xl,
                 }}
               >
-                Enroll in a Course (As a Student)
+                Advanced
               </Typography>
             }
           />
-          {isEnrollOpen && (
+          {isAdvancedOpen && (
             <Box sx={{ mt: spacing[3] }}>
-              <Typography 
-                variant="body1" 
+              <Button
+                variant={userDetails?.isAdmin ? "outlined" : "contained"}
+                onClick={handleNavigateToRequestPermissions}
+                disabled={userDetails?.isAdmin}
                 sx={{
-                  mb: spacing[3],
-                  color: colors.text.secondary,
                   fontFamily: typography.fontFamily.secondary,
+                  fontWeight: typography.fontWeight.medium,
+                  borderRadius: borderRadius.md,
+                  textTransform: 'none',
+                  px: spacing[4],
+                  py: spacing[2],
+                  ...(userDetails?.isAdmin ? {
+                    borderColor: colors.success[500],
+                    color: colors.success[700],
+                    backgroundColor: colors.success[50],
+                    '&:hover': {
+                      backgroundColor: colors.success[100],
+                    },
+                  } : {
+                    backgroundColor: colors.primary[600],
+                    color: colors.text.inverse,
+                    '&:hover': {
+                      backgroundColor: colors.primary[700],
+                    },
+                  }),
                 }}
               >
-                Use the area below to add a course access to your account.
-              </Typography>
-              <AddCourseForm onCourseAdded={handleCourseAdded} />
+                {userDetails?.isAdmin ? (
+                  <Typography
+                    sx={{
+                      fontFamily: typography.fontFamily.secondary,
+                      fontWeight: typography.fontWeight.medium,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: spacing[2],
+                    }}
+                  >
+                    <span>✔</span>
+                    Educator Account Approved
+                  </Typography>
+                ) : (
+                  'Request Educator Permissions'
+                )}
+              </Button>
             </Box>
           )}
         </Box>
-      )}
-
-      {/* Advanced Section */}
-      <Box 
-        sx={{
-          mb: spacing[4],
-          p: spacing[4],
-          backgroundColor: colors.background.primary,
-          borderRadius: borderRadius.lg,
-          border: `1px solid ${colors.neutral[200]}`,
-          boxShadow: shadows.sm,
-        }}
-      >
-        <FormControlLabel
-          control={
-            <Switch 
-              checked={isAdvancedOpen} 
-              onChange={handleToggleAdvanced}
-              sx={{
-                '& .MuiSwitch-switchBase.Mui-checked': {
-                  color: colors.primary[600],
-                },
-                '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                  backgroundColor: colors.primary[600],
-                },
-              }}
-            />
-          }
-          label={
-            <Typography
-              sx={{
-                fontFamily: typography.fontFamily.secondary,
-                fontWeight: typography.fontWeight.semibold,
-                color: colors.text.primary,
-              }}
-            >
-              Advanced
-            </Typography>
-          }
-        />
-        {isAdvancedOpen && (
-          <Box sx={{ mt: spacing[3] }}>
-            <Button
-              variant={userDetails?.isAdmin ? "outlined" : "contained"}
-              onClick={handleNavigateToRequestPermissions}
-              disabled={userDetails?.isAdmin}
-              sx={{
-                fontFamily: typography.fontFamily.secondary,
-                fontWeight: typography.fontWeight.medium,
-                borderRadius: borderRadius.md,
-                textTransform: 'none',
-                px: spacing[4],
-                py: spacing[2],
-                ...(userDetails?.isAdmin ? {
-                  borderColor: colors.success[500],
-                  color: colors.success[700],
-                  backgroundColor: colors.success[50],
-                  '&:hover': {
-                    backgroundColor: colors.success[100],
-                  },
-                } : {
-                  backgroundColor: colors.primary[600],
-                  color: colors.text.inverse,
-                  '&:hover': {
-                    backgroundColor: colors.primary[700],
-                  },
-                }),
-              }}
-            >
-              {userDetails?.isAdmin ? (
-                <Typography
-                  sx={{
-                    fontFamily: typography.fontFamily.secondary,
-                    fontWeight: typography.fontWeight.medium,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: spacing[2],
-                  }}
-                >
-                  <span>✔</span>
-                  Educator Account Approved
-                </Typography>
-              ) : (
-                'Request Educator Permissions'
-              )}
-            </Button>
-          </Box>
-        )}
       </Box>
 
       <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleCloseSnackbar}>
