@@ -214,7 +214,7 @@ const RequestNewCourseForm: React.FC = () => {
   
       // Enhanced email notification
       const emailDoc = {
-        to: ['andriy@intofuture.org', 'dylan@intofuture.org'],
+        to: ['andriy@intofuture.org'],
         message: {
           subject: `New Course Request Submitted${creationMode === 'syllabus' ? ' (With Syllabus Import)' : ''}`,
           html: `

@@ -109,7 +109,7 @@ const ChatbotRequestPage: React.FC = () => {
 
       // Create email notification
       await addDoc(collection(db, 'mail'), {
-        to: ['andriy@intofuture.org', 'dylan@intofuture.org'],
+        to: ['andriy@intofuture.org'],
         message: {
           subject: 'New Chatbot Request Submitted',
           html: `

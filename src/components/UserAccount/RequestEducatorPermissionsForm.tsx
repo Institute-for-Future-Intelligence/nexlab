@@ -32,7 +32,10 @@ import {
   FormField, 
   FormSelect, 
   FormActions, 
-  FormActionButton 
+  FormActionButton,
+  generateInstructorRequestSubmissionEmail,
+  createEmailDocument,
+  type InstructorRequestSubmissionData
 } from '../common';
 import { colors, typography } from '../../config/designSystem';
 
@@ -224,8 +227,8 @@ const RequestEducatorPermissionsForm: React.FC = () => {
 
       const educatorRequestRef = await addDoc(collection(db, 'educatorRequests'), requestDoc);
   
-      // Enhanced email notification
-      const emailDoc = {
+      // Send email notification to super-admins
+      const adminEmailDoc = {
         to: ['andriy@intofuture.org', 'dylan@intofuture.org'],
         message: {
           subject: `New Educator Request Submitted${requestType === 'primary' && courseCreationMode === 'syllabus' ? ' (With Syllabus Import)' : ''}`,
@@ -248,7 +251,30 @@ const RequestEducatorPermissionsForm: React.FC = () => {
           `,
         },
       };
-      await addDoc(collection(db, 'mail'), emailDoc);
+      await addDoc(collection(db, 'mail'), adminEmailDoc);
+
+      // Send user-friendly email notification to the user
+      const userEmailData: InstructorRequestSubmissionData = {
+        firstName,
+        lastName,
+        email,
+        institution,
+        courseNumber,
+        courseTitle,
+        requestType: requestType as 'primary' | 'co-instructor',
+        courseCreationMode: requestType === 'primary' ? courseCreationMode : undefined,
+        generatedMaterialsCount: requestType === 'primary' && courseCreationMode === 'syllabus' ? generatedMaterials.filter(m => m.published).length : undefined,
+        requestId: educatorRequestRef.id,
+        submittedAt: new Date().toISOString()
+      };
+
+      const userEmailHtml = generateInstructorRequestSubmissionEmail(userEmailData);
+      const userEmailDoc = createEmailDocument(
+        [email],
+        'Instructor Request Submitted - NexLAB',
+        userEmailHtml
+      );
+      await addDoc(collection(db, 'mail'), userEmailDoc);
   
       setDialogContent(
         requestType === 'primary' && courseCreationMode === 'syllabus' && generatedMaterials.length > 0

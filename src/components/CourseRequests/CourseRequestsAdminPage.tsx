@@ -215,7 +215,7 @@ const CourseRequestsAdminPage: React.FC = () => {
   
       // Enhanced email notification
       const emailDoc = {
-        to: ['andriy@intofuture.org', 'dylan@intofuture.org'],
+        to: ['andriy@intofuture.org'],
         message: {
           subject: 'Your Course Request Has Been Approved',
           html: `

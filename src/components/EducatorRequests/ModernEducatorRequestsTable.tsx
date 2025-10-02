@@ -150,7 +150,6 @@ const ModernEducatorRequestsTable: React.FC<ModernEducatorRequestsTableProps> = 
       columns={columns}
       loading={loading}
       emptyMessage="No educator permission requests found."
-      maxHeight="600px"
       stickyHeader={true}
     />
   );
