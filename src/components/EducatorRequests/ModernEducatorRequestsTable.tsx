@@ -1,6 +1,7 @@
 // src/components/EducatorRequests/ModernEducatorRequestsTable.tsx
 import React from 'react';
 import { ModernTable, TableColumn, TextCell, StatusChip, DateCell, ActionButtons, CommonActionIcons, CopyableUserID, CourseHyperlink } from '../common';
+import { Check as CheckIcon, Close as CloseIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { colors } from '../../config/designSystem';
 
 interface EducatorRequest {
@@ -24,6 +25,7 @@ interface ModernEducatorRequestsTableProps {
   loading?: boolean;
   onApprove: (requestId: string) => void;
   onDeny: (requestId: string) => void;
+  onDelete: (requestId: string) => void;
 }
 
 const ModernEducatorRequestsTable: React.FC<ModernEducatorRequestsTableProps> = ({
@@ -31,6 +33,7 @@ const ModernEducatorRequestsTable: React.FC<ModernEducatorRequestsTableProps> = 
   loading = false,
   onApprove,
   onDeny,
+  onDelete,
 }) => {
   const getStatusType = (status: string): 'success' | 'warning' | 'error' | 'info' | 'default' => {
     switch (status.toLowerCase()) {
@@ -49,7 +52,7 @@ const ModernEducatorRequestsTable: React.FC<ModernEducatorRequestsTableProps> = 
     {
       id: 'firstName',
       label: 'Name',
-      width: '15%',
+      width: '12%',
       render: (value: string, row: EducatorRequest) => (
         <TextCell text={`${value} ${row.lastName}`} weight="semibold" />
       ),
@@ -57,7 +60,7 @@ const ModernEducatorRequestsTable: React.FC<ModernEducatorRequestsTableProps> = 
     {
       id: 'uid',
       label: 'User ID',
-      width: '15%',
+      width: '12%',
       render: (value: string) => (
         <CopyableUserID 
           userId={value} 
@@ -68,7 +71,7 @@ const ModernEducatorRequestsTable: React.FC<ModernEducatorRequestsTableProps> = 
     {
       id: 'institution',
       label: 'Institution',
-      width: '15%',
+      width: '12%',
       render: (value: string) => (
         <TextCell text={value} maxLength={30} />
       ),
@@ -76,7 +79,7 @@ const ModernEducatorRequestsTable: React.FC<ModernEducatorRequestsTableProps> = 
     {
       id: 'email',
       label: 'Email',
-      width: '15%',
+      width: '12%',
       render: (value: string) => (
         <TextCell text={value} maxLength={30} variant="monospace" />
       ),
@@ -84,7 +87,7 @@ const ModernEducatorRequestsTable: React.FC<ModernEducatorRequestsTableProps> = 
     {
       id: 'courseNumber',
       label: 'Course',
-      width: '15%',
+      width: '12%',
       render: (value: string, row: EducatorRequest) => (
         <CourseHyperlink
           courseId={row.courseId || ''}
@@ -98,7 +101,7 @@ const ModernEducatorRequestsTable: React.FC<ModernEducatorRequestsTableProps> = 
     {
       id: 'timestamp',
       label: 'Submitted',
-      width: '12%',
+      width: '10%',
       render: (value: { seconds: number; nanoseconds: number }) => (
         <DateCell date={new Date(value.seconds * 1000)} format="full" />
       ),
@@ -106,7 +109,7 @@ const ModernEducatorRequestsTable: React.FC<ModernEducatorRequestsTableProps> = 
     {
       id: 'status',
       label: 'Status',
-      width: '8%',
+      width: '7%',
       render: (value: string) => (
         <StatusChip label={value} status={getStatusType(value)} />
       ),
@@ -114,15 +117,17 @@ const ModernEducatorRequestsTable: React.FC<ModernEducatorRequestsTableProps> = 
     {
       id: 'actions',
       label: 'Actions',
-      width: '10%',
+      width: '15%',
       align: 'center',
       render: (value: any, row: EducatorRequest) => {
         const isPending = row.status === 'pending';
+        const isProcessed = row.status === 'approved' || row.status === 'denied';
+        
         return (
           <ActionButtons
             actions={[
               {
-                icon: CommonActionIcons.add,
+                icon: <CheckIcon />,
                 tooltip: isPending ? 'Approve Request' : 'Already processed',
                 onClick: () => onApprove(row.id),
                 disabled: !isPending,
@@ -130,12 +135,20 @@ const ModernEducatorRequestsTable: React.FC<ModernEducatorRequestsTableProps> = 
                 hoverColor: colors.success + '20',
               },
               {
-                icon: CommonActionIcons.delete,
+                icon: <CloseIcon />,
                 tooltip: isPending ? 'Deny Request' : 'Already processed',
                 onClick: () => onDeny(row.id),
                 disabled: !isPending,
                 color: colors.error,
                 hoverColor: colors.error + '20',
+              },
+              {
+                icon: <DeleteIcon />,
+                tooltip: isProcessed ? 'Delete Request' : 'Request must be approved or denied first',
+                onClick: () => onDelete(row.id),
+                disabled: !isProcessed,
+                color: colors.text.secondary,
+                hoverColor: colors.text.secondary + '20',
               },
             ]}
           />
