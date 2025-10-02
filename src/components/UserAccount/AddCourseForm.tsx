@@ -1,9 +1,10 @@
 // src/components/UserAccount/AddCourseForm.tsx
 import React, { useState } from 'react';
-import { TextField, Button, Grid } from '@mui/material';
+import { TextField, Button, Grid, Box, Typography } from '@mui/material';
 import { getFirestore, collection, getDocs, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { useUser } from '../../hooks/useUser';
 import { UserDetails } from '../../contexts/UserContext';
+import { colors, typography, spacing, borderRadius, shadows } from '../../config/designSystem';
 
 interface AddCourseFormProps {
   onCourseAdded: (message: string, severity: 'success' | 'error' | 'info') => void; // Callback to trigger when a course is successfully added or when an error occurs
@@ -87,24 +88,87 @@ const AddCourseForm: React.FC<AddCourseFormProps> = ({ onCourseAdded }) => {
   };
 
   return (
-    <div>
-      <Grid container spacing={2} sx={{ maxWidth: '50%' }}>
-        <Grid item xs={10}>
+    <Box
+      sx={{
+        p: spacing[4],
+        backgroundColor: colors.background.primary,
+        borderRadius: borderRadius.lg,
+        border: `1px solid ${colors.neutral[200]}`,
+        boxShadow: shadows.sm,
+        maxWidth: '600px',
+      }}
+    >
+      <Typography
+        variant="h6"
+        sx={{
+          mb: spacing[3],
+          fontFamily: typography.fontFamily.secondary,
+          fontWeight: typography.fontWeight.semibold,
+          color: colors.text.primary,
+        }}
+      >
+        Enter Course Passcode
+      </Typography>
+      
+      <Grid container spacing={spacing[3]} alignItems="center">
+        <Grid item xs={12} md={8}>
           <TextField
-            label="Enter Course Passcode"
+            label="Course Passcode"
             value={passcode}
             onChange={handlePasscodeChange}
             fullWidth
-            sx={{ mb: 2 }}
+            variant="outlined"
+            placeholder="Enter the passcode provided by your instructor"
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                fontFamily: typography.fontFamily.primary,
+                '& fieldset': {
+                  borderColor: colors.neutral[300],
+                },
+                '&:hover fieldset': {
+                  borderColor: colors.primary[400],
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: colors.primary[500],
+                },
+              },
+              '& .MuiInputLabel-root': {
+                fontFamily: typography.fontFamily.secondary,
+                color: colors.text.secondary,
+                '&.Mui-focused': {
+                  color: colors.primary[500],
+                },
+              },
+            }}
           />
         </Grid>
-        <Grid item xs={2} sx={{ display: 'flex', alignItems: 'center' }}>
-          <Button variant="contained" onClick={handleAddCourse}>
+        <Grid item xs={12} md={4}>
+          <Button
+            variant="contained"
+            onClick={handleAddCourse}
+            fullWidth
+            sx={{
+              fontFamily: typography.fontFamily.secondary,
+              fontWeight: typography.fontWeight.medium,
+              backgroundColor: colors.primary[500],
+              color: colors.text.inverse,
+              borderRadius: borderRadius.md,
+              textTransform: 'none',
+              py: spacing[2],
+              '&:hover': {
+                backgroundColor: colors.primary[600],
+              },
+              '&:disabled': {
+                backgroundColor: colors.neutral[300],
+                color: colors.text.disabled,
+              },
+            }}
+          >
             Add Course
           </Button>
         </Grid>
       </Grid>
-    </div>
+    </Box>
   );
 };
 
