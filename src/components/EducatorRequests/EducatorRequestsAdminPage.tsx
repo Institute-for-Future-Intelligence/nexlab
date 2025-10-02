@@ -3,7 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { Box, Typography, Button, Snackbar, Alert, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Select, MenuItem } from '@mui/material';
 import { getFirestore, collection, getDocs, getDoc, doc, updateDoc, addDoc, arrayUnion } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
-import { PageHeader } from '../common';
+import { 
+  PageHeader,
+  generateInstructorRequestApprovalEmail,
+  createEmailDocument,
+  type InstructorRequestApprovalData
+} from '../common';
 import { colors, typography, spacing } from '../../config/designSystem';
 import ModernEducatorRequestsTable from './ModernEducatorRequestsTable';
 
@@ -46,13 +51,20 @@ const EducatorRequestsAdminPage: React.FC = () => {
         ...doc.data()
       })) as EducatorRequest[];
 
+      // Sort requests by timestamp (most recent first)
+      const sortedRequests = fetchedRequests.sort((a, b) => {
+        const timestampA = a.timestamp?.seconds || 0;
+        const timestampB = b.timestamp?.seconds || 0;
+        return timestampB - timestampA; // Descending order (newest first)
+      });
+
       const courseSnapshot = await getDocs(collection(db, 'courses'));
       const fetchedCourses = courseSnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
 
-      setRequests(fetchedRequests);
+      setRequests(sortedRequests);
       setCourses(fetchedCourses);
     };
     fetchRequestsAndCourses();
@@ -132,6 +144,56 @@ const EducatorRequestsAdminPage: React.FC = () => {
           courseId: courseDocRef.id,
           passcode,
         });
+
+        // Send user-friendly approval email to the user
+        const userApprovalEmailData: InstructorRequestApprovalData = {
+          firstName: currentRequestData.firstName,
+          lastName: currentRequestData.lastName,
+          email: currentRequestData.email,
+          institution: currentRequestData.institution,
+          courseNumber: currentRequestData.courseNumber,
+          courseTitle: currentRequestData.courseTitle,
+          requestType: currentRequestData.requestType,
+          passcode,
+          courseId: courseDocRef.id,
+          requestId: currentRequestId,
+          approvedAt: new Date().toISOString()
+        };
+
+        const userApprovalEmailHtml = generateInstructorRequestApprovalEmail(userApprovalEmailData);
+        const userApprovalEmailDoc = createEmailDocument(
+          [currentRequestData.email],
+          'Instructor Request Approved - NexLAB',
+          userApprovalEmailHtml
+        );
+        await addDoc(collection(db, 'mail'), userApprovalEmailDoc);
+
+        // Send super-admin notification about the approval
+        const adminApprovalEmailDoc = {
+          to: ['andriy@intofuture.org', 'dylan@intofuture.org'],
+          message: {
+            subject: 'Educator Request Approved - NexLAB',
+            html: `
+              <p>An educator request has been approved:</p>
+              <p><strong>Name:</strong> ${currentRequestData.firstName} ${currentRequestData.lastName}</p>
+              <p><strong>Email:</strong> ${currentRequestData.email}</p>
+              <p><strong>Institution:</strong> ${currentRequestData.institution}</p>
+              <p><strong>Course:</strong> ${currentRequestData.courseNumber} - ${currentRequestData.courseTitle}</p>
+              <p><strong>Request Type:</strong> ${currentRequestData.requestType === 'primary' ? 'Primary Instructor' : 'Co-Instructor'}</p>
+              <p><strong>Course ID:</strong> ${courseDocRef.id}</p>
+              <p><strong>Passcode:</strong> ${passcode}</p>
+              <p><strong>Request ID:</strong> ${currentRequestId}</p>
+              <p><strong>Approved:</strong> ${new Date().toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}</p>
+            `,
+          },
+        };
+        await addDoc(collection(db, 'mail'), adminApprovalEmailDoc);
   
       } else if (currentRequestData.requestType === 'co-instructor') {
         if (!selectedCourseId) {
@@ -171,15 +233,69 @@ const EducatorRequestsAdminPage: React.FC = () => {
           status: 'approved',
           courseId: selectedCourseId,
         });
+
+        // Send user-friendly approval email to the co-instructor
+        const coInstructorApprovalEmailData: InstructorRequestApprovalData = {
+          firstName: currentRequestData.firstName,
+          lastName: currentRequestData.lastName,
+          email: currentRequestData.email,
+          institution: currentRequestData.institution,
+          courseNumber: currentRequestData.courseNumber,
+          courseTitle: currentRequestData.courseTitle,
+          requestType: currentRequestData.requestType,
+          courseId: selectedCourseId,
+          requestId: currentRequestId,
+          approvedAt: new Date().toISOString()
+        };
+
+        const coInstructorApprovalEmailHtml = generateInstructorRequestApprovalEmail(coInstructorApprovalEmailData);
+        const coInstructorApprovalEmailDoc = createEmailDocument(
+          [currentRequestData.email],
+          'Instructor Request Approved - NexLAB',
+          coInstructorApprovalEmailHtml
+        );
+        await addDoc(collection(db, 'mail'), coInstructorApprovalEmailDoc);
+
+        // Send super-admin notification about the co-instructor approval
+        const adminCoInstructorApprovalEmailDoc = {
+          to: ['andriy@intofuture.org', 'dylan@intofuture.org'],
+          message: {
+            subject: 'Co-Instructor Request Approved - NexLAB',
+            html: `
+              <p>A co-instructor request has been approved:</p>
+              <p><strong>Name:</strong> ${currentRequestData.firstName} ${currentRequestData.lastName}</p>
+              <p><strong>Email:</strong> ${currentRequestData.email}</p>
+              <p><strong>Institution:</strong> ${currentRequestData.institution}</p>
+              <p><strong>Course:</strong> ${currentRequestData.courseNumber} - ${currentRequestData.courseTitle}</p>
+              <p><strong>Request Type:</strong> Co-Instructor</p>
+              <p><strong>Course ID:</strong> ${selectedCourseId}</p>
+              <p><strong>Request ID:</strong> ${currentRequestId}</p>
+              <p><strong>Approved:</strong> ${new Date().toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}</p>
+            `,
+          },
+        };
+        await addDoc(collection(db, 'mail'), adminCoInstructorApprovalEmailDoc);
       }
   
       setSnackbarMessage('Request approved, and user promoted to educator.');
       setSnackbarSeverity('success');
-      setRequests((prevRequests) =>
-        prevRequests.map((request) =>
-          request.id === currentRequestId ? { ...request, status: 'approved' } : request
-        )
-      );
+      setRequests((prevRequests) => {
+        const updatedRequests = prevRequests.map((request) =>
+          request.id === currentRequestId ? { ...request, status: 'approved' as const } : request
+        );
+        // Maintain sorting by timestamp (most recent first)
+        return updatedRequests.sort((a, b) => {
+          const timestampA = a.timestamp?.seconds || 0;
+          const timestampB = b.timestamp?.seconds || 0;
+          return timestampB - timestampA;
+        });
+      });
     } catch (error) {
       console.error('Error approving request: ', error);
       setSnackbarMessage('Error approving the request. Please try again.');
@@ -198,7 +314,17 @@ const EducatorRequestsAdminPage: React.FC = () => {
       });
       setSnackbarMessage('Request denied.');
       setSnackbarSeverity('success');
-      setRequests(requests.map(request => request.id === currentRequestId ? { ...request, status: 'denied' } : request));
+      setRequests((prevRequests) => {
+        const updatedRequests = prevRequests.map(request => 
+          request.id === currentRequestId ? { ...request, status: 'denied' as const } : request
+        );
+        // Maintain sorting by timestamp (most recent first)
+        return updatedRequests.sort((a, b) => {
+          const timestampA = a.timestamp?.seconds || 0;
+          const timestampB = b.timestamp?.seconds || 0;
+          return timestampB - timestampA;
+        });
+      });
     } catch (error) {
       console.error('Error denying request: ', error);
       setSnackbarMessage('Error denying the request. Please try again.');
