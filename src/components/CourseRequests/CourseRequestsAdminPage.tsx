@@ -1,7 +1,7 @@
 // src/components/CourseRequests/CourseRequestsAdminPage.tsx
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Button, Snackbar, Alert, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
-import { getFirestore, collection, getDocs, getDoc, doc, updateDoc, addDoc, writeBatch, Timestamp } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, getDoc, doc, updateDoc, addDoc, writeBatch, Timestamp, deleteDoc } from 'firebase/firestore';
 import { ParsedCourseInfo, GeneratedMaterial } from '../../stores/syllabusStore';
 import type { Material } from '../../types/Material';
 import { PageHeader } from '../common';
@@ -52,7 +52,7 @@ const CourseRequestsAdminPage: React.FC = () => {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [currentAction, setCurrentAction] = useState<'approve' | 'deny' | null>(null);
+  const [currentAction, setCurrentAction] = useState<'approve' | 'deny' | 'delete' | null>(null);
   const [currentRequestId, setCurrentRequestId] = useState<string | null>(null);
   const [currentRequestData, setCurrentRequestData] = useState<CourseRequest | null>(null);
   const db = getFirestore();
@@ -66,7 +66,18 @@ const CourseRequestsAdminPage: React.FC = () => {
           ...doc.data()
         })) as CourseRequest[];
   
+        // Sort by timestamp (newest first), then by status (pending first)
         fetchedRequests.sort((a, b) => {
+          // First sort by timestamp (newest first)
+          const timestampA = a.timestamp?.seconds || 0;
+          const timestampB = b.timestamp?.seconds || 0;
+          const timestampDiff = timestampB - timestampA;
+          
+          if (timestampDiff !== 0) {
+            return timestampDiff;
+          }
+          
+          // If timestamps are equal, sort by status (pending first)
           if (a.status === 'pending' && b.status !== 'pending') return -1;
           if (a.status === 'approved' && b.status === 'denied') return -1;
           if (a.status === 'denied' && b.status === 'approved') return 1;
@@ -215,7 +226,7 @@ const CourseRequestsAdminPage: React.FC = () => {
   
       // Enhanced email notification
       const emailDoc = {
-        to: ['andriy@intofuture.org', 'dylan@intofuture.org'],
+        to: ['andriy@intofuture.org'],
         message: {
           subject: 'Your Course Request Has Been Approved',
           html: `
@@ -237,11 +248,27 @@ const CourseRequestsAdminPage: React.FC = () => {
         `Course request approved, course added${createdMaterialsCount > 0 ? ` with ${createdMaterialsCount} materials` : ''}.`
       );
       setSnackbarSeverity('success');
-      setRequests((prevRequests) =>
-        prevRequests.map((request) =>
-          request.id === currentRequestId ? { ...request, status: 'approved' } : request
-        )
-      );
+      setRequests((prevRequests) => {
+        const updatedRequests = prevRequests.map((request) =>
+          request.id === currentRequestId ? { ...request, status: 'approved' as const } : request
+        );
+        
+        // Re-sort after update
+        return updatedRequests.sort((a, b) => {
+          const timestampA = a.timestamp?.seconds || 0;
+          const timestampB = b.timestamp?.seconds || 0;
+          const timestampDiff = timestampB - timestampA;
+          
+          if (timestampDiff !== 0) {
+            return timestampDiff;
+          }
+          
+          if (a.status === 'pending' && b.status !== 'pending') return -1;
+          if (a.status === 'approved' && b.status === 'denied') return -1;
+          if (a.status === 'denied' && b.status === 'approved') return 1;
+          return 0;
+        });
+      });
     } catch (error) {
       console.error('Error approving request: ', error);
       setSnackbarMessage('Error approving the request. Please try again.');
@@ -260,7 +287,27 @@ const CourseRequestsAdminPage: React.FC = () => {
       });
       setSnackbarMessage('Course request denied.');
       setSnackbarSeverity('success');
-      setRequests(requests.map(request => request.id === currentRequestId ? { ...request, status: 'denied' } : request));
+      setRequests((prevRequests) => {
+        const updatedRequests = prevRequests.map(request => 
+          request.id === currentRequestId ? { ...request, status: 'denied' as const } : request
+        );
+        
+        // Re-sort after update
+        return updatedRequests.sort((a, b) => {
+          const timestampA = a.timestamp?.seconds || 0;
+          const timestampB = b.timestamp?.seconds || 0;
+          const timestampDiff = timestampB - timestampA;
+          
+          if (timestampDiff !== 0) {
+            return timestampDiff;
+          }
+          
+          if (a.status === 'pending' && b.status !== 'pending') return -1;
+          if (a.status === 'approved' && b.status === 'denied') return -1;
+          if (a.status === 'denied' && b.status === 'approved') return 1;
+          return 0;
+        });
+      });
     } catch (error) {
       console.error('Error denying request: ', error);
       setSnackbarMessage('Error denying the request. Please try again.');
@@ -270,7 +317,42 @@ const CourseRequestsAdminPage: React.FC = () => {
     handleCloseDialog();
   };
 
-  const handleOpenDialog = (action: 'approve' | 'deny', requestId: string, requestData: CourseRequest) => {
+  const handleDelete = async () => {
+    if (!currentRequestId) return;
+
+    try {
+      await deleteDoc(doc(db, 'courseRequests', currentRequestId));
+      setSnackbarMessage('Course request deleted successfully.');
+      setSnackbarSeverity('success');
+      setRequests((prevRequests) => {
+        const updatedRequests = prevRequests.filter(request => request.id !== currentRequestId);
+        
+        // Re-sort after deletion
+        return updatedRequests.sort((a, b) => {
+          const timestampA = a.timestamp?.seconds || 0;
+          const timestampB = b.timestamp?.seconds || 0;
+          const timestampDiff = timestampB - timestampA;
+          
+          if (timestampDiff !== 0) {
+            return timestampDiff;
+          }
+          
+          if (a.status === 'pending' && b.status !== 'pending') return -1;
+          if (a.status === 'approved' && b.status === 'denied') return -1;
+          if (a.status === 'denied' && b.status === 'approved') return 1;
+          return 0;
+        });
+      });
+    } catch (error) {
+      console.error('Error deleting request: ', error);
+      setSnackbarMessage('Error deleting the request. Please try again.');
+      setSnackbarSeverity('error');
+    }
+    setOpenSnackbar(true);
+    handleCloseDialog();
+  };
+
+  const handleOpenDialog = (action: 'approve' | 'deny' | 'delete', requestId: string, requestData: CourseRequest) => {
     setCurrentAction(action);
     setCurrentRequestId(requestId);
     setCurrentRequestData(requestData);
@@ -302,6 +384,7 @@ const CourseRequestsAdminPage: React.FC = () => {
         sx={{ 
           mb: spacing[4],
           color: colors.text.secondary,
+          fontFamily: 'Gabarito, sans-serif',
         }}
       >
         Review and approve course creation requests from educators.
@@ -318,6 +401,10 @@ const CourseRequestsAdminPage: React.FC = () => {
           const request = requests.find(r => r.id === requestId);
           if (request) handleOpenDialog('deny', requestId, request);
         }}
+        onDelete={(requestId) => {
+          const request = requests.find(r => r.id === requestId);
+          if (request) handleOpenDialog('delete', requestId, request);
+        }}
         onViewSyllabus={(request) => {
         // You can add syllabus viewing logic here if needed
         if (request.syllabusData?.syllabusFile && 
@@ -332,7 +419,9 @@ const CourseRequestsAdminPage: React.FC = () => {
       {/* Confirmation Dialog */}
       <Dialog open={dialogOpen} onClose={handleCloseDialog}>
         <DialogTitle>
-          {currentAction === 'approve' ? 'Approve Course Request' : 'Deny Course Request'}
+          {currentAction === 'approve' ? 'Approve Course Request' : 
+           currentAction === 'deny' ? 'Deny Course Request' : 
+           'Delete Course Request'}
         </DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -376,8 +465,10 @@ const CourseRequestsAdminPage: React.FC = () => {
                   </Box>
                 )}
               </>
-            ) : (
+            ) : currentAction === 'deny' ? (
               'Are you sure you want to deny this course request?'
+            ) : (
+              'Are you sure you want to delete this course request? This action cannot be undone.'
             )}
           </DialogContentText>
         </DialogContent>
@@ -386,11 +477,17 @@ const CourseRequestsAdminPage: React.FC = () => {
             Cancel
           </Button>
           <Button 
-            onClick={currentAction === 'approve' ? handleApprove : handleDeny} 
-            color={currentAction === 'approve' ? 'success' : 'error'}
+            onClick={currentAction === 'approve' ? handleApprove : 
+                    currentAction === 'deny' ? handleDeny : 
+                    handleDelete} 
+            color={currentAction === 'approve' ? 'success' : 
+                   currentAction === 'deny' ? 'error' : 
+                   'error'}
             variant="contained"
           >
-            {currentAction === 'approve' ? 'Approve' : 'Deny'}
+            {currentAction === 'approve' ? 'Approve' : 
+             currentAction === 'deny' ? 'Deny' : 
+             'Delete'}
           </Button>
         </DialogActions>
       </Dialog>

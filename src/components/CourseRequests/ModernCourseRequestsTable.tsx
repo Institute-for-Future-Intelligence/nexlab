@@ -2,7 +2,7 @@
 import React from 'react';
 import { ModernTable, TableColumn, TextCell, StatusChip, DateCell, ActionButtons, CommonActionIcons, CopyableUserID, CourseHyperlink } from '../common';
 import { Box, Tooltip, IconButton } from '@mui/material';
-import { Description as SyllabusIcon } from '@mui/icons-material';
+import { Description as SyllabusIcon, Check as CheckIcon, Close as CloseIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { colors } from '../../config/designSystem';
 
 interface CourseRequest {
@@ -22,6 +22,7 @@ interface ModernCourseRequestsTableProps {
   loading?: boolean;
   onApprove: (requestId: string) => void;
   onDeny: (requestId: string) => void;
+  onDelete: (requestId: string) => void;
   onViewSyllabus?: (request: CourseRequest) => void;
 }
 
@@ -30,6 +31,7 @@ const ModernCourseRequestsTable: React.FC<ModernCourseRequestsTableProps> = ({
   loading = false,
   onApprove,
   onDeny,
+  onDelete,
   onViewSyllabus,
 }) => {
   const getStatusType = (status: string): 'success' | 'warning' | 'error' | 'info' | 'default' => {
@@ -78,7 +80,7 @@ const ModernCourseRequestsTable: React.FC<ModernCourseRequestsTableProps> = ({
     {
       id: 'courseDescription',
       label: 'Description',
-      width: '20%',
+      width: '15%',
       render: (value: string) => (
         <TextCell text={value} maxLength={60} variant="secondary" />
       ),
@@ -86,7 +88,7 @@ const ModernCourseRequestsTable: React.FC<ModernCourseRequestsTableProps> = ({
     {
       id: 'syllabusImported',
       label: 'Creation Method',
-      width: '12%',
+      width: '10%',
       render: (value: boolean, row: CourseRequest) => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <TextCell text={getCreationMethod(row)} />
@@ -112,7 +114,7 @@ const ModernCourseRequestsTable: React.FC<ModernCourseRequestsTableProps> = ({
     {
       id: 'timestamp',
       label: 'Submitted',
-      width: '10%',
+      width: '8%',
       render: (value: { seconds: number; nanoseconds: number }) => (
         <DateCell date={new Date(value.seconds * 1000)} format="full" />
       ),
@@ -120,7 +122,7 @@ const ModernCourseRequestsTable: React.FC<ModernCourseRequestsTableProps> = ({
     {
       id: 'status',
       label: 'Status',
-      width: '8%',
+      width: '7%',
       render: (value: string) => (
         <StatusChip label={value} status={getStatusType(value)} />
       ),
@@ -128,15 +130,17 @@ const ModernCourseRequestsTable: React.FC<ModernCourseRequestsTableProps> = ({
     {
       id: 'actions',
       label: 'Actions',
-      width: '10%',
+      width: '15%',
       align: 'center',
       render: (value: unknown, row: CourseRequest) => {
         const isPending = row.status === 'pending';
+        const isProcessed = row.status === 'approved' || row.status === 'denied';
+        
         return (
           <ActionButtons
             actions={[
               {
-                icon: CommonActionIcons.add,
+                icon: <CheckIcon />,
                 tooltip: isPending ? 'Approve Request' : 'Already processed',
                 onClick: () => onApprove(row.id),
                 disabled: !isPending,
@@ -144,12 +148,20 @@ const ModernCourseRequestsTable: React.FC<ModernCourseRequestsTableProps> = ({
                 hoverColor: colors.success + '20',
               },
               {
-                icon: CommonActionIcons.delete,
+                icon: <CloseIcon />,
                 tooltip: isPending ? 'Deny Request' : 'Already processed',
                 onClick: () => onDeny(row.id),
                 disabled: !isPending,
                 color: colors.error,
                 hoverColor: colors.error + '20',
+              },
+              {
+                icon: <DeleteIcon />,
+                tooltip: isProcessed ? 'Delete Request' : 'Request must be approved or denied first',
+                onClick: () => onDelete(row.id),
+                disabled: !isProcessed,
+                color: colors.text.secondary,
+                hoverColor: colors.text.secondary + '20',
               },
             ]}
           />

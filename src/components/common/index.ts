@@ -29,3 +29,14 @@ export { default as FormContainer } from './FormContainer';
 export { default as FormSection } from './FormSection';
 export { default as FormField, FormSelect } from './FormField';
 export { default as FormActions, FormActionButton } from './FormActions';
+
+// Email templates
+export { 
+  generateInstructorRequestSubmissionEmail, 
+  generateInstructorRequestApprovalEmail,
+  createEmailDocument 
+} from './EmailTemplates';
+export type { 
+  InstructorRequestSubmissionData, 
+  InstructorRequestApprovalData 
+} from './EmailTemplates';

@@ -9,6 +9,9 @@ interface Course {
   number: string;
   title: string;
   courseAdmin: string[];
+  createdAt?: Date;
+  courseCreatedAt?: Date;
+  timestamp?: Date;
 }
 
 interface ModernSuperAdminCourseTableProps {
@@ -50,11 +53,29 @@ const ModernSuperAdminCourseTable: React.FC<ModernSuperAdminCourseTableProps> = 
     );
   };
 
+  const renderCreatedDate = (course: Course) => {
+    const createdDate = course.courseCreatedAt || course.createdAt || course.timestamp;
+    
+    if (!createdDate) {
+      return <TextCell text="Unknown" variant="secondary" />;
+    }
+
+    const formattedDate = createdDate.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    return <TextCell text={formattedDate} />;
+  };
+
   const columns: TableColumn<Course>[] = [
     {
       id: 'number',
       label: 'Course',
-      width: '35%',
+      width: '30%',
       render: (value: string, row: Course) => {
         const isAdmin = isCourseAdmin(row);
         return (
@@ -86,15 +107,21 @@ const ModernSuperAdminCourseTable: React.FC<ModernSuperAdminCourseTableProps> = 
     {
       id: 'id',
       label: 'Course ID',
-      width: '20%',
+      width: '15%',
       render: (value: string) => (
         <CopyableCourseID courseId={value} />
       ),
     },
     {
+      id: 'createdAt',
+      label: 'Created',
+      width: '20%',
+      render: (value: unknown, row: Course) => renderCreatedDate(row),
+    },
+    {
       id: 'courseAdmin',
       label: 'Course Admins',
-      width: '25%',
+      width: '20%',
       render: (value: string[]) => renderCourseAdmins(value),
     },
     {
