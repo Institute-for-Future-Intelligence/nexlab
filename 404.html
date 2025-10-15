@@ -11,48 +11,25 @@
       // This script takes the current URL and converts the path and query
       // string into just a query string, and then redirects the browser
       // to the new URL with just a query string and hash fragment,
-      // e.g. https://user.github.io/repo-name/one/two?a=b&c=d#qwe becomes
-      // https://user.github.io/repo-name/?/one/two&a=b~and~c=d#qwe
+      // e.g. https://nexlab.bio/one/two?a=b&c=d#qwe becomes
+      // https://nexlab.bio/?/one/two&a=b~and~c=d#qwe
       // 
       // Note: this 404.html file must be at least 512 bytes for it to work
       // with Internet Explorer (it is currently > 512 bytes)
 
       var l = window.location;
       
-      // Check if user is accessing a URL without the /nexlab/ base path
-      // e.g., https://institute-for-future-intelligence.github.io/view-material/...
-      // should redirect to https://institute-for-future-intelligence.github.io/nexlab/view-material/...
-      if (l.hostname === 'institute-for-future-intelligence.github.io' && 
-          !l.pathname.startsWith('/nexlab/') && 
-          l.pathname !== '/' && 
-          (l.pathname.startsWith('/view-material/') || 
-           l.pathname.startsWith('/edit-material/') || 
-           l.pathname.startsWith('/supplemental-materials') ||
-           l.pathname.startsWith('/laboratory-notebooks') ||
-           l.pathname.startsWith('/course-management') ||
-           l.pathname.startsWith('/my-profile') ||
-           l.pathname.startsWith('/add-material') ||
-           l.pathname.startsWith('/chatbot-management'))) {
-        // Redirect to correct URL with base path
-        l.replace(l.protocol + '//' + l.hostname + '/nexlab' + l.pathname + l.search + l.hash);
-      } else {
-        // Standard SPA redirect for GitHub Pages
-        // If you're creating a Project Pages site and NOT using a custom domain,
-        // then set pathSegmentsToKeep to 1 (enterprise users may need to set it to > 1).
-        // This way the code will only replace the route part and not the real folder.
-        // For example: https://username.github.io/repo-name/one/two?a=b&c=d#qwe becomes
-        // https://username.github.io/repo-name/?/one/two&a=b~and~c=d#qwe
-        // Otherwise, leave pathSegmentsToKeep as 0.
-        var pathSegmentsToKeep = 1;
+      // Standard SPA redirect for custom domain (no base path needed)
+      // pathSegmentsToKeep = 0 since we're using root path
+      var pathSegmentsToKeep = 0;
 
-        l.replace(
-          l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
-          l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
-          l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
-          (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
-          l.hash
-        );
-      }
+      l.replace(
+        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+        l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
+        l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
+        (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+        l.hash
+      );
 
     </script>
   </head>
@@ -60,7 +37,7 @@
     <noscript>
       <h1>NexLAB</h1>
       <p>This site requires JavaScript to be enabled.</p>
-      <p><a href="/nexlab/">Go to homepage</a></p>
+      <p><a href="/">Go to homepage</a></p>
     </noscript>
   </body>
 </html>
