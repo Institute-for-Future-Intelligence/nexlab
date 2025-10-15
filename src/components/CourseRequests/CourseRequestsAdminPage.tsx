@@ -236,7 +236,7 @@ const CourseRequestsAdminPage: React.FC = () => {
             ${currentRequestData.syllabusImported && createdMaterialsCount > 0 ? 
               `<p><strong>Materials Created:</strong> ${createdMaterialsCount} materials have been automatically added to your course from your syllabus import.</p>` : ''
             }
-            <p><a href="https://institute-for-future-intelligence.github.io/nexlab/supplemental-materials">
+            <p><a href="https://nexlab.bio/supplemental-materials">
             Click here to view your course.
             </a></p>
           `,

@@ -119,7 +119,7 @@ const ChatbotRequestPage: React.FC = () => {
             <p><strong>Course:</strong> ${courseNumber} - ${courseTitle}</p>
             <p><strong>Material:</strong> ${materialTitle}</p>
             <p><strong>Request ID:</strong> ${chatbotRequestRef.id}</p>
-            <p><a href="https://institute-for-future-intelligence.github.io/nexlab/super-admin-chatbot-requests">
+            <p><a href="https://nexlab.bio/super-admin-chatbot-requests">
             Click here to review the request.
             </a></p>
           `,

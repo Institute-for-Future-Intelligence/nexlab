@@ -21,10 +21,10 @@
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage"
   },
-  "homepage": "https://institute-for-future-intelligence.github.io/nexlab/",
+  "homepage": "https://nexlab.bio/",
   "author": {
     "name": "Andriy Kashyrskyy",
-    "url": "https://institute-for-future-intelligence.github.io/nexlab/"
+    "url": "https://nexlab.bio/"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

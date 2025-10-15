@@ -4,8 +4,8 @@ import react from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command }) => ({
-  // Use base path only for production build, not for local development
-  base: command === 'build' ? '/nexlab/' : '/',
+  // Using root path for custom domain (nexlab.bio)
+  base: '/',
   plugins: [react()],
   optimizeDeps: {
     include: [

@@ -29,9 +29,9 @@ const MaterialHyperlink: React.FC<MaterialHyperlinkProps> = ({
       onClick();
     } else {
       // Default navigation to material view page
-      const isProduction = window.location.hostname.includes('github.io');
+      const isProduction = window.location.hostname === 'nexlab.bio';
       const baseUrl = isProduction 
-        ? 'https://institute-for-future-intelligence.github.io/nexlab'
+        ? 'https://nexlab.bio'
         : '';
       
       const url = `${baseUrl}/view-material/${materialId}?material=${materialId}`;

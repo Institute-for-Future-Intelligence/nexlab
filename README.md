@@ -39,7 +39,7 @@ To run this project locally:
 
 ## Deployment
 
-The application is deployed on GitHub Pages and can be accessed at [https://institute-for-future-intelligence.github.io/nexlab/](https://institute-for-future-intelligence.github.io/nexlab/).
+The application is deployed on GitHub Pages with a custom domain and can be accessed at [https://nexlab.bio/](https://nexlab.bio/).
 
 ## Built With
 

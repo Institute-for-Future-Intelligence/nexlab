@@ -46,7 +46,7 @@ const BaseEmailTemplate = ({
   children, 
   title, 
   appName = 'NexLAB', 
-  appUrl = 'https://institute-for-future-intelligence.github.io/nexlab',
+  appUrl = 'https://nexlab.bio',
   supportEmail = 'andriy@intofuture.org'
 }: {
   children: string;
@@ -268,7 +268,7 @@ const BaseEmailTemplate = ({
 export const generateInstructorRequestSubmissionEmail = (
   data: InstructorRequestSubmissionData,
   appName = 'NexLAB',
-  appUrl = 'https://institute-for-future-intelligence.github.io/nexlab'
+  appUrl = 'https://nexlab.bio'
 ): string => {
   const requestTypeLabel = data.requestType === 'primary' ? 'Primary Instructor' : 'Co-Instructor';
   const creationMethodLabel = data.courseCreationMode === 'syllabus' ? 'Syllabus Import' : 'Manual Entry';
@@ -341,7 +341,7 @@ export const generateInstructorRequestSubmissionEmail = (
 export const generateInstructorRequestApprovalEmail = (
   data: InstructorRequestApprovalData,
   appName = 'NexLAB',
-  appUrl = 'https://institute-for-future-intelligence.github.io/nexlab'
+  appUrl = 'https://nexlab.bio'
 ): string => {
   const requestTypeLabel = data.requestType === 'primary' ? 'Primary Instructor' : 'Co-Instructor';
   
