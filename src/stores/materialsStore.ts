@@ -71,20 +71,35 @@ export const useMaterialsStore = create<MaterialsState>()(
           const { db } = await import('../config/firestore');
           const { collection, query, where, onSnapshot, orderBy } = await import('firebase/firestore');
           
+          // ✅ FIXED: Query without orderBy to include materials with and without sequenceNumber
+          // Client-side sorting handles the ordering
           const q = query(
             collection(db, 'materials'), 
-            where('course', '==', courseId),
-            orderBy('timestamp', 'desc')
+            where('course', '==', courseId)
           );
           
           return new Promise((resolve) => {
             onSnapshot(q, (snapshot) => {
-              const materials = snapshot.docs.map(doc => ({
+              const materialsData = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...(doc.data() as Omit<Material, 'id'>)
               } as Material));
               
-              set({ materials, loading: false });
+              // ✅ Client-side sort: sequenceNumber (if exists) → timestamp fallback
+              const sortedMaterials = materialsData.sort((a, b) => {
+                // If both have sequenceNumber, sort by that
+                if (a.sequenceNumber !== undefined && b.sequenceNumber !== undefined) {
+                  return a.sequenceNumber - b.sequenceNumber;
+                }
+                // If only a has sequenceNumber, it comes first
+                if (a.sequenceNumber !== undefined) return -1;
+                // If only b has sequenceNumber, it comes first
+                if (b.sequenceNumber !== undefined) return 1;
+                // Neither has sequenceNumber, sort by timestamp (newer first)
+                return b.timestamp.toMillis() - a.timestamp.toMillis();
+              });
+              
+              set({ materials: sortedMaterials, loading: false });
               resolve(undefined);
             });
           });

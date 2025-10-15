@@ -1,7 +1,7 @@
 // src/components/EducatorRequests/EducatorRequestsAdminPage.tsx
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Button, Snackbar, Alert, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Select, MenuItem } from '@mui/material';
-import { getFirestore, collection, getDocs, getDoc, doc, updateDoc, addDoc, arrayUnion, deleteDoc } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, getDoc, doc, updateDoc, addDoc, arrayUnion, deleteDoc, writeBatch, Timestamp } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { 
   PageHeader,
@@ -26,6 +26,14 @@ interface EducatorRequest {
   requestType: 'primary' | 'co-instructor';
   timestamp: { seconds: number; nanoseconds: number };
   status: 'pending' | 'approved' | 'denied';
+  syllabusImported?: boolean; // ✅ Added for syllabus import support
+  syllabusData?: {
+    generatedMaterials?: any[]; // Materials generated from syllabus
+    parsedCourseInfo?: any;
+    aiExtractedInfo?: any;
+    storedSyllabusFile?: any;
+    metadata?: any;
+  };
 }
 
 const EducatorRequestsAdminPage: React.FC = () => {
@@ -155,6 +163,66 @@ const EducatorRequestsAdminPage: React.FC = () => {
           passcode,
         });
 
+        // ✅ FIXED: Create materials if syllabus was imported
+        let createdMaterialsCount = 0;
+        if (currentRequestData.syllabusImported && currentRequestData.syllabusData?.generatedMaterials) {
+          const batch = writeBatch(db);
+          
+          currentRequestData.syllabusData.generatedMaterials.forEach((material, index) => {
+            const materialRef = doc(collection(db, 'materials'));
+            const materialData = {
+              title: material.title || 'Untitled Material',
+              header: material.header || { title: '', content: '' },
+              footer: material.footer || { title: '', content: '' },
+              sections: (material.sections || []).map((section: any) => ({
+                ...section,
+                images: section.images || [],
+                links: section.links || [],
+                subsections: (section.subsections || []).map((subsection: any) => ({
+                  ...subsection,
+                  images: subsection.images || [],
+                  links: subsection.links || [],
+                  subSubsections: (subsection.subSubsections || []).map((subSubsection: any) => ({
+                    ...subSubsection,
+                    images: subSubsection.images || [],
+                    links: subSubsection.links || []
+                  }))
+                }))
+              })),
+              published: material.published || false, // Respect the published status from syllabus
+              course: courseDocRef.id,
+              author: currentRequestData.uid,
+              timestamp: Timestamp.now(),
+              sequenceNumber: index, // ✅ Maintains AI-generated order
+              createdAt: new Date(),
+              updatedAt: new Date()
+            };
+            
+            if (material.scheduledTimestamp) {
+              try {
+                const date = material.scheduledTimestamp instanceof Date 
+                  ? material.scheduledTimestamp 
+                  : new Date(material.scheduledTimestamp);
+                
+                // ✅ FIXED: Validate date before creating Timestamp
+                if (!isNaN(date.getTime())) {
+                  (materialData as any).scheduledTimestamp = Timestamp.fromDate(date);
+                } else {
+                  console.warn(`Invalid scheduledTimestamp for material "${material.title}", skipping...`);
+                }
+              } catch (error) {
+                console.warn(`Error converting scheduledTimestamp for material "${material.title}":`, error);
+              }
+            }
+            
+            batch.set(materialRef, materialData);
+            createdMaterialsCount++;
+          });
+          
+          await batch.commit();
+          console.log(`✅ Created ${createdMaterialsCount} materials from syllabus import`);
+        }
+
         // Send user-friendly approval email to the user
         const userApprovalEmailData: InstructorRequestApprovalData = {
           firstName: currentRequestData.firstName,
@@ -182,7 +250,7 @@ const EducatorRequestsAdminPage: React.FC = () => {
         const adminApprovalEmailDoc = {
           to: ['andriy@intofuture.org', 'dylan@intofuture.org'],
           message: {
-            subject: 'Educator Request Approved - NexLAB',
+            subject: `Educator Request Approved - NexLAB${createdMaterialsCount > 0 ? ` (${createdMaterialsCount} Materials Created)` : ''}`,
             html: `
               <p>An educator request has been approved:</p>
               <p><strong>Name:</strong> ${currentRequestData.firstName} ${currentRequestData.lastName}</p>
@@ -190,6 +258,7 @@ const EducatorRequestsAdminPage: React.FC = () => {
               <p><strong>Institution:</strong> ${currentRequestData.institution}</p>
               <p><strong>Course:</strong> ${currentRequestData.courseNumber} - ${currentRequestData.courseTitle}</p>
               <p><strong>Request Type:</strong> ${currentRequestData.requestType === 'primary' ? 'Primary Instructor' : 'Co-Instructor'}</p>
+              ${createdMaterialsCount > 0 ? `<p><strong>Syllabus Import:</strong> ✅ ${createdMaterialsCount} course materials were automatically created from syllabus</p>` : ''}
               <p><strong>Course ID:</strong> ${courseDocRef.id}</p>
               <p><strong>Passcode:</strong> ${passcode}</p>
               <p><strong>Request ID:</strong> ${currentRequestId}</p>

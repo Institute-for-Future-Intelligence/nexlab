@@ -601,26 +601,82 @@ export const useSyllabusStore = create<SyllabusState>()(
             // Use AI-enhanced material generation if available
             if (useAIProcessing && aiExtractedInfo) {
               try {
-                const geminiService = getGeminiService(); // API key from environment only
-                const aiMaterials = await geminiService.generateCourseMaterials(aiExtractedInfo, {
-                  includeWeeks: aiExtractedInfo.schedule.length, // Generate for all weeks/sessions
-                  materialTypes: ['overview', 'weekly', 'assignment']
+                // ✅ Update progress before starting AI generation
+                set({
+                  processingProgress: {
+                    stage: 'generating',
+                    percentage: 10,
+                    currentOperation: 'Preparing course materials structure...'
+                  }
                 });
                 
-                // Convert AI materials to GeneratedMaterial format if we got valid results
-                if (aiMaterials && aiMaterials.length > 0) {
-                  materials = aiMaterials.map((material: any) => ({
-                    id: material.id || generateId(),
-                    title: material.title || 'Generated Material',
-                    header: material.header || { title: "Header", content: `<p>${material.title || 'Material'}</p>` },
-                    footer: material.footer || { title: "Footer", content: "<p>Contact instructor for questions</p>" },
-                    sections: material.sections || [],
-                    published: material.published || false,
-                    scheduledTimestamp: material.scheduledTimestamp ? new Date(material.scheduledTimestamp) : undefined
-                  }));
-                } else {
-                  console.warn('AI material generation returned empty results, using fallback');
-                  materials = get().generateFallbackMaterials(parsedCourseInfo);
+                const geminiService = getGeminiService(); // API key from environment only
+                
+                // ✅ Update progress while AI is working
+                set({
+                  processingProgress: {
+                    stage: 'generating',
+                    percentage: 30,
+                    currentOperation: `Generating materials for ${aiExtractedInfo.schedule.length} weeks with AI...`
+                  }
+                });
+                
+                // ✅ Simulate progress during long AI operation
+                const progressInterval = setInterval(() => {
+                  const current = get().processingProgress;
+                  if (current && current.percentage < 75) {
+                    set({
+                      processingProgress: {
+                        ...current,
+                        percentage: Math.min(current.percentage + 5, 75)
+                      }
+                    });
+                  }
+                }, 2000); // Update every 2 seconds
+                
+                try {
+                  const aiMaterials = await geminiService.generateCourseMaterials(aiExtractedInfo, {
+                    includeWeeks: aiExtractedInfo.schedule.length, // Generate for all weeks/sessions
+                    materialTypes: ['overview', 'weekly', 'assignment']
+                  });
+                  
+                  clearInterval(progressInterval);
+                  
+                  // ✅ Update progress after AI completes
+                  set({
+                    processingProgress: {
+                      stage: 'generating',
+                      percentage: 80,
+                      currentOperation: 'Processing AI-generated materials...'
+                    }
+                  });
+                  
+                  // Convert AI materials to GeneratedMaterial format if we got valid results
+                  if (aiMaterials && aiMaterials.length > 0) {
+                    materials = aiMaterials.map((material: any) => ({
+                      id: material.id || generateId(),
+                      title: material.title || 'Generated Material',
+                      header: material.header || { title: "Header", content: `<p>${material.title || 'Material'}</p>` },
+                      footer: material.footer || { title: "Footer", content: "<p>Contact instructor for questions</p>" },
+                      sections: material.sections || [],
+                      published: material.published || false,
+                      scheduledTimestamp: material.scheduledTimestamp ? new Date(material.scheduledTimestamp) : undefined
+                    }));
+                  } else {
+                    console.warn('AI material generation returned empty results, using fallback');
+                    // ✅ Update progress for fallback
+                    set({
+                      processingProgress: {
+                        stage: 'generating',
+                        percentage: 60,
+                        currentOperation: 'AI returned empty results, using pattern-based generation...'
+                      }
+                    });
+                    materials = get().generateFallbackMaterials(parsedCourseInfo);
+                  }
+                } catch (aiError) {
+                  clearInterval(progressInterval);
+                  throw aiError; // Re-throw to be caught by outer catch
                 }
               } catch (aiError) {
                 console.warn('AI material generation failed, using fallback:', aiError);
@@ -629,13 +685,21 @@ export const useSyllabusStore = create<SyllabusState>()(
                   error: `AI material generation failed: ${aiError instanceof Error ? aiError.message : 'Unknown error'}. Using fallback material generation instead.`,
                   processingProgress: {
                     stage: 'generating',
-                    percentage: 75,
-                    currentOperation: 'AI material generation failed, using fallback...'
+                    percentage: 50,
+                    currentOperation: 'AI failed, switching to pattern-based generation...'
                   }
                 });
                 materials = get().generateFallbackMaterials(parsedCourseInfo);
               }
             } else {
+              // ✅ Update progress for pattern-based generation
+              set({
+                processingProgress: {
+                  stage: 'generating',
+                  percentage: 40,
+                  currentOperation: 'Generating materials using pattern-based approach...'
+                }
+              });
               materials = get().generateFallbackMaterials(parsedCourseInfo);
             }
             
@@ -765,17 +829,30 @@ export const useSyllabusStore = create<SyllabusState>()(
       }),
       {
         name: 'syllabus-store',
+        version: 1,
+        // ✅ FIXED: Improved persistence configuration to prevent stale state
         partialize: (state) => ({
-          // Only persist non-file data for performance
-          extractedText: state.extractedText,
-          extractionMetadata: state.extractionMetadata,
+          // Only persist the final results, not intermediate processing state
           storedSyllabusFile: state.storedSyllabusFile,
           aiExtractedInfo: state.aiExtractedInfo,
-          useAIProcessing: state.useAIProcessing,
           parsedCourseInfo: state.parsedCourseInfo,
           generatedMaterials: state.generatedMaterials,
-          currentStep: state.currentStep
-        })
+          // Don't persist: uploadedFile, extractedText, extractionMetadata, currentStep
+          // These should be regenerated on each session to avoid stale data
+        }),
+        migrate: (persistedState: any, version: number) => {
+          // Handle migration from version 0 (or no version) to version 1
+          if (version === 0) {
+            // Clear old state structure, keep only the new partialize fields
+            return {
+              storedSyllabusFile: persistedState?.storedSyllabusFile || null,
+              aiExtractedInfo: persistedState?.aiExtractedInfo || null,
+              parsedCourseInfo: persistedState?.parsedCourseInfo || null,
+              generatedMaterials: persistedState?.generatedMaterials || [],
+            };
+          }
+          return persistedState;
+        },
       }
     )
   )

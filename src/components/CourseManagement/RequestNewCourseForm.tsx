@@ -31,6 +31,11 @@ import {
   FormActionButton 
 } from '../common';
 import { colors, typography } from '../../config/designSystem';
+import { 
+  createUnifiedSyllabusData, 
+  validateSyllabusData,
+  type UnifiedSyllabusData 
+} from '../../utils/syllabusDataUtils';
 
 type CourseCreationMode = 'manual' | 'syllabus';
 
@@ -87,6 +92,8 @@ const RequestNewCourseForm: React.FC = () => {
     generatedMaterials, 
     aiExtractedInfo,
     storedSyllabusFile,
+    uploadedFile,
+    useAIProcessing,
     reset: resetSyllabus,
     currentStep 
   } = useSyllabusStore();
@@ -146,8 +153,8 @@ const RequestNewCourseForm: React.FC = () => {
 
   const handleSyllabusComplete = (data: { courseInfo: ParsedCourseInfo; materials: GeneratedMaterial[] }) => {
     console.log('Syllabus import completed:', data);
-    // Automatically trigger course creation when syllabus import is complete
-    handleRequestNewCourse();
+    // ✅ FIXED: No longer auto-submits - user must click submit button
+    // This gives users full control to review everything before submitting
   };
 
   const handleRequestNewCourse = async () => {
@@ -172,32 +179,20 @@ const RequestNewCourseForm: React.FC = () => {
         syllabusImported: false
       };
 
-      // Add syllabus data if imported
+      // Add syllabus data if imported using unified structure
       if (creationMode === 'syllabus' && parsedCourseInfo && generatedMaterials.length > 0) {
-        const syllabusData = {
-          parsedCourseInfo: parsedCourseInfo,
-          generatedMaterials: generatedMaterials.filter(m => m.published),
-          // Include additional information from AI extraction
-          additionalInfo: aiExtractedInfo ? {
-            contactInfo: aiExtractedInfo.contactInfo,
-            policies: aiExtractedInfo.policies,
-            additionalResources: aiExtractedInfo.additionalResources,
-            labSpecific: aiExtractedInfo.labSpecific,
-            textbooks: aiExtractedInfo.textbooks,
-            gradingPolicy: aiExtractedInfo.gradingPolicy,
-            assignments: aiExtractedInfo.assignments,
-            prerequisites: aiExtractedInfo.prerequisites
-          } : null,
-          // Include syllabus file reference
-          syllabusFile: storedSyllabusFile ? {
-            url: storedSyllabusFile.url,
-            path: storedSyllabusFile.path,
-            metadata: storedSyllabusFile.metadata
-          } : null
-        };
+        // ✅ FIXED: Using unified data structure for consistency
+        const unifiedData = createUnifiedSyllabusData(
+          parsedCourseInfo,
+          generatedMaterials, // Include ALL materials (published and drafts)
+          aiExtractedInfo,
+          storedSyllabusFile,
+          uploadedFile,
+          useAIProcessing
+        );
         
         // Clean the syllabus data to remove any undefined values
-        const cleanedSyllabusData = cleanDataForFirebase(syllabusData);
+        const cleanedSyllabusData = cleanDataForFirebase(unifiedData);
         
         baseRequestDoc.syllabusImported = true;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
