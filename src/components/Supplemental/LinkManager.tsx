@@ -106,7 +106,7 @@ const LinkManager: React.FC<LinkManagerProps> = ({ links, onLinksChange }) => {
                     <TextField
                       fullWidth
                       label="Link Title"
-                      value={link.title}
+                      value={link.title || ''}
                       onChange={(e) => handleLinkChange(index, 'title', e.target.value)}
                       variant="outlined"
                       size="small"
@@ -122,7 +122,7 @@ const LinkManager: React.FC<LinkManagerProps> = ({ links, onLinksChange }) => {
                     <TextField
                       fullWidth
                       label="URL"
-                      value={link.url}
+                      value={link.url || ''}
                       onChange={(e) => handleLinkChange(index, 'url', e.target.value)}
                       variant="outlined"
                       size="small"
@@ -140,7 +140,7 @@ const LinkManager: React.FC<LinkManagerProps> = ({ links, onLinksChange }) => {
                     <TextField
                       fullWidth
                       label="Description (Optional)"
-                      value={link.description}
+                      value={link.description || ''}
                       onChange={(e) => handleLinkChange(index, 'description', e.target.value)}
                       variant="outlined"
                       size="small"
