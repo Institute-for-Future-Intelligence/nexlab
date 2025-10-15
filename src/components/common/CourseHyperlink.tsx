@@ -37,9 +37,9 @@ const CourseHyperlink: React.FC<CourseHyperlinkProps> = ({
       onClick();
     } else {
       // Default navigation to supplemental materials page
-      const isProduction = window.location.hostname.includes('github.io');
+      const isProduction = window.location.hostname === 'nexlab.bio';
       const baseUrl = isProduction 
-        ? 'https://institute-for-future-intelligence.github.io/nexlab'
+        ? 'https://nexlab.bio'
         : '';
       
       const url = `${baseUrl}/supplemental-materials?course=${courseId}`;

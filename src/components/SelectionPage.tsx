@@ -204,7 +204,10 @@ const SelectionPage: React.FC = () => {
                   border: `1px solid ${colors.warning}`,
                 }
               }}
-              onClick={() => window.open('http://localhost:3002/view-material/xsA42JCvfCUtmyoyx45s?material=xsA42JCvfCUtmyoyx45s', '_blank')}
+              onClick={() => {
+                const baseUrl = window.location.hostname === 'nexlab.bio' ? 'https://nexlab.bio' : '';
+                window.open(`${baseUrl}/view-material/xsA42JCvfCUtmyoyx45s?material=xsA42JCvfCUtmyoyx45s`, '_blank');
+              }}
             >
               <CardContent sx={{ 
                 textAlign: 'center', 

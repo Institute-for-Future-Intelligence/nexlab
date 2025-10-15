@@ -36,8 +36,8 @@ const App = () => {
     );
   }
 
-  // Set basename conditionally: /nexlab/ for production, undefined for development
-  const basename = import.meta.env.PROD ? '/nexlab' : undefined;
+  // Using root path for custom domain (nexlab.bio)
+  const basename = undefined;
   
   // Create stable boolean to prevent Header re-mounting on userDetails changes
   const isLoggedIn = Boolean(userDetails?.uid);

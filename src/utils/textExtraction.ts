@@ -43,7 +43,7 @@ export const extractTextFromPDF = async (file: File): Promise<TextExtractionResu
     const pdfjsLib = await import('pdfjs-dist');
     
     // Set worker source for PDF.js - use local worker file served from public directory
-    const basePath = import.meta.env.DEV ? '' : '/nexlab';
+    const basePath = ''; // Using root path for custom domain
     pdfjsLib.GlobalWorkerOptions.workerSrc = `${basePath}/js/pdf.worker.min.js`;
     
     const arrayBuffer = await file.arrayBuffer();

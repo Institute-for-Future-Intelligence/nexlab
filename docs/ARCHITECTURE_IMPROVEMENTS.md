@@ -109,14 +109,14 @@ showSuccess('Operation successful!');
 
 #### ❌ **BEFORE:**
 ```
-https://institute-for-future-intelligence.github.io/nexlab/#/dashboard
-https://institute-for-future-intelligence.github.io/nexlab/#/materials
+https://nexlab.bio/#/dashboard
+https://nexlab.bio/#/materials
 ```
 
 #### ✅ **AFTER:**
 ```
-https://institute-for-future-intelligence.github.io/nexlab/dashboard
-https://institute-for-future-intelligence.github.io/nexlab/materials
+https://nexlab.bio/dashboard
+https://nexlab.bio/materials
 ```
 
 ---

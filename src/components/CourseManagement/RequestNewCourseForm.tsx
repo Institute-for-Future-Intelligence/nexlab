@@ -227,7 +227,7 @@ const RequestNewCourseForm: React.FC = () => {
               `<p><strong>Generated Materials:</strong> ${generatedMaterials.filter(m => m.published).length} materials ready for publication</p>` : ''
             }
             <p><strong>Request ID:</strong> ${courseRequestRef.id}</p>
-            <p><a href="https://institute-for-future-intelligence.github.io/nexlab/course-requests">
+            <p><a href="https://nexlab.bio/course-requests">
             Click here to review the request.
             </a></p>
           `,
