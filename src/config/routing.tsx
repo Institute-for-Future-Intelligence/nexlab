@@ -138,15 +138,15 @@ export const createRoutes = (userDetails: any, isSuperAdmin: boolean): RouteObje
   },
   {
     path: "/request-new-course",
-    element: <RequestNewCourseForm />
+    element: <PrivateRoute element={RequestNewCourseForm} />
   },
   {
     path: "/course-requests",
-    element: <CourseRequestsAdminPage />
+    element: <PrivateRoute element={CourseRequestsAdminPage} />
   },
   {
     path: "/super-admin-course-management",
-    element: <SuperAdminCourseManagement />
+    element: <PrivateRoute element={SuperAdminCourseManagement} />
   },
   {
     path: "/super-admin-chatbot-requests",
@@ -171,10 +171,10 @@ export const createRoutes = (userDetails: any, isSuperAdmin: boolean): RouteObje
 
 // Route groups for better organization
 export const routeGroups = {
-  public: ['/request-new-course', '/course-requests', '/super-admin-course-management'],
+  public: [],  // All routes now require authentication
   authenticated: ['/laboratory-notebook', '/supplemental-materials', '/my-profile'],
   materials: ['/add-material', '/edit-material/:id', '/view-material/:id'],
   messages: ['/add-message', '/edit-message/:id'],
-  educator: ['/chatbot-management', '/course-management', '/request-chatbot', '/request-educator-permissions', '/educator-requests'],
-  superAdmin: ['/user-management', '/chatbot-conversations', '/super-admin-chatbot-requests', '/quiz-management']
+  educator: ['/chatbot-management', '/course-management', '/request-chatbot', '/request-educator-permissions', '/educator-requests', '/request-new-course', '/course-requests'],
+  superAdmin: ['/user-management', '/chatbot-conversations', '/super-admin-chatbot-requests', '/super-admin-course-management', '/quiz-management']
 }; 
