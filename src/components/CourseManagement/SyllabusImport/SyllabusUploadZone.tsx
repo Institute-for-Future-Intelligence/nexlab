@@ -299,7 +299,6 @@ const SyllabusUploadZone: React.FC<SyllabusUploadZoneProps> = ({
         <Typography variant="body2" color="text.secondary" component="ul" sx={{ m: 0, pl: 2 }}>
           <li>Include course objectives and weekly schedule</li>
           <li>List reading assignments and materials</li>
-          <li>Text files (.txt) work best for parsing</li>
           <li>Ensure text is well-structured with clear headings</li>
         </Typography>
       </Paper>

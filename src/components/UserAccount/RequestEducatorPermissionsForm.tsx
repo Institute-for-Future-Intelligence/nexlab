@@ -38,6 +38,11 @@ import {
   type InstructorRequestSubmissionData
 } from '../common';
 import { colors, typography } from '../../config/designSystem';
+import { 
+  createUnifiedSyllabusData, 
+  validateSyllabusData,
+  type UnifiedSyllabusData 
+} from '../../utils/syllabusDataUtils';
 
 type CourseCreationMode = 'manual' | 'syllabus';
 
@@ -97,6 +102,10 @@ const RequestEducatorPermissionsForm: React.FC = () => {
   const { 
     parsedCourseInfo, 
     generatedMaterials, 
+    aiExtractedInfo,
+    storedSyllabusFile,
+    uploadedFile,
+    useAIProcessing,
     reset: resetSyllabus,
     currentStep 
   } = useSyllabusStore();
@@ -206,15 +215,20 @@ const RequestEducatorPermissionsForm: React.FC = () => {
         syllabusImported: false
       };
 
-      // Add syllabus data if imported and primary instructor
+      // Add syllabus data if imported and primary instructor using unified structure
       if (requestType === 'primary' && courseCreationMode === 'syllabus' && parsedCourseInfo && generatedMaterials.length > 0) {
-        const syllabusData = {
-          parsedCourseInfo: parsedCourseInfo,
-          generatedMaterials: generatedMaterials.filter(m => m.published)
-        };
+        // ✅ FIXED: Using unified data structure for consistency with RequestNewCourseForm
+        const unifiedData = createUnifiedSyllabusData(
+          parsedCourseInfo,
+          generatedMaterials, // Include ALL materials (published and drafts)
+          aiExtractedInfo,
+          storedSyllabusFile,
+          uploadedFile,
+          useAIProcessing
+        );
         
         // Clean the syllabus data to remove any undefined values
-        const cleanedSyllabusData = cleanDataForFirebase(syllabusData);
+        const cleanedSyllabusData = cleanDataForFirebase(unifiedData);
         
         baseRequestDoc.syllabusImported = true;
         (baseRequestDoc as any).syllabusData = cleanedSyllabusData;
@@ -473,6 +487,7 @@ const RequestEducatorPermissionsForm: React.FC = () => {
           <SyllabusImport
             onComplete={handleSyllabusComplete}
             onCancel={() => setCourseCreationMode('manual')}
+            educatorUid={userDetails?.uid} // ✅ FIXED: Pass educator UID to enable file storage
           />
         )}
 

@@ -171,7 +171,7 @@ const CourseRequestsAdminPage: React.FC = () => {
       if (currentRequestData.syllabusImported && currentRequestData.syllabusData?.generatedMaterials) {
         const batch = writeBatch(db);
         
-        currentRequestData.syllabusData.generatedMaterials.forEach((material) => {
+        currentRequestData.syllabusData.generatedMaterials.forEach((material, index) => {
           const materialRef = doc(collection(db, 'materials')); // Let Firestore auto-generate ID
           const materialData: Omit<Material, 'id'> & { 
             createdAt: Date; 
@@ -200,12 +200,26 @@ const CourseRequestsAdminPage: React.FC = () => {
             course: courseDocRef.id, // Changed from courseId to course
             author: currentRequestData.uid, // Changed from createdBy to author
             timestamp: Timestamp.now(), // Added timestamp field for ordering
+            sequenceNumber: index, // ✅ Maintains AI-generated order
             createdAt: new Date(),
             updatedAt: new Date()
           };
           
           if (material.scheduledTimestamp) {
-            materialData.scheduledTimestamp = Timestamp.fromDate(material.scheduledTimestamp);
+            try {
+              const date = material.scheduledTimestamp instanceof Date 
+                ? material.scheduledTimestamp 
+                : new Date(material.scheduledTimestamp);
+              
+              // ✅ FIXED: Validate date before creating Timestamp
+              if (!isNaN(date.getTime())) {
+                materialData.scheduledTimestamp = Timestamp.fromDate(date);
+              } else {
+                console.warn(`Invalid scheduledTimestamp for material "${material.title}", skipping...`);
+              }
+            } catch (error) {
+              console.warn(`Error converting scheduledTimestamp for material "${material.title}":`, error);
+            }
           }
           
           batch.set(materialRef, materialData);

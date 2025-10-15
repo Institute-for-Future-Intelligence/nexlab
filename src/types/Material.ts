@@ -37,6 +37,7 @@ export interface Material {
   timestamp: Timestamp;
   published: boolean;
   scheduledTimestamp?: Timestamp;
+  sequenceNumber?: number; // ✅ For ordering materials (AI-generated order, manual reordering)
   // Original file information for AI-imported materials
   originalFile?: {
     name: string;

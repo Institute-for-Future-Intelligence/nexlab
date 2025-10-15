@@ -53,9 +53,18 @@ const MaterialsTabsModern: React.FC<MaterialsTabsModernProps> = ({
 
     setLoading(true);
     
+    // ✅ FIXED: Query without orderBy to include materials with and without sequenceNumber
+    // Client-side sorting handles the ordering
     const q = userDetails?.isAdmin
-      ? query(collection(db, 'materials'), where('course', '==', courseId), orderBy('timestamp', 'desc'))
-      : query(collection(db, 'materials'), where('course', '==', courseId), where('published', '==', true), orderBy('timestamp', 'desc'));
+      ? query(
+          collection(db, 'materials'), 
+          where('course', '==', courseId)
+        )
+      : query(
+          collection(db, 'materials'), 
+          where('course', '==', courseId), 
+          where('published', '==', true)
+        );
 
     const unsubscribe = onSnapshot(
       q,
@@ -64,7 +73,22 @@ const MaterialsTabsModern: React.FC<MaterialsTabsModernProps> = ({
           id: doc.id, 
           ...doc.data() 
         })) as Material[];
-        setMaterials(materialsData);
+        
+        // ✅ Client-side sort: sequenceNumber (if exists) → timestamp fallback
+        const sortedMaterials = materialsData.sort((a, b) => {
+          // If both have sequenceNumber, sort by that
+          if (a.sequenceNumber !== undefined && b.sequenceNumber !== undefined) {
+            return a.sequenceNumber - b.sequenceNumber;
+          }
+          // If only a has sequenceNumber, it comes first
+          if (a.sequenceNumber !== undefined) return -1;
+          // If only b has sequenceNumber, it comes first
+          if (b.sequenceNumber !== undefined) return 1;
+          // Neither has sequenceNumber, sort by timestamp (newer first for manual materials)
+          return b.timestamp.toMillis() - a.timestamp.toMillis();
+        });
+        
+        setMaterials(sortedMaterials);
         setLoading(false);
         setError(null);
       },
