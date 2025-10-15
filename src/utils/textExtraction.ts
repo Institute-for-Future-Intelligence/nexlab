@@ -217,13 +217,15 @@ export const extractTextFromPPTX = async (file: File): Promise<TextExtractionRes
                     mimeType = 'image/webp';
                   } else if (pathLower.includes('.emf') || pathLower.includes('.wmf')) {
                     // EMF/WMF files are vector formats that can't be directly displayed in browsers
-                    // Skip these for now - they need special conversion
-                    console.warn(`Skipping unsupported vector image format: ${fullImagePath}`);
-                    continue; // Skip this image entirely
-                  }
-                  
-                  imageBlob = new Blob([imageData], { type: mimeType });
-                  console.log(`Extracted image blob for slide ${slideNumber}:`, {
+                // Skip these for now - they need special conversion
+                console.warn(`Skipping unsupported vector image format: ${fullImagePath}`);
+                continue; // Skip this image entirely
+              }
+              
+              // ✅ FIXED: Create new ArrayBuffer copy for proper Blob creation
+              const arrayBuffer = imageData.slice(0).buffer as ArrayBuffer;
+              imageBlob = new Blob([arrayBuffer], { type: mimeType });
+              console.log(`Extracted image blob for slide ${slideNumber}:`, {
                     size: imageBlob.size,
                     type: mimeType,
                     path: fullImagePath

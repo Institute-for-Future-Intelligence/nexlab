@@ -74,7 +74,7 @@ export class MaterialImportService {
   constructor(apiKey: string) {
     this.genAI = new GoogleGenerativeAI(apiKey);
     this.model = this.genAI.getGenerativeModel({
-      model: 'gemini-1.5-pro',
+      model: 'gemini-2.5-pro', // ✅ FIXED: Using Gemini 2.5 (1.5 retired Sept 2025)
       generationConfig: {
         temperature: 0.2, // Slightly higher for creative structuring
         topK: 3,
