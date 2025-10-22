@@ -28,7 +28,7 @@ const UserNavigationCards: React.FC<UserNavigationCardsProps> = ({ userDetails }
       <Grid item xs={12}>
         <NavigationCard
           title="Laboratory Notebook"
-          onClick={() => navigate('/laboratory-notebooks')}
+          onClick={() => navigate('/laboratory-notebook')}
           disabled={isLabNotebookDisabled}
           disabledTooltip={labNotebookTooltip}
           lockIcon={isLabNotebookDisabled}
