@@ -57,7 +57,7 @@ const SelectionPage: React.FC = () => {
       title: 'Laboratory Notebook',
       description: 'Access your lab experiments and designs',
       icon: <LabIcon sx={{ fontSize: 40 }} />,
-      path: '/laboratory-notebooks',
+      path: '/laboratory-notebook',
       color: colors.success,
       disabled: isLabNotebookDisabled,
       external: false
