@@ -326,7 +326,10 @@ const ViewMaterialModern: React.FC = () => {
           borderRadius: 0,
         }}
       >
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {/* Back Button */}
+          <BackToAllMaterialsButton courseId={materialData?.course} />
+
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
             {/* Material Status */}
             <Chip
