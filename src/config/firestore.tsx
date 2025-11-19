@@ -3,6 +3,7 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage"; // Import getStorage for Firebase Storage
+import { getFunctions } from "firebase/functions"; // Import getFunctions for Firebase Functions
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -25,5 +26,8 @@ const db = getFirestore(app);
 // Initialize Firebase Storage and get a reference to the service
 const storage = getStorage(app);
 
-// Export the initialized Firebase app, Firestore db, and Storage
-export { app, db, storage };
+// Initialize Firebase Functions and get a reference to the service
+const functions = getFunctions(app);
+
+// Export the initialized Firebase app, Firestore db, Storage, and Functions
+export { app, db, storage, functions };

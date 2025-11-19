@@ -1,6 +1,6 @@
 // src/services/materialImportService.ts
 
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { callGeminiForMaterial } from './geminiProxyService';
 import { Material, Section, Subsection, SubSubsection } from '../types/Material';
 import { v4 as uuidv4 } from 'uuid';
 import { uploadExtractedImagesWithProgress, UploadedImage } from './imageUploadService';
@@ -67,20 +67,12 @@ export interface MaterialProcessingProgress {
 }
 
 export class MaterialImportService {
-  private genAI: GoogleGenerativeAI;
-  private model: any;
+  // No longer storing API key or model - using secure Firebase Functions proxy
   private activeBlobUrls: Set<string> = new Set();
 
-  constructor(apiKey: string) {
-    this.genAI = new GoogleGenerativeAI(apiKey);
-    this.model = this.genAI.getGenerativeModel({
-      model: 'gemini-3-pro-preview', // Using Gemini 3 Pro Preview (released Nov 18, 2025)
-      generationConfig: {
-        temperature: 1.0, // Gemini 3 requires temperature 1.0 (DO NOT CHANGE - see docs)
-        // topK/topP removed - Gemini 3 handles reasoning internally
-        maxOutputTokens: 16384,
-      }
-    });
+  constructor() {
+    // Constructor kept for backward compatibility but no longer needs API key
+    console.log('MaterialImportService initialized with secure proxy mode');
   }
 
   /**
@@ -160,9 +152,12 @@ export class MaterialImportService {
     });
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
+      // Use secure Firebase Functions proxy instead of direct API call
+      const text = await callGeminiForMaterial(prompt, {
+        thinkingLevel: 'low', // Low thinking for faster material processing
+        maxTokens: options?.maxOutputTokens || 16384,
+        mediaResolution: 'media_resolution_high'
+      });
 
       if (!text || text.trim().length === 0) {
         throw new Error('Empty response from AI service');
@@ -216,17 +211,17 @@ export class MaterialImportService {
       });
 
       if (error instanceof Error) {
-        // Check for leaked API key (403 error)
-        if (error.message.includes('leaked') || error.message.includes('reported as leaked')) {
-          throw new Error('API key has been reported as leaked and disabled by Google. Please generate a new API key from Google AI Studio (https://ai.google.dev) and update your VITE_GEMINI_MATERIAL_API_KEY or VITE_GEMINI_COURSE_API_KEY environment variable.');
-        } else if (error.message.includes('API_KEY_INVALID') || error.message.includes('API key not valid') || error.message.includes('Invalid API key')) {
-          throw new Error('Invalid API key. Please check your material import API key configuration. Get a new key from Google AI Studio: https://ai.google.dev');
-        } else if (error.message.includes('RATE_LIMIT_EXCEEDED') || error.message.includes('rate limit')) {
-          throw new Error('Rate limit exceeded. Please try again in a few minutes.');
-        } else if (error.message.includes('SAFETY')) {
-          throw new Error('Content flagged by safety filters. Please try with different content.');
-        } else if (error.message.includes('403')) {
-          throw new Error('Access denied (403). Your API key may be invalid, disabled, or reported as leaked. Please generate a new API key from Google AI Studio: https://ai.google.dev');
+        // Re-throw proxy errors as-is (they're already formatted)
+        if (error.message.includes('AI processing failed') || 
+            error.message.includes('Material processing failed') ||
+            error.message.includes('signed in') ||
+            error.message.includes('rate limit') ||
+            error.message.includes('API key configuration')) {
+          throw error;
+        }
+        // Re-throw parsing errors as-is
+        if (error.message.includes('AI response') || error.message.includes('JSON parsing')) {
+          throw error;
         }
       }
 
@@ -445,9 +440,12 @@ Return ONLY a JSON object with additional sections, images, or links:
 `;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
+      // Use secure Firebase Functions proxy
+      const text = await callGeminiForMaterial(prompt, {
+        thinkingLevel: 'low',
+        maxTokens: 8192,
+        mediaResolution: 'media_resolution_high'
+      });
 
       if (!text || text.trim().length === 0) {
         return null;
@@ -1375,30 +1373,16 @@ Return ONLY a JSON object with additional sections, images, or links:
 // Singleton instance for material import
 let materialImportService: MaterialImportService | null = null;
 
-export const getMaterialImportService = (apiKey?: string): MaterialImportService => {
-  // Use provided API key or fall back to dedicated material import key or general course key
-  const effectiveApiKey = apiKey || 
-    import.meta.env.VITE_GEMINI_MATERIAL_API_KEY || 
-    import.meta.env.VITE_GEMINI_COURSE_API_KEY;
-
-  if (!materialImportService && effectiveApiKey) {
-    materialImportService = new MaterialImportService(effectiveApiKey);
-  }
-
+export const getMaterialImportService = (): MaterialImportService => {
+  // No longer needs API key - uses secure Firebase Functions proxy
   if (!materialImportService) {
-    throw new Error('Material Import service not initialized. Please configure VITE_GEMINI_MATERIAL_API_KEY or VITE_GEMINI_COURSE_API_KEY environment variable.');
+    materialImportService = new MaterialImportService();
   }
 
   return materialImportService;
 };
 
-export const initializeMaterialImportService = (apiKey?: string): void => {
-  const effectiveApiKey = apiKey || 
-    import.meta.env.VITE_GEMINI_MATERIAL_API_KEY || 
-    import.meta.env.VITE_GEMINI_COURSE_API_KEY;
-    
-  if (!effectiveApiKey) {
-    throw new Error('API key is required. Please configure VITE_GEMINI_MATERIAL_API_KEY or VITE_GEMINI_COURSE_API_KEY environment variable.');
-  }
-  materialImportService = new MaterialImportService(effectiveApiKey);
+export const initializeMaterialImportService = (): void => {
+  // No longer needs API key - uses secure Firebase Functions proxy
+  materialImportService = new MaterialImportService();
 };

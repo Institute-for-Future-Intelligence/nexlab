@@ -11,8 +11,7 @@ interface ImportMetaEnv {
     readonly VITE_DEPLOY_ENV: string;
     readonly VITE_GOOGLE_ANALYTICS_ID: string;
     readonly VITE_CHATBOT_DEFAULT_ID: string;
-    readonly VITE_GEMINI_COURSE_API_KEY: string;
-    readonly VITE_GEMINI_MATERIAL_API_KEY: string;
+    // REMOVED: VITE_GEMINI_*_API_KEY - now handled securely by Firebase Functions
 }
 
 interface ImportMeta {

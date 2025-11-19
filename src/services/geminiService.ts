@@ -1,6 +1,6 @@
 // src/services/geminiService.ts
 
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { callGeminiForCourse } from './geminiProxyService';
 
 // Enhanced types for AI-extracted data
 export interface AIExtractedCourseInfo {
@@ -93,19 +93,10 @@ export interface GeminiProcessingOptions {
 }
 
 export class GeminiService {
-  private genAI: GoogleGenerativeAI;
-  private model: any;
-
-  constructor(apiKey: string) {
-    this.genAI = new GoogleGenerativeAI(apiKey);
-    this.model = this.genAI.getGenerativeModel({ 
-      model: 'gemini-3-pro-preview', // Using Gemini 3 Pro Preview (released Nov 18, 2025)
-      generationConfig: {
-        temperature: 1.0, // Gemini 3 requires temperature 1.0 (DO NOT CHANGE - see docs)
-        // topK/topP removed - Gemini 3 handles reasoning internally
-        maxOutputTokens: 16384,
-      }
-    });
+  // No longer storing API key or model - using secure Firebase Functions proxy
+  constructor() {
+    // Constructor kept for backward compatibility but no longer needs API key
+    console.log('GeminiService initialized with secure proxy mode');
   }
 
   /**
@@ -138,9 +129,11 @@ export class GeminiService {
     const prompt = this.buildSyllabusAnalysisPrompt(extractedText, fileName);
     
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
+      // Use secure Firebase Functions proxy instead of direct API call
+      const text = await callGeminiForCourse(prompt, {
+        thinkingLevel: 'high', // High thinking for complex syllabus analysis
+        maxTokens: options?.maxOutputTokens || 16384
+      });
       
       if (!text || text.trim().length === 0) {
         throw new Error('Empty response from AI service');
@@ -175,23 +168,16 @@ export class GeminiService {
     } catch (error) {
       console.error('Gemini API Error:', error);
       if (error instanceof Error) {
-        // Re-throw our custom errors as-is
-        if (error.message.includes('AI response') || error.message.includes('JSON parsing')) {
+        // Re-throw proxy errors as-is (they're already formatted)
+        if (error.message.includes('AI processing failed') || 
+            error.message.includes('signed in') ||
+            error.message.includes('rate limit') ||
+            error.message.includes('API key configuration')) {
           throw error;
         }
-        // Handle API-specific errors
-        // Check for leaked API key (403 error)
-        if (error.message.includes('leaked') || error.message.includes('reported as leaked')) {
-          throw new Error('API key has been reported as leaked and disabled by Google. Please generate a new API key from Google AI Studio (https://ai.google.dev) and update your VITE_GEMINI_COURSE_API_KEY environment variable.');
-        }
-        if (error.message.includes('API key') || error.message.includes('API_KEY_INVALID')) {
-          throw new Error('Invalid or missing Gemini API key. Please check your environment configuration. Get a new key from: https://ai.google.dev');
-        }
-        if (error.message.includes('quota') || error.message.includes('rate limit')) {
-          throw new Error('API rate limit exceeded. Please try again later.');
-        }
-        if (error.message.includes('403')) {
-          throw new Error('Access denied (403). Your API key may be invalid, disabled, or reported as leaked. Please generate a new API key from Google AI Studio: https://ai.google.dev');
+        // Re-throw our custom parsing errors as-is
+        if (error.message.includes('AI response') || error.message.includes('JSON parsing')) {
+          throw error;
         }
       }
       throw new Error(`Failed to process syllabus with AI: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -291,9 +277,11 @@ ${chunk}
 `;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
+      // Use secure Firebase Functions proxy
+      const text = await callGeminiForCourse(prompt, {
+        thinkingLevel: 'high',
+        maxTokens: 8192
+      });
       const cleanedText = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       return JSON.parse(cleanedText);
     } catch (error) {
@@ -618,9 +606,11 @@ Return ONLY a JSON array of materials with this structure:
 `;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
+      // Use secure Firebase Functions proxy
+      const text = await callGeminiForCourse(prompt, {
+        thinkingLevel: 'high',
+        maxTokens: 16384
+      });
       
       if (!text || text.trim().length === 0) {
         console.warn('Empty response from AI service for material generation');
@@ -665,25 +655,16 @@ Return ONLY a JSON array of materials with this structure:
 // Singleton instance
 let geminiService: GeminiService | null = null;
 
-export const getGeminiService = (apiKey?: string): GeminiService => {
-  // Use provided API key or fall back to environment variable
-  const effectiveApiKey = apiKey || import.meta.env.VITE_GEMINI_COURSE_API_KEY;
-  
-  if (!geminiService && effectiveApiKey) {
-    geminiService = new GeminiService(effectiveApiKey);
-  }
-  
+export const getGeminiService = (): GeminiService => {
+  // No longer needs API key - uses secure Firebase Functions proxy
   if (!geminiService) {
-    throw new Error('Gemini service not initialized. Please configure VITE_GEMINI_COURSE_API_KEY environment variable.');
+    geminiService = new GeminiService();
   }
   
   return geminiService;
 };
 
-export const initializeGeminiService = (apiKey?: string): void => {
-  const effectiveApiKey = apiKey || import.meta.env.VITE_GEMINI_COURSE_API_KEY;
-  if (!effectiveApiKey) {
-    throw new Error('API key is required. Please configure VITE_GEMINI_COURSE_API_KEY environment variable.');
-  }
-  geminiService = new GeminiService(effectiveApiKey);
+export const initializeGeminiService = (): void => {
+  // No longer needs API key - uses secure Firebase Functions proxy
+  geminiService = new GeminiService();
 };
