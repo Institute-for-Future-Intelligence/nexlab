@@ -20,9 +20,11 @@ Browser → Firebase Function → Gemini API (key stays server-side)
 
 ```bash
 cd functions
-npm install @google/genai@latest
+npm install @google/genai@latest  # New Gemini 3 SDK (NOT @google/generative-ai)
 cd ..
 ```
+
+**Important:** Gemini 3 uses the **NEW** `@google/genai` SDK, not the old `@google/generative-ai`. They have different APIs!
 
 ### Step 2: Configure API Keys Securely
 
@@ -73,9 +75,10 @@ import { functions } from '../config/firestore';
 
 interface GeminiRequest {
   prompt: string;
-  temperature?: number;
+  thinkingLevel?: 'low' | 'high'; // Gemini 3 thinking control
   maxTokens?: number;
   useMaterialKey?: boolean;
+  mediaResolution?: string; // For PDFs/images
 }
 
 interface GeminiResponse {
@@ -85,11 +88,12 @@ interface GeminiResponse {
 }
 
 /**
- * Call Gemini for course/syllabus processing (server-side)
+ * Call Gemini 3 for course/syllabus processing (server-side)
+ * Uses 'high' thinking level for complex reasoning
  */
 export const callGeminiForCourse = async (
   prompt: string,
-  options?: { temperature?: number; maxTokens?: number }
+  options?: { thinkingLevel?: 'low' | 'high'; maxTokens?: number }
 ): Promise<string> => {
   const processCourseWithGemini = httpsCallable<GeminiRequest, GeminiResponse>(
     functions,
@@ -99,7 +103,7 @@ export const callGeminiForCourse = async (
   try {
     const result = await processCourseWithGemini({
       prompt,
-      temperature: options?.temperature,
+      thinkingLevel: options?.thinkingLevel || 'high', // 'high' for complex reasoning
       maxTokens: options?.maxTokens,
     });
 
@@ -127,11 +131,12 @@ export const callGeminiForCourse = async (
 };
 
 /**
- * Call Gemini for material import processing (server-side)
+ * Call Gemini 3 for material import processing (server-side)
+ * Uses 'low' thinking level for faster processing
  */
 export const callGeminiForMaterial = async (
   prompt: string,
-  options?: { temperature?: number; maxTokens?: number }
+  options?: { thinkingLevel?: 'low' | 'high'; maxTokens?: number; mediaResolution?: string }
 ): Promise<string> => {
   const processMaterialWithGemini = httpsCallable<GeminiRequest, GeminiResponse>(
     functions,
@@ -141,9 +146,10 @@ export const callGeminiForMaterial = async (
   try {
     const result = await processMaterialWithGemini({
       prompt,
-      temperature: options?.temperature,
+      thinkingLevel: options?.thinkingLevel || 'low', // 'low' for faster processing
       maxTokens: options?.maxTokens,
       useMaterialKey: true,
+      mediaResolution: options?.mediaResolution || 'media_resolution_high', // For PDFs/images
     });
 
     if (!result.data.success) {
@@ -188,7 +194,7 @@ import { callGeminiForCourse } from './geminiProxyService';
 async processSyllabusText(text: string) {
   const prompt = `Process this syllabus: ${text}`;
   const response = await callGeminiForCourse(prompt, {
-    temperature: 0.1,
+    thinkingLevel: 'high', // Use high for complex syllabus analysis
     maxTokens: 16384
   });
   return JSON.parse(response);
@@ -209,8 +215,9 @@ import { callGeminiForMaterial } from './geminiProxyService';
 async processSingleMaterial(text: string) {
   const prompt = `Process this material: ${text}`;
   const response = await callGeminiForMaterial(prompt, {
-    temperature: 0.2,
-    maxTokens: 16384
+    thinkingLevel: 'low', // Use low for faster material processing
+    maxTokens: 16384,
+    mediaResolution: 'media_resolution_high' // For PDFs/images
   });
   return JSON.parse(response);
 }

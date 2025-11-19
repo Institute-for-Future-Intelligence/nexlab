@@ -5,14 +5,7 @@ import { GoogleGenAI } from "@google/genai";
 admin.initializeApp();
 
 // Initialize Gemini AI with API key from Firebase config
-const getGeminiAI = () => {
-  const apiKey = functions.config().gemini?.course_key || functions.config().gemini?.api_key;
-  if (!apiKey) {
-    throw new functions.https.HttpsError(
-      'failed-precondition',
-      'Gemini API key not configured. Run: firebase functions:config:set gemini.course_key="YOUR_KEY"'
-    );
-  }
+const getGeminiAI = (apiKey: string) => {
   return new GoogleGenAI({ apiKey });
 };
 
@@ -46,7 +39,7 @@ export const publishScheduledMaterials = functions.pubsub
   });
 
 /**
- * Cloud Function: Process Course/Syllabus with Gemini
+ * Cloud Function: Process Course/Syllabus with Gemini 3
  * Keeps API key server-side for security
  */
 export const processCourseWithGemini = functions
@@ -57,21 +50,35 @@ export const processCourseWithGemini = functions
       throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
     }
 
-    const { prompt, temperature = 0.1, maxTokens = 16384 } = data;
+    const { 
+      prompt, 
+      thinkingLevel = 'high', // 'low' | 'high' - Gemini 3 defaults to high
+      maxTokens = 16384 
+    } = data;
 
     if (!prompt) {
       throw new functions.https.HttpsError('invalid-argument', 'Prompt is required');
     }
 
     try {
-      const ai = getGeminiAI();
+      const apiKey = functions.config().gemini?.course_key || functions.config().gemini?.api_key;
+      if (!apiKey) {
+        throw new functions.https.HttpsError(
+          'failed-precondition',
+          'Gemini API key not configured. Run: firebase functions:config:set gemini.course_key="YOUR_KEY"'
+        );
+      }
+
+      const ai = getGeminiAI(apiKey);
       
       const response = await ai.models.generateContent({
-        model: "gemini-3-pro-preview", // Using latest Gemini 3
+        model: "gemini-3-pro-preview",
         contents: prompt,
-        generationConfig: {
-          temperature,
+        config: {
+          // Temperature should be 1.0 for Gemini 3 (do not change!)
+          temperature: 1.0,
           maxOutputTokens: maxTokens,
+          thinkingLevel: thinkingLevel,
         },
       });
 
@@ -96,8 +103,9 @@ export const processCourseWithGemini = functions
   });
 
 /**
- * Cloud Function: Process Material Import with Gemini
+ * Cloud Function: Process Material Import with Gemini 3
  * Separate function for material processing with dedicated API key option
+ * Uses 'low' thinking level for faster processing of materials
  */
 export const processMaterialWithGemini = functions
   .runWith({ timeoutSeconds: 540, memory: "2GB" }) // Longer timeout for large files
@@ -107,7 +115,13 @@ export const processMaterialWithGemini = functions
       throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
     }
 
-    const { prompt, temperature = 0.2, maxTokens = 16384, useMaterialKey = true } = data;
+    const { 
+      prompt, 
+      thinkingLevel = 'low', // Use 'low' for faster material processing
+      maxTokens = 16384, 
+      useMaterialKey = true,
+      mediaResolution = 'media_resolution_high', // For PDFs and images
+    } = data;
 
     if (!prompt) {
       throw new functions.https.HttpsError('invalid-argument', 'Prompt is required');
@@ -126,14 +140,18 @@ export const processMaterialWithGemini = functions
         );
       }
 
-      const ai = new GoogleGenAI({ apiKey });
+      const ai = getGeminiAI(apiKey);
       
       const response = await ai.models.generateContent({
-        model: "gemini-3-pro-preview", // Using latest Gemini 3
+        model: "gemini-3-pro-preview",
         contents: prompt,
-        generationConfig: {
-          temperature,
+        config: {
+          // Temperature should be 1.0 for Gemini 3 (do not change!)
+          temperature: 1.0,
           maxOutputTokens: maxTokens,
+          thinkingLevel: thinkingLevel,
+          // Media resolution for PDFs/images - can be overridden per request
+          mediaResolution: mediaResolution,
         },
       });
 
