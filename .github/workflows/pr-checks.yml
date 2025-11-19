@@ -45,7 +45,7 @@ jobs:
           # Application Configuration
           VITE_PUBLIC_COURSE_ID: ${{ secrets.VITE_PUBLIC_COURSE_ID }}
           VITE_CHATBOT_DEFAULT_ID: ${{ secrets.VITE_CHATBOT_DEFAULT_ID }}
-          VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
+          VITE_GEMINI_COURSE_API_KEY: ${{ secrets.VITE_GEMINI_COURSE_API_KEY }}
           VITE_GEMINI_MATERIAL_API_KEY: ${{ secrets.VITE_GEMINI_MATERIAL_API_KEY }}
 
   functions-checks:
