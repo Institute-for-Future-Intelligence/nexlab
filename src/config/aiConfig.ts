@@ -1,7 +1,7 @@
 // src/config/aiConfig.ts
+// NOTE: API keys are now handled securely by Firebase Functions (no client-side keys)
 
 export interface AIConfig {
-  geminiApiKey?: string;
   enableAIProcessing: boolean;
   maxRetries: number;
   timeout: number;
@@ -17,7 +17,6 @@ export const defaultAIConfig: AIConfig = {
 
 // Environment variable names
 export const AI_CONFIG_KEYS = {
-  GEMINI_API_KEY: 'VITE_GEMINI_COURSE_API_KEY',
   ENABLE_AI_PROCESSING: 'VITE_ENABLE_AI_PROCESSING',
   MAX_RETRIES: 'VITE_AI_MAX_RETRIES',
   TIMEOUT: 'VITE_AI_TIMEOUT',
@@ -29,7 +28,6 @@ export const AI_CONFIG_KEYS = {
  */
 export const loadAIConfig = (): AIConfig => {
   return {
-    geminiApiKey: import.meta.env[AI_CONFIG_KEYS.GEMINI_API_KEY] || undefined,
     enableAIProcessing: import.meta.env[AI_CONFIG_KEYS.ENABLE_AI_PROCESSING] !== 'false',
     maxRetries: parseInt(import.meta.env[AI_CONFIG_KEYS.MAX_RETRIES] || '3', 10),
     timeout: parseInt(import.meta.env[AI_CONFIG_KEYS.TIMEOUT] || '30000', 10),
@@ -43,9 +41,7 @@ export const loadAIConfig = (): AIConfig => {
 export const validateAIConfig = (config: AIConfig): { isValid: boolean; errors: string[] } => {
   const errors: string[] = [];
   
-  if (config.enableAIProcessing && !config.geminiApiKey) {
-    errors.push('Gemini API key is required when AI processing is enabled');
-  }
+  // API keys are now handled securely by Firebase Functions - no client-side validation needed
   
   if (config.maxRetries < 0 || config.maxRetries > 10) {
     errors.push('Max retries must be between 0 and 10');
