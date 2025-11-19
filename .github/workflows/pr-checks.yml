@@ -59,7 +59,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'  # Firebase Functions require Node 18
+          node-version: '20'  # Firebase Functions upgraded to Node 20
           cache: 'npm'
 
       - name: Install functions dependencies
