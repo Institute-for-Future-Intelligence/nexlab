@@ -191,7 +191,7 @@ interface LabSpecific {
 ### Environment Variables
 ```bash
 # Required for AI processing
-VITE_GEMINI_API_KEY=your_gemini_api_key
+VITE_GEMINI_COURSE_API_KEY=your_gemini_api_key
 
 # Optional configuration
 VITE_ENABLE_AI_PROCESSING=true
@@ -337,7 +337,7 @@ npm install @google/generative-ai
 ```
 
 ### Configuration
-1. **Set up environment variables** (VITE_GEMINI_API_KEY required)
+1. **Set up environment variables** (VITE_GEMINI_COURSE_API_KEY required)
 2. **Configure PDF.js worker** (automatic setup via npm scripts)
 3. **Test with sample syllabi** (provided in `public/test-samples/`)
 4. **Deploy with appropriate API limits** and error monitoring

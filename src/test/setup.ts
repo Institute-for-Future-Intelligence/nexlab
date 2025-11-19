@@ -52,7 +52,7 @@ beforeAll(() => {
   vi.stubEnv('VITE_FIREBASE_MESSAGING_SENDER_ID', 'test-sender-id');
   vi.stubEnv('VITE_FIREBASE_APP_ID', 'test-app-id');
   vi.stubEnv('VITE_PUBLIC_COURSE_ID', 'test-public-course-id');
-  vi.stubEnv('VITE_GEMINI_API_KEY', 'test-gemini-key');
+  vi.stubEnv('VITE_GEMINI_COURSE_API_KEY', 'test-gemini-course-key');
 });
 
 // Mock console methods to reduce noise in tests

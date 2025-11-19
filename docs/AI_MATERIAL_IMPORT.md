@@ -167,7 +167,7 @@ Three major issues were resolved to ensure complete PowerPoint import functional
 VITE_GEMINI_MATERIAL_API_KEY=your_material_import_api_key
 
 # Fallback to general Gemini API key
-VITE_GEMINI_API_KEY=your_general_gemini_api_key
+VITE_GEMINI_COURSE_API_KEY=your_general_gemini_api_key
 
 # Optional: Processing configuration
 VITE_ENABLE_AI_PROCESSING=true

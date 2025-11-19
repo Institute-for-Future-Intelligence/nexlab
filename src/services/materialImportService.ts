@@ -217,12 +217,17 @@ export class MaterialImportService {
       });
 
       if (error instanceof Error) {
-        if (error.message.includes('API_KEY_INVALID') || error.message.includes('API key')) {
-          throw new Error('Invalid API key. Please check your material import API key configuration.');
-        } else if (error.message.includes('RATE_LIMIT_EXCEEDED')) {
+        // Check for leaked API key (403 error)
+        if (error.message.includes('leaked') || error.message.includes('reported as leaked')) {
+          throw new Error('API key has been reported as leaked and disabled by Google. Please generate a new API key from Google AI Studio (https://ai.google.dev) and update your VITE_GEMINI_MATERIAL_API_KEY or VITE_GEMINI_COURSE_API_KEY environment variable.');
+        } else if (error.message.includes('API_KEY_INVALID') || error.message.includes('API key not valid') || error.message.includes('Invalid API key')) {
+          throw new Error('Invalid API key. Please check your material import API key configuration. Get a new key from Google AI Studio: https://ai.google.dev');
+        } else if (error.message.includes('RATE_LIMIT_EXCEEDED') || error.message.includes('rate limit')) {
           throw new Error('Rate limit exceeded. Please try again in a few minutes.');
         } else if (error.message.includes('SAFETY')) {
           throw new Error('Content flagged by safety filters. Please try with different content.');
+        } else if (error.message.includes('403')) {
+          throw new Error('Access denied (403). Your API key may be invalid, disabled, or reported as leaked. Please generate a new API key from Google AI Studio: https://ai.google.dev');
         }
       }
 
@@ -1372,17 +1377,17 @@ Return ONLY a JSON object with additional sections, images, or links:
 let materialImportService: MaterialImportService | null = null;
 
 export const getMaterialImportService = (apiKey?: string): MaterialImportService => {
-  // Use provided API key or fall back to dedicated material import key or general Gemini key
+  // Use provided API key or fall back to dedicated material import key or general course key
   const effectiveApiKey = apiKey || 
     import.meta.env.VITE_GEMINI_MATERIAL_API_KEY || 
-    import.meta.env.VITE_GEMINI_API_KEY;
+    import.meta.env.VITE_GEMINI_COURSE_API_KEY;
 
   if (!materialImportService && effectiveApiKey) {
     materialImportService = new MaterialImportService(effectiveApiKey);
   }
 
   if (!materialImportService) {
-    throw new Error('Material Import service not initialized. Please configure VITE_GEMINI_MATERIAL_API_KEY or VITE_GEMINI_API_KEY environment variable.');
+    throw new Error('Material Import service not initialized. Please configure VITE_GEMINI_MATERIAL_API_KEY or VITE_GEMINI_COURSE_API_KEY environment variable.');
   }
 
   return materialImportService;
@@ -1391,10 +1396,10 @@ export const getMaterialImportService = (apiKey?: string): MaterialImportService
 export const initializeMaterialImportService = (apiKey?: string): void => {
   const effectiveApiKey = apiKey || 
     import.meta.env.VITE_GEMINI_MATERIAL_API_KEY || 
-    import.meta.env.VITE_GEMINI_API_KEY;
+    import.meta.env.VITE_GEMINI_COURSE_API_KEY;
     
   if (!effectiveApiKey) {
-    throw new Error('API key is required. Please configure VITE_GEMINI_MATERIAL_API_KEY or VITE_GEMINI_API_KEY environment variable.');
+    throw new Error('API key is required. Please configure VITE_GEMINI_MATERIAL_API_KEY or VITE_GEMINI_COURSE_API_KEY environment variable.');
   }
   materialImportService = new MaterialImportService(effectiveApiKey);
 };

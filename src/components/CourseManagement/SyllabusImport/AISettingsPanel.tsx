@@ -184,7 +184,7 @@ const AISettingsPanel: React.FC<AISettingsPanelProps> = ({
                   <Typography variant="body2" color="text.secondary">
                     {configStatus?.isValid ? 
                       'Gemini API key is configured and ready for use.' :
-                      'Gemini API key is required. Please add VITE_GEMINI_API_KEY to your environment variables.'
+                      'Gemini API key is required. Please add VITE_GEMINI_COURSE_API_KEY to your environment variables.'
                     }
                   </Typography>
                 </Paper>

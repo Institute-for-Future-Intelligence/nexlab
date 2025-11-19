@@ -10,6 +10,7 @@ import {
   FormControlLabel,
   Divider,
   Alert,
+  AlertTitle,
   Accordion,
   AccordionSummary,
   AccordionDetails,
@@ -64,7 +65,7 @@ const AISettingsPanel: React.FC<AISettingsPanelProps> = ({
   };
 
   const isAPIKeyConfigured = () => {
-    return !!(import.meta.env.VITE_GEMINI_MATERIAL_API_KEY || import.meta.env.VITE_GEMINI_API_KEY);
+    return !!(import.meta.env.VITE_GEMINI_MATERIAL_API_KEY || import.meta.env.VITE_GEMINI_COURSE_API_KEY);
   };
 
   return (
@@ -79,9 +80,19 @@ const AISettingsPanel: React.FC<AISettingsPanelProps> = ({
       {/* API Key Status */}
       {!isAPIKeyConfigured() && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          <Typography variant="body2">
-            <strong>API Key Required:</strong> Please configure VITE_GEMINI_MATERIAL_API_KEY 
-            or VITE_GEMINI_API_KEY in your environment variables to use AI processing.
+          <AlertTitle>API Key Required</AlertTitle>
+          <Typography variant="body2" gutterBottom>
+            AI processing requires a Google Gemini API key. Please configure one of the following in your <code>.env</code> file:
+          </Typography>
+          <Box component="ul" sx={{ mt: 1, pl: 2 }}>
+            <li><code>VITE_GEMINI_MATERIAL_API_KEY</code> (dedicated key for material import)</li>
+            <li><code>VITE_GEMINI_COURSE_API_KEY</code> (course/syllabus key, used as fallback)</li>
+          </Box>
+          <Typography variant="body2" sx={{ mt: 1 }}>
+            Get your API key from: <a href="https://ai.google.dev" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', fontWeight: 'bold' }}>https://ai.google.dev</a>
+          </Typography>
+          <Typography variant="caption" sx={{ mt: 1, display: 'block', fontStyle: 'italic' }}>
+            After adding the key, restart your development server for changes to take effect.
           </Typography>
         </Alert>
       )}
