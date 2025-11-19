@@ -183,8 +183,8 @@ const AISettingsPanel: React.FC<AISettingsPanelProps> = ({
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     {configStatus?.isValid ? 
-                      'Gemini API key is configured and ready for use.' :
-                      'Gemini API key is required. Please add VITE_GEMINI_COURSE_API_KEY to your environment variables.'
+                      'AI processing is ready. API keys are securely managed by Firebase Functions.' :
+                      'Configuration check in progress...'
                     }
                   </Typography>
                 </Paper>
