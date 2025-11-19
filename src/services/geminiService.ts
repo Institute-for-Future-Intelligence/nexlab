@@ -181,11 +181,18 @@ export class GeminiService {
           throw error;
         }
         // Handle API-specific errors
-        if (error.message.includes('API key')) {
-          throw new Error('Invalid or missing Gemini API key. Please check your environment configuration.');
+        // Check for leaked API key (403 error)
+        if (error.message.includes('leaked') || error.message.includes('reported as leaked')) {
+          throw new Error('API key has been reported as leaked and disabled by Google. Please generate a new API key from Google AI Studio (https://ai.google.dev) and update your VITE_GEMINI_COURSE_API_KEY environment variable.');
+        }
+        if (error.message.includes('API key') || error.message.includes('API_KEY_INVALID')) {
+          throw new Error('Invalid or missing Gemini API key. Please check your environment configuration. Get a new key from: https://ai.google.dev');
         }
         if (error.message.includes('quota') || error.message.includes('rate limit')) {
           throw new Error('API rate limit exceeded. Please try again later.');
+        }
+        if (error.message.includes('403')) {
+          throw new Error('Access denied (403). Your API key may be invalid, disabled, or reported as leaked. Please generate a new API key from Google AI Studio: https://ai.google.dev');
         }
       }
       throw new Error(`Failed to process syllabus with AI: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -661,23 +668,23 @@ let geminiService: GeminiService | null = null;
 
 export const getGeminiService = (apiKey?: string): GeminiService => {
   // Use provided API key or fall back to environment variable
-  const effectiveApiKey = apiKey || import.meta.env.VITE_GEMINI_API_KEY;
+  const effectiveApiKey = apiKey || import.meta.env.VITE_GEMINI_COURSE_API_KEY;
   
   if (!geminiService && effectiveApiKey) {
     geminiService = new GeminiService(effectiveApiKey);
   }
   
   if (!geminiService) {
-    throw new Error('Gemini service not initialized. Please configure VITE_GEMINI_API_KEY environment variable.');
+    throw new Error('Gemini service not initialized. Please configure VITE_GEMINI_COURSE_API_KEY environment variable.');
   }
   
   return geminiService;
 };
 
 export const initializeGeminiService = (apiKey?: string): void => {
-  const effectiveApiKey = apiKey || import.meta.env.VITE_GEMINI_API_KEY;
+  const effectiveApiKey = apiKey || import.meta.env.VITE_GEMINI_COURSE_API_KEY;
   if (!effectiveApiKey) {
-    throw new Error('API key is required. Please configure VITE_GEMINI_API_KEY environment variable.');
+    throw new Error('API key is required. Please configure VITE_GEMINI_COURSE_API_KEY environment variable.');
   }
   geminiService = new GeminiService(effectiveApiKey);
 };

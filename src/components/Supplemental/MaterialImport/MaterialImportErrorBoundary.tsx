@@ -130,16 +130,25 @@ class MaterialImportErrorBoundary extends Component<
   private getErrorSuggestion = (error: Error): string => {
     const message = error.message.toLowerCase();
     
-    if (message.includes('api key')) {
-      return 'Please check your API key configuration in environment variables.';
+    // Check for leaked API key (most specific first)
+    if (message.includes('leaked') || message.includes('reported as leaked')) {
+      return 'Your API key has been reported as leaked by Google. Generate a new key from Google AI Studio (https://ai.google.dev), update your environment variables, and restart your development server. See docs/API_KEY_SECURITY.md for long-term security solutions.';
+    }
+    
+    if (message.includes('403') || message.includes('access denied')) {
+      return 'API access denied. Your API key may be invalid, expired, or restricted. Get a new key from https://ai.google.dev and update your VITE_GEMINI_MATERIAL_API_KEY or VITE_GEMINI_API_KEY environment variable.';
+    }
+    
+    if (message.includes('api key') || message.includes('api_key_invalid')) {
+      return 'Invalid API key configuration. Please check that VITE_GEMINI_MATERIAL_API_KEY or VITE_GEMINI_API_KEY is correctly set in your .env file. Get a valid key from https://ai.google.dev';
     }
     
     if (message.includes('network') || message.includes('fetch')) {
       return 'Please check your internet connection and try again.';
     }
     
-    if (message.includes('rate limit')) {
-      return 'You have exceeded the API rate limit. Please wait a few minutes before trying again.';
+    if (message.includes('rate limit') || message.includes('quota')) {
+      return 'You have exceeded the API rate limit or quota. Please wait a few minutes before trying again, or consider using a separate API key for material imports.';
     }
     
     if (message.includes('file') || message.includes('upload')) {

@@ -239,7 +239,7 @@ export const useMaterialImportStore = create<MaterialImportState>()(
             
             if (serviceError instanceof Error) {
               if (serviceError.message.includes('API key')) {
-                errorMessage = 'API key not configured. Please set VITE_GEMINI_MATERIAL_API_KEY or VITE_GEMINI_API_KEY environment variable.';
+                errorMessage = 'API key not configured. Please set VITE_GEMINI_MATERIAL_API_KEY or VITE_GEMINI_COURSE_API_KEY environment variable.';
               } else {
                 errorMessage = `Service error: ${serviceError.message}`;
               }

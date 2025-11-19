@@ -87,7 +87,7 @@ Verify that your GitHub repository secrets include the correct Firebase configur
 - `VITE_GOOGLE_ANALYTICS_ID` - Google Analytics ID (if used)
 - `VITE_PUBLIC_COURSE_ID` - Public course ID
 - `VITE_CHATBOT_DEFAULT_ID` - Default chatbot ID
-- `VITE_GEMINI_API_KEY` - Gemini API key
+- `VITE_GEMINI_COURSE_API_KEY` - Gemini API key
 - `VITE_GEMINI_MATERIAL_API_KEY` - Gemini Material API key
 
 **Note**: The `VITE_AUTH_DOMAIN` should remain as your Firebase project's auth domain (e.g., `your-project.firebaseapp.com`), NOT `nexlab.bio`. Firebase Auth uses this for OAuth redirects.

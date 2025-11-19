@@ -12,7 +12,7 @@ This document summarizes the critical improvements made to the AI-enhanced sylla
 
 **Solution**:
 - ✅ Removed all `apiKey` parameters from store methods
-- ✅ Updated `GeminiService` to use only environment variables (`VITE_GEMINI_API_KEY`)
+- ✅ Updated `GeminiService` to use only environment variables (`VITE_GEMINI_COURSE_API_KEY`)
 - ✅ Removed API key input UI components from `AISettingsPanel`
 - ✅ Secured all API calls to use environment-only configuration
 
@@ -155,7 +155,7 @@ interface ProcessingProgress {
 ### **Environment Setup**:
 ```bash
 # Add to your .env file
-VITE_GEMINI_API_KEY=your_actual_gemini_api_key_here
+VITE_GEMINI_COURSE_API_KEY=your_actual_gemini_api_key_here
 ```
 
 ### **Testing Large Documents**:
