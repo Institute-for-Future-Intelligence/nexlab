@@ -15,8 +15,10 @@
   },
   "main": "lib/index.js",
   "dependencies": {
+    "@cfworker/json-schema": "^4.1.1",
     "@google-cloud/storage": "^7.15.0",
     "@google/genai": "^1.0.0",
+    "@modelcontextprotocol/sdk": "^1.22.0",
     "firebase-admin": "^12.2.0",
     "firebase-functions": "^5.0.1"
   },

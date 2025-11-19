@@ -78,6 +78,7 @@ export const processCourseWithGemini = functions
           // Temperature should be 1.0 for Gemini 3 (do not change!)
           temperature: 1.0,
           maxOutputTokens: maxTokens,
+          // @ts-ignore - thinkingLevel is a new Gemini 3 feature, types not updated yet
           thinkingLevel: thinkingLevel,
         },
       });
@@ -149,8 +150,9 @@ export const processMaterialWithGemini = functions
           // Temperature should be 1.0 for Gemini 3 (do not change!)
           temperature: 1.0,
           maxOutputTokens: maxTokens,
+          // @ts-ignore - thinkingLevel is a new Gemini 3 feature, types not updated yet
           thinkingLevel: thinkingLevel,
-          // Media resolution for PDFs/images - can be overridden per request
+          // @ts-ignore - mediaResolution is a new Gemini 3 feature, types not updated yet
           mediaResolution: mediaResolution,
         },
       });
