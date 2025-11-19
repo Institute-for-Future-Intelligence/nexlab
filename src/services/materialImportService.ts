@@ -74,11 +74,10 @@ export class MaterialImportService {
   constructor(apiKey: string) {
     this.genAI = new GoogleGenerativeAI(apiKey);
     this.model = this.genAI.getGenerativeModel({
-      model: 'gemini-2.5-pro', // ✅ FIXED: Using Gemini 2.5 (1.5 retired Sept 2025)
+      model: 'gemini-3-pro-preview', // Using Gemini 3 Pro Preview (released Nov 18, 2025)
       generationConfig: {
-        temperature: 0.2, // Slightly higher for creative structuring
-        topK: 3,
-        topP: 0.9,
+        temperature: 1.0, // Gemini 3 requires temperature 1.0 (DO NOT CHANGE - see docs)
+        // topK/topP removed - Gemini 3 handles reasoning internally
         maxOutputTokens: 16384,
       }
     });
