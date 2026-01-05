@@ -88,8 +88,8 @@ const SuperAdminNavigationCards: React.FC = () => {
             </Box>
             <Box sx={{ mt: 1 }}>
               <NavigationCard
-                title="Chatbot Conversations"
-                onClick={() => navigate('/chatbot-conversations')}
+                title="Conversation Analysis"
+                onClick={() => navigate('/conversation-analysis')}
               />
             </Box>
             <Box sx={{ mt: 1 }}>
