@@ -8,7 +8,6 @@ import {
   CardContent,
   Grid,
   Chip,
-  LinearProgress,
   Paper,
   Divider,
   Alert,
@@ -32,7 +31,6 @@ import {
   BloomLevel,
   EngagementLevel,
   IndividualAnalysis,
-  FailedConversationAnalysis,
 } from '../../types/conversationAnalysis';
 
 // Type guard to check if an analysis is successful (not failed)
@@ -179,7 +177,7 @@ const SingleConversationResults: React.FC<{
       <Paper sx={{ p: 3, mb: 3 }}>
         <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
           <TrendingUp sx={{ mr: 1 }} />
-          Bloom's Taxonomy Progression
+          Bloom&apos;s Taxonomy Progression
         </Typography>
         <Divider sx={{ mb: 2 }} />
         
@@ -452,7 +450,7 @@ const MultipleConversationsResults: React.FC<{
             <Grid container spacing={2} sx={{ mt: 1 }}>
               {Object.entries(data.progression_analysis.topic_depth_analysis).map(([topic, analysis]) => {
                 // Type guard and defensive check
-                const topicAnalysis = analysis as any;
+                const topicAnalysis = analysis as { progression?: string; total_questions?: number } | string;
                 const hasProgression = topicAnalysis && typeof topicAnalysis === 'object' && 'progression' in topicAnalysis;
                 const hasTotalQuestions = topicAnalysis && typeof topicAnalysis === 'object' && 'total_questions' in topicAnalysis;
 
