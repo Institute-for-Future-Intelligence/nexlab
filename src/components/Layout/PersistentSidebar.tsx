@@ -29,7 +29,7 @@ import {
   Quiz as QuizIcon,
   SmartToy as ChatbotIcon,
   Group as UserManagementIcon,
-  Chat as ConversationsIcon,
+  Analytics as AnalyticsIcon,
   Feedback as FeedbackIcon,
   Logout as LogoutIcon,
 } from '@mui/icons-material';
@@ -183,11 +183,11 @@ const PersistentSidebar: React.FC<PersistentSidebarProps> = ({ children }) => {
       color: colors.warning
     },
     {
-      title: 'Chatbot Conversations',
-      icon: <ConversationsIcon />,
-      path: '/chatbot-conversations',
+      title: 'Conversation Analysis',
+      icon: <AnalyticsIcon />,
+      path: '/conversation-analysis',
       roles: ['superadmin'],
-      color: colors.primary[700]
+      color: colors.secondary[500]
     },
     {
       title: 'Super Admin Course Management',
