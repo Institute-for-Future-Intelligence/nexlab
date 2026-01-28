@@ -11,7 +11,6 @@ export interface NewDesign {
     userId: string;
     images: Image[];
     files: FileDetails[];
-    dataAnalysis?: DataAnalysisSection;
 }
 
 export interface Design {
