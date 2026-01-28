@@ -1,6 +1,7 @@
 // src/types/dashboard.ts
 import { FirebaseTimestamp } from './firebase';
 import { Image, FileDetails } from './types';
+import { DataAnalysisSection } from './dataAnalysis';
 
 /**
  * Types for Dashboard Edit component
@@ -18,6 +19,7 @@ export interface Build {
   userId: string;
   images: Image[];
   files: FileDetails[];
+  dataAnalysis?: DataAnalysisSection;
 }
 
 // Test data structure (from Firestore)  
@@ -34,6 +36,7 @@ export interface Test {
   userId: string;
   images: Image[];
   files: FileDetails[];
+  dataAnalysis?: DataAnalysisSection;
 }
 
 // Update objects for partial updates

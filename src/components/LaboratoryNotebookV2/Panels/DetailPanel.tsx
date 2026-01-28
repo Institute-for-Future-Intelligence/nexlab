@@ -25,6 +25,7 @@ import ImageGallery from '../ImageGallery';
 import FileAttachmentsList from '../FileAttachmentsList';
 import ConfirmationDialog from '../ConfirmationDialog';
 import RichTextDisplay from '../RichTextDisplay';
+import DataAnalysisPanel from '../DataAnalysis/DataAnalysisPanel';
 
 const DetailPanel: React.FC = () => {
   const selectedNodeId = useLabNotebookStore((state) => state.selectedNodeId);
@@ -38,6 +39,75 @@ const DetailPanel: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const node = selectedNodeId ? getNodeById(selectedNodeId) : null;
+
+  // Data Analysis handlers
+  const handleSaveDataset = async (dataset: any) => {
+    if (!node) return;
+    
+    try {
+      let nodeType: 'design' | 'build' | 'test';
+      let nodeId: string;
+
+      if (isDesignNode(node)) {
+        nodeType = 'design';
+        nodeId = node.data.designId;
+      } else if (isBuildNode(node)) {
+        nodeType = 'build';
+        nodeId = node.data.buildId;
+      } else if (isTestNode(node)) {
+        nodeType = 'test';
+        nodeId = node.data.testId;
+      } else {
+        throw new Error('Unknown node type');
+      }
+
+      await labNotebookService.addDataset(nodeType, nodeId, dataset);
+      
+      // Refresh data to reflect changes
+      console.log('Refreshing data after dataset save...');
+      await fetchAllData(node.data.userId, false, []);
+      
+      // Force a small delay to ensure Firestore has propagated
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      console.log('Dataset saved successfully. Node data:', node.data.dataAnalysis);
+    } catch (error) {
+      console.error('Error saving dataset:', error);
+      alert('Failed to save dataset. Please try again.');
+    }
+  };
+
+  const handleSaveAnalysis = async (analysis: any) => {
+    if (!node) return;
+    
+    try {
+      let nodeType: 'design' | 'build' | 'test';
+      let nodeId: string;
+
+      if (isDesignNode(node)) {
+        nodeType = 'design';
+        nodeId = node.data.designId;
+      } else if (isBuildNode(node)) {
+        nodeType = 'build';
+        nodeId = node.data.buildId;
+      } else if (isTestNode(node)) {
+        nodeType = 'test';
+        nodeId = node.data.testId;
+      } else {
+        throw new Error('Unknown node type');
+      }
+
+      await labNotebookService.addAnalysis(nodeType, nodeId, analysis);
+      
+      // Refresh data to reflect changes
+      await fetchAllData(node.data.userId, false, []);
+      
+      console.log('Analysis saved successfully');
+    } catch (error) {
+      console.error('Error saving analysis:', error);
+      alert('Failed to save analysis. Please try again.');
+    }
+  };
 
   if (!node) {
     return null;
@@ -322,6 +392,29 @@ const DetailPanel: React.FC = () => {
             Files ({node.data.files?.length || 0})
           </Typography>
           <FileAttachmentsList files={node.data.files || []} />
+        </Box>
+
+        <Divider sx={{ my: spacing[4] }} />
+
+        {/* Data Analysis Section */}
+        <Box sx={{ mb: spacing[4] }}>
+          <DataAnalysisPanel
+            key={`${selectedNodeId}-${node.data.dataAnalysis?.datasets?.length || 0}`}
+            userId={node.data.userId}
+            nodeId={
+              isDesignNode(node) ? node.data.designId :
+              isBuildNode(node) ? node.data.buildId :
+              (isTestNode(node) ? node.data.testId : '')
+            }
+            nodeType={
+              isDesignNode(node) ? 'design' :
+              (isBuildNode(node) ? 'build' : 'test')
+            }
+            existingDatasets={node.data.dataAnalysis?.datasets || []}
+            existingAnalyses={node.data.dataAnalysis?.analyses || []}
+            onSaveDataset={handleSaveDataset}
+            onSaveAnalysis={handleSaveAnalysis}
+          />
         </Box>
 
         {/* Design-specific info - removed course display */}

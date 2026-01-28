@@ -1,5 +1,5 @@
 // src/components/LaboratoryNotebookV2/Panels/ExpandedDetailPanel.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -8,6 +8,8 @@ import {
   Divider,
   Button,
   Dialog,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import {
   Close as CloseIcon,
@@ -20,9 +22,11 @@ import {
 import { colors, typography, spacing, borderRadius } from '../../../config/designSystem';
 import { useLabNotebookStore } from '../../../stores/labNotebookStore';
 import { isDesignNode, isBuildNode, isTestNode } from '../../../types/labNotebook';
+import { labNotebookService } from '../../../services/labNotebookService';
 import ImageGallery from '../ImageGallery';
 import FileAttachmentsList from '../FileAttachmentsList';
 import RichTextDisplay from '../RichTextDisplay';
+import DataAnalysisPanel from '../DataAnalysis/DataAnalysisPanel';
 
 const ExpandedDetailPanel: React.FC = () => {
   const selectedNodeId = useLabNotebookStore((state) => state.selectedNodeId);
@@ -30,12 +34,103 @@ const ExpandedDetailPanel: React.FC = () => {
   const selectNode = useLabNotebookStore((state) => state.selectNode);
   const setActivePanel = useLabNotebookStore((state) => state.setActivePanel);
   const setIsExpanded = useLabNotebookStore((state) => state.setIsExpanded);
+  const fetchAllData = useLabNotebookStore((state) => state.fetchAllData);
+
+  // Snackbar state for notifications
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
 
   const node = selectedNodeId ? getNodeById(selectedNodeId) : null;
 
   if (!node) {
     return null;
   }
+
+  // Data Analysis handlers
+  const handleSaveDataset = async (dataset: any) => {
+    if (!node) return;
+    
+    try {
+      let nodeType: 'design' | 'build' | 'test';
+      let nodeId: string;
+
+      if (isDesignNode(node)) {
+        nodeType = 'design';
+        nodeId = node.data.designId;
+      } else if (isBuildNode(node)) {
+        nodeType = 'build';
+        nodeId = node.data.buildId;
+      } else if (isTestNode(node)) {
+        nodeType = 'test';
+        nodeId = node.data.testId;
+      } else {
+        throw new Error('Unknown node type');
+      }
+
+      await labNotebookService.addDataset(nodeType, nodeId, dataset);
+      
+      // Refresh data to reflect changes
+      console.log('Refreshing data after dataset save...');
+      await fetchAllData(node.data.userId, false, [], true);
+      
+      // Force a small delay to ensure Firestore has propagated
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      console.log('Dataset saved successfully. Node data:', node.data.dataAnalysis);
+      
+      // Show success notification
+      setSnackbarMessage('Dataset saved successfully!');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+    } catch (error) {
+      console.error('Error saving dataset:', error);
+      
+      // Show error notification
+      setSnackbarMessage('Failed to save dataset. Please try again.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    }
+  };
+
+  const handleSaveAnalysis = async (analysis: any) => {
+    if (!node) return;
+    
+    try {
+      let nodeType: 'design' | 'build' | 'test';
+      let nodeId: string;
+
+      if (isDesignNode(node)) {
+        nodeType = 'design';
+        nodeId = node.data.designId;
+      } else if (isBuildNode(node)) {
+        nodeType = 'build';
+        nodeId = node.data.buildId;
+      } else if (isTestNode(node)) {
+        nodeType = 'test';
+        nodeId = node.data.testId;
+      } else {
+        throw new Error('Unknown node type');
+      }
+
+      await labNotebookService.addAnalysis(nodeType, nodeId, analysis);
+      
+      // Refresh data to reflect changes
+      await fetchAllData(node.data.userId, false, [], true);
+      
+      // Show success notification
+      setSnackbarMessage('Analysis saved successfully!');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+    } catch (error) {
+      console.error('Error saving analysis:', error);
+      
+      // Show error notification
+      setSnackbarMessage('Failed to save analysis. Please try again.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    }
+  };
 
   const handleClose = () => {
     selectNode(null);
@@ -288,6 +383,29 @@ const ExpandedDetailPanel: React.FC = () => {
           <FileAttachmentsList files={node.data.files || []} />
         </Box>
 
+        <Divider sx={{ my: spacing[6] }} />
+
+        {/* Data Analysis Section */}
+        <Box sx={{ mb: spacing[6] }}>
+          <DataAnalysisPanel
+            key={`${selectedNodeId}-${node.data.dataAnalysis?.datasets?.length || 0}`}
+            userId={node.data.userId}
+            nodeId={
+              isDesignNode(node) ? node.data.designId :
+              isBuildNode(node) ? node.data.buildId :
+              (isTestNode(node) ? node.data.testId : '')
+            }
+            nodeType={
+              isDesignNode(node) ? 'design' :
+              (isBuildNode(node) ? 'build' : 'test')
+            }
+            existingDatasets={node.data.dataAnalysis?.datasets || []}
+            existingAnalyses={node.data.dataAnalysis?.analyses || []}
+            onSaveDataset={handleSaveDataset}
+            onSaveAnalysis={handleSaveAnalysis}
+          />
+        </Box>
+
         {/* Build/Test count for Design */}
         {isDesignNode(node) && (
           <Box sx={{ mb: spacing[6] }}>
@@ -408,6 +526,23 @@ const ExpandedDetailPanel: React.FC = () => {
           </Button>
         </Box>
       </Box>
+
+      {/* Notification Snackbar */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={() => setSnackbarOpen(false)} 
+          severity={snackbarSeverity}
+          sx={{ width: '100%' }}
+          variant="filled"
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Dialog>
   );
 };

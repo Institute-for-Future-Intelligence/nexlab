@@ -1,5 +1,6 @@
 // types.ts
 import { Timestamp, FieldValue } from 'firebase/firestore';
+import { DataAnalysisSection } from './dataAnalysis';
 
 export interface NewDesign {
     title: string;
@@ -23,6 +24,7 @@ export interface Design {
   userId: string;
   images: Image[];
   files: FileDetails[];
+  dataAnalysis?: DataAnalysisSection;
 }
 
 export interface Image {

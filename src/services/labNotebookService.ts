@@ -15,8 +15,7 @@ import {
   Firestore,
   Timestamp,
 } from 'firebase/firestore';
-import { getStorage, ref, deleteObject } from 'firebase/storage';
-import { Design, Image, FileDetails } from '../types/types';
+import { Design } from '../types/types';
 import { Build, Test } from '../types/dashboard';
 import {
   CreateDesignInput,
@@ -26,6 +25,66 @@ import {
   UpdateBuildInput,
   UpdateTestInput,
 } from '../types/labNotebook';
+import { Dataset, SavedAnalysis, DataAnalysisSection, toDatasetMetadata } from '../types/dataAnalysis';
+
+/**
+ * Check if an array contains nested arrays (2D array or deeper)
+ */
+function hasNestedArrays(arr: unknown[]): boolean {
+  return arr.some(item => Array.isArray(item));
+}
+
+/**
+ * Clean object for Firestore by removing undefined values and converting Dates
+ * Also handles nested arrays by converting them to serialized format
+ */
+function cleanForFirestore(obj: unknown): unknown {
+  if (obj === null || obj === undefined) {
+    return null;
+  }
+  
+  if (obj instanceof Date) {
+    return Timestamp.fromDate(obj);
+  }
+  
+  if (Array.isArray(obj)) {
+    // Check if this is a nested array (2D array)
+    if (hasNestedArrays(obj)) {
+      // Convert nested array to serialized format that Firestore accepts
+      // For confusion matrix: [[1, 0], [0, 1]] → {rows: [{values: [1, 0]}, {values: [0, 1]}]}
+      return {
+        _type: 'nested_array',
+        rows: obj.map(row => ({
+          values: Array.isArray(row) ? row : [row]
+        }))
+      };
+    }
+    
+    // Regular array - clean each item but limit very large arrays
+    // (Predictions can have 100s of items which is too much for Firestore)
+    if (obj.length > 100) {
+      return obj.slice(0, 100).map(item => cleanForFirestore(item));
+    }
+    
+    return obj.map(item => cleanForFirestore(item));
+  }
+  
+  if (typeof obj === 'object') {
+    const cleaned: Record<string, unknown> = {};
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        const value = (obj as Record<string, unknown>)[key];
+        // Skip undefined values - Firestore doesn't support them
+        if (value !== undefined) {
+          cleaned[key] = cleanForFirestore(value);
+        }
+      }
+    }
+    return cleaned;
+  }
+  
+  return obj;
+}
 
 /**
  * Laboratory Notebook V2 Service
@@ -52,6 +111,23 @@ export interface LabNotebookService {
   deleteTest: (testId: string, userId: string) => Promise<void>;
   getTest: (testId: string) => Promise<Test | null>;
   getTestsByBuild: (buildId: string) => Promise<Test[]>;
+
+  // Data Analysis operations
+  updateDataAnalysis: (
+    nodeType: 'design' | 'build' | 'test',
+    nodeId: string,
+    dataAnalysis: DataAnalysisSection
+  ) => Promise<void>;
+  addDataset: (
+    nodeType: 'design' | 'build' | 'test',
+    nodeId: string,
+    dataset: Dataset
+  ) => Promise<void>;
+  addAnalysis: (
+    nodeType: 'design' | 'build' | 'test',
+    nodeId: string,
+    analysis: SavedAnalysis
+  ) => Promise<void>;
 }
 
 class FirestoreLabNotebookService implements LabNotebookService {
@@ -89,7 +165,7 @@ class FirestoreLabNotebookService implements LabNotebookService {
   async updateDesign(input: UpdateDesignInput): Promise<void> {
     this.initialize();
 
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       dateModified: serverTimestamp(),
     };
 
@@ -191,7 +267,7 @@ class FirestoreLabNotebookService implements LabNotebookService {
   async updateBuild(input: UpdateBuildInput): Promise<void> {
     this.initialize();
 
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       dateModified: serverTimestamp(),
     };
 
@@ -304,7 +380,7 @@ class FirestoreLabNotebookService implements LabNotebookService {
   async updateTest(input: UpdateTestInput): Promise<void> {
     this.initialize();
 
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       dateModified: serverTimestamp(),
     };
 
@@ -320,7 +396,7 @@ class FirestoreLabNotebookService implements LabNotebookService {
     console.log('Test updated:', input.id);
   }
 
-  async deleteTest(testId: string, userId: string): Promise<void> {
+  async deleteTest(testId: string, _userId: string): Promise<void> {
     this.initialize();
 
     await deleteDoc(doc(this.db!, 'tests', testId));
@@ -334,7 +410,7 @@ class FirestoreLabNotebookService implements LabNotebookService {
     const testSnap = await getDoc(testRef);
 
     if (testSnap.exists()) {
-      const data = testSnap.data() as any;
+      const data = testSnap.data() as Record<string, unknown>;
       return {
         id: testSnap.id,
         title: data.title || '',
@@ -381,6 +457,89 @@ class FirestoreLabNotebookService implements LabNotebookService {
         files: data.files || [],
       } as Test;
     });
+  }
+
+  // ============================================================================
+  // Data Analysis Operations
+  // ============================================================================
+
+  async updateDataAnalysis(
+    nodeType: 'design' | 'build' | 'test',
+    nodeId: string,
+    dataAnalysis: DataAnalysisSection
+  ): Promise<void> {
+    this.initialize();
+
+    const collectionName = nodeType === 'design' ? 'designs' : nodeType === 'build' ? 'builds' : 'tests';
+    const docRef = doc(this.db!, collectionName, nodeId);
+
+    await updateDoc(docRef, {
+      dataAnalysis: cleanForFirestore(dataAnalysis),
+      dateModified: serverTimestamp(),
+    });
+
+    console.log(`Data analysis updated for ${nodeType} ${nodeId}`);
+  }
+
+  async addDataset(
+    nodeType: 'design' | 'build' | 'test',
+    nodeId: string,
+    dataset: Dataset
+  ): Promise<void> {
+    this.initialize();
+
+    const collectionName = nodeType === 'design' ? 'designs' : nodeType === 'build' ? 'builds' : 'tests';
+    const docRef = doc(this.db!, collectionName, nodeId);
+    const docSnap = await getDoc(docRef);
+
+    if (!docSnap.exists()) {
+      throw new Error(`${nodeType} with ID ${nodeId} not found`);
+    }
+
+    const currentData = docSnap.data();
+    const existingDataAnalysis: DataAnalysisSection = currentData.dataAnalysis || { datasets: [], analyses: [] };
+    
+    // Convert to metadata only (removes heavy data array)
+    const datasetMetadata = toDatasetMetadata(dataset);
+    const cleanedMetadata = cleanForFirestore(datasetMetadata);
+    existingDataAnalysis.datasets.push(cleanedMetadata);
+
+    await updateDoc(docRef, {
+      dataAnalysis: cleanForFirestore(existingDataAnalysis),
+      dateModified: serverTimestamp(),
+    });
+
+    console.log(`Dataset metadata added to ${nodeType} ${nodeId} (${dataset.rowCount} rows, ${(dataset.fileSize / 1024).toFixed(1)} KB)`);
+  }
+
+  async addAnalysis(
+    nodeType: 'design' | 'build' | 'test',
+    nodeId: string,
+    analysis: SavedAnalysis
+  ): Promise<void> {
+    this.initialize();
+
+    const collectionName = nodeType === 'design' ? 'designs' : nodeType === 'build' ? 'builds' : 'tests';
+    const docRef = doc(this.db!, collectionName, nodeId);
+    const docSnap = await getDoc(docRef);
+
+    if (!docSnap.exists()) {
+      throw new Error(`${nodeType} with ID ${nodeId} not found`);
+    }
+
+    const currentData = docSnap.data();
+    const existingDataAnalysis: DataAnalysisSection = currentData.dataAnalysis || { datasets: [], analyses: [] };
+    
+    // Clean and add new analysis
+    const cleanedAnalysis = cleanForFirestore(analysis);
+    existingDataAnalysis.analyses.push(cleanedAnalysis);
+
+    await updateDoc(docRef, {
+      dataAnalysis: cleanForFirestore(existingDataAnalysis),
+      dateModified: serverTimestamp(),
+    });
+
+    console.log(`Analysis added to ${nodeType} ${nodeId}`);
   }
 }
 
