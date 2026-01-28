@@ -311,6 +311,7 @@ export const useLabNotebookStore = create<LabNotebookState>()(
                         userId: data.userId || '',
                         images: data.images || [],
                         files: data.files || [],
+                        dataAnalysis: data.dataAnalysis, // ← Include data analysis field!
                       } as Build;
                     })
                   );
@@ -345,6 +346,7 @@ export const useLabNotebookStore = create<LabNotebookState>()(
                         userId: data.userId || '',
                         images: data.images || [],
                         files: data.files || [],
+                        dataAnalysis: data.dataAnalysis, // ← Include data analysis field!
                       } as Test;
                     })
                   );
@@ -397,6 +399,7 @@ export const useLabNotebookStore = create<LabNotebookState>()(
                 userId: data.userId || '',
                 images: data.images || [],
                 files: data.files || [],
+                dataAnalysis: data.dataAnalysis, // ← Include data analysis field!
               } as Design;
             });
             
@@ -429,6 +432,7 @@ export const useLabNotebookStore = create<LabNotebookState>()(
                     userId: data.userId || '',
                     images: data.images || [],
                     files: data.files || [],
+                    dataAnalysis: data.dataAnalysis, // ← Include data analysis field!
                   } as Build;
                 })
               );
@@ -466,6 +470,7 @@ export const useLabNotebookStore = create<LabNotebookState>()(
                     userId: data.userId || '',
                     images: data.images || [],
                     files: data.files || [],
+                    dataAnalysis: data.dataAnalysis, // ← Include data analysis field!
                   } as Test;
                 })
               );
@@ -625,25 +630,33 @@ export const useLabNotebookStore = create<LabNotebookState>()(
             const buildCount = filteredBuilds.filter(b => b.design_ID === design.id).length;
             const testCount = filteredTests.filter(t => t.design_ID === design.id).length;
             
+            const nodeData: DesignNodeData = {
+              type: 'design',
+              designId: design.id,
+              label: design.title,
+              title: design.title,
+              description: design.description,
+              dateCreated: toDate(design.dateCreated),
+              dateModified: toDate(design.dateModified),
+              userId: design.userId,
+              images: design.images || [],
+              files: design.files || [],
+              course: design.course,
+              buildCount,
+              testCount,
+              dataAnalysis: design.dataAnalysis,
+            };
+            
+            // Debug: Log dataAnalysis field for troubleshooting
+            if (design.dataAnalysis) {
+              console.log(`Design ${design.id} has dataAnalysis:`, design.dataAnalysis);
+            }
+            
             nodes.push({
               id: `design-${design.id}`,
               type: 'designNode',
               position: { x: 0, y: index * 200 }, // Will be recalculated by layout algorithm
-              data: {
-                type: 'design',
-                designId: design.id,
-                label: design.title,
-                title: design.title,
-                description: design.description,
-                dateCreated: toDate(design.dateCreated),
-                dateModified: toDate(design.dateModified),
-                userId: design.userId,
-                images: design.images || [],
-                files: design.files || [],
-                course: design.course,
-                buildCount,
-                testCount,
-              } as DesignNodeData,
+              data: nodeData,
             });
           });
           
@@ -668,6 +681,7 @@ export const useLabNotebookStore = create<LabNotebookState>()(
                 images: build.images || [],
                 files: build.files || [],
                 testCount,
+                dataAnalysis: build.dataAnalysis,
               } as BuildNodeData,
             });
             
@@ -702,6 +716,7 @@ export const useLabNotebookStore = create<LabNotebookState>()(
                 userId: test.userId,
                 images: test.images || [],
                 files: test.files || [],
+                dataAnalysis: test.dataAnalysis,
               } as TestNodeData,
             });
             

@@ -2,6 +2,7 @@
 import { Node, Edge } from 'reactflow';
 import { Design, Image, FileDetails } from './types';
 import { Build, Test } from './dashboard';
+import { DataAnalysisSection } from './dataAnalysis';
 
 /**
  * Lab Notebook V2 Types
@@ -21,6 +22,7 @@ export interface BaseNodeData {
   images: Image[];
   files: FileDetails[];
   course?: string;
+  dataAnalysis?: DataAnalysisSection;
 }
 
 export interface DesignNodeData extends BaseNodeData {
