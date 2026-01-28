@@ -30,7 +30,7 @@ import {
   Save as SaveIcon,
 } from '@mui/icons-material';
 import { Timestamp } from 'firebase/firestore';
-import { colors, typography, spacing, borderRadius } from '../../../config/designSystem';
+import { colors, typography, borderRadius } from '../../../config/designSystem';
 import { Dataset, DatasetMetadata, AnalysisType, SavedAnalysis, AnalysisResult } from '../../../types/dataAnalysis';
 import { dataAnalysisService } from '../../../services/dataAnalysisService';
 import CSVUploadSection from './CSVUploadSection';
@@ -110,7 +110,7 @@ const DataAnalysisPanel: React.FC<DataAnalysisPanelProps> = ({
   const [snackbarMessage, setSnackbarMessage] = useState('');
 
   // Helper to convert Firestore Timestamp to Date
-  const toDate = (timestamp: any): Date => {
+  const toDate = (timestamp: unknown): Date => {
     if (!timestamp) return new Date();
     if (timestamp instanceof Date) return timestamp;
     if (timestamp instanceof Timestamp) return timestamp.toDate();
@@ -211,7 +211,7 @@ const DataAnalysisPanel: React.FC<DataAnalysisPanelProps> = ({
       let result: AnalysisResult;
 
       switch (analysisType) {
-        case 'linear_regression':
+        case 'linear_regression': {
           if (!targetVariable || featureVariables.length === 0) {
             throw new Error('Please select both X and Y variables for linear regression');
           }
@@ -236,6 +236,7 @@ const DataAnalysisPanel: React.FC<DataAnalysisPanelProps> = ({
             targetVariable
           );
           break;
+        }
 
         case 'descriptive_stats':
           if (featureVariables.length === 0) {
@@ -251,7 +252,7 @@ const DataAnalysisPanel: React.FC<DataAnalysisPanelProps> = ({
           result = dataAnalysisService.calculateCorrelations(dataset, featureVariables);
           break;
 
-        case 'ml_regression':
+        case 'ml_regression': {
           if (!targetVariable || featureVariables.length === 0) {
             throw new Error('Please select feature and target variables for ML regression');
           }
@@ -280,8 +281,9 @@ const DataAnalysisPanel: React.FC<DataAnalysisPanelProps> = ({
             crossValidationFolds: useCrossValidation ? cvFolds : undefined,
           });
           break;
+        }
 
-        case 'ml_classification':
+        case 'ml_classification': {
           if (!targetVariable || featureVariables.length === 0) {
             throw new Error('Please select feature and target variables for ML classification');
           }
@@ -309,6 +311,7 @@ const DataAnalysisPanel: React.FC<DataAnalysisPanelProps> = ({
             mlAlgorithm: 'logistic',
           });
           break;
+        }
 
         default:
           throw new Error(`Analysis type "${analysisType}" is not yet implemented`);
@@ -641,7 +644,7 @@ const DataAnalysisPanel: React.FC<DataAnalysisPanelProps> = ({
                                     </Typography>
                                     {!isNumeric && (
                                       <Typography variant="caption" display="block" sx={{ mt: 0.5 }}>
-                                        ⚠️ Regression requires a NUMERIC target! For categorical targets like "diagnosis" (M/B), use "ML: Classification" instead.
+                                        ⚠️ Regression requires a NUMERIC target! For categorical targets like &quot;diagnosis&quot; (M/B), use &quot;ML: Classification&quot; instead.
                                       </Typography>
                                     )}
                                   </Alert>

@@ -426,7 +426,7 @@ class DataAnalysisService {
   /**
    * Estimate p-value from t-statistic (simplified)
    */
-  private estimatePValue(tStat: number, degreesOfFreedom: number): number {
+  private estimatePValue(tStat: number): number {
     // Simplified p-value estimation
     // For more accurate results, use a proper t-distribution library
     if (tStat > 3.5) return 0.001;
@@ -670,13 +670,13 @@ class DataAnalysisService {
     trainingIndices: number[];
     testingIndices: number[];
   } {
-    const { splitRatio = 0.8, randomSeed, stratify = false, targetVariable } = options;
+    const { splitRatio = 0.8, randomSeed } = options;
     const data = dataset.data;
     const n = data.length;
     const trainSize = Math.floor(n * splitRatio);
 
     // Generate indices
-    let indices = Array.from({ length: n }, (_, i) => i);
+    const indices = Array.from({ length: n }, (_, i) => i);
 
     // Simple shuffle with optional seed
     if (randomSeed !== undefined) {
@@ -776,7 +776,6 @@ class DataAnalysisService {
     if (uniqueClasses.length === 2) {
       // Encode labels as 0 and 1
       const trainY = trainData.labels.map((label) => (classToIndex.get(String(label)) || 0));
-      const testY = testData.labels.map((label) => (classToIndex.get(String(label)) || 0));
       
       // Normalize features for better convergence
       const normalizeFeatures = (features: number[][]): { normalized: number[][]; means: number[]; stds: number[] } => {

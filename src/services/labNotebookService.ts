@@ -15,8 +15,7 @@ import {
   Firestore,
   Timestamp,
 } from 'firebase/firestore';
-import { getStorage, ref, deleteObject } from 'firebase/storage';
-import { Design, Image, FileDetails } from '../types/types';
+import { Design } from '../types/types';
 import { Build, Test } from '../types/dashboard';
 import {
   CreateDesignInput,
@@ -26,12 +25,12 @@ import {
   UpdateBuildInput,
   UpdateTestInput,
 } from '../types/labNotebook';
-import { Dataset, DatasetMetadata, SavedAnalysis, DataAnalysisSection, toDatasetMetadata } from '../types/dataAnalysis';
+import { Dataset, SavedAnalysis, DataAnalysisSection, toDatasetMetadata } from '../types/dataAnalysis';
 
 /**
  * Check if an array contains nested arrays (2D array or deeper)
  */
-function hasNestedArrays(arr: any[]): boolean {
+function hasNestedArrays(arr: unknown[]): boolean {
   return arr.some(item => Array.isArray(item));
 }
 
@@ -39,7 +38,7 @@ function hasNestedArrays(arr: any[]): boolean {
  * Clean object for Firestore by removing undefined values and converting Dates
  * Also handles nested arrays by converting them to serialized format
  */
-function cleanForFirestore(obj: any): any {
+function cleanForFirestore(obj: unknown): unknown {
   if (obj === null || obj === undefined) {
     return null;
   }
@@ -71,10 +70,10 @@ function cleanForFirestore(obj: any): any {
   }
   
   if (typeof obj === 'object') {
-    const cleaned: any = {};
+    const cleaned: Record<string, unknown> = {};
     for (const key in obj) {
-      if (obj.hasOwnProperty(key)) {
-        const value = obj[key];
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        const value = (obj as Record<string, unknown>)[key];
         // Skip undefined values - Firestore doesn't support them
         if (value !== undefined) {
           cleaned[key] = cleanForFirestore(value);
@@ -166,7 +165,7 @@ class FirestoreLabNotebookService implements LabNotebookService {
   async updateDesign(input: UpdateDesignInput): Promise<void> {
     this.initialize();
 
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       dateModified: serverTimestamp(),
     };
 
@@ -268,7 +267,7 @@ class FirestoreLabNotebookService implements LabNotebookService {
   async updateBuild(input: UpdateBuildInput): Promise<void> {
     this.initialize();
 
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       dateModified: serverTimestamp(),
     };
 
@@ -381,7 +380,7 @@ class FirestoreLabNotebookService implements LabNotebookService {
   async updateTest(input: UpdateTestInput): Promise<void> {
     this.initialize();
 
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       dateModified: serverTimestamp(),
     };
 
@@ -397,7 +396,7 @@ class FirestoreLabNotebookService implements LabNotebookService {
     console.log('Test updated:', input.id);
   }
 
-  async deleteTest(testId: string, userId: string): Promise<void> {
+  async deleteTest(testId: string, _userId: string): Promise<void> {
     this.initialize();
 
     await deleteDoc(doc(this.db!, 'tests', testId));
@@ -411,7 +410,7 @@ class FirestoreLabNotebookService implements LabNotebookService {
     const testSnap = await getDoc(testRef);
 
     if (testSnap.exists()) {
-      const data = testSnap.data() as any;
+      const data = testSnap.data() as Record<string, unknown>;
       return {
         id: testSnap.id,
         title: data.title || '',
