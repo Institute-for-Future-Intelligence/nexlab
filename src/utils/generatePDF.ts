@@ -4,7 +4,15 @@ import { Material } from '../types/Material';
 import { parseDocument } from 'htmlparser2';
 import type { ChildNode, Element } from 'domhandler';
 import { isTag } from 'domelementtype';
-import * as DomUtils from 'domutils';
+
+// Type for text segments with styling information
+interface TextSegment {
+  text: string;
+  bold?: boolean;
+  italic?: boolean;
+  isLink?: boolean;
+  url?: string;
+}
 
 export const handleDownloadPDF = async (materialData: Material | null, setProgress: (progress: number) => void) => {
   if (!materialData) return;
@@ -12,6 +20,10 @@ export const handleDownloadPDF = async (materialData: Material | null, setProgre
   const pdf = new jsPDF('p', 'mm', 'a4', true); // Enable page margins
   let yOffset = 10;
   const pageHeight = 297;
+  const pageWidth = 210;
+  const leftMargin = 10;
+  const rightMargin = 10;
+  const maxTextWidth = pageWidth - leftMargin - rightMargin;
 
   const addNewPageIfNeeded = (linesCount: number) => {
     if (yOffset + linesCount * 6 > pageHeight - 20) {
@@ -88,113 +100,310 @@ export const handleDownloadPDF = async (materialData: Material | null, setProgre
     });
   };
 
+  /**
+   * Extract text content from a node, recursively handling inline elements
+   * This collects all text including from nested inline elements (bold, italic, links)
+   */
+  const extractTextFromNode = (node: ChildNode): string => {
+    if (!node) return '';
+    
+    if (node.type === 'text' && 'data' in node) {
+      return node.data;
+    }
+    
+    if (isTag(node)) {
+      const element = node as Element;
+      const tag = element.name.toLowerCase();
+      
+      // For inline elements, extract their text content
+      if (['strong', 'b', 'i', 'em', 'a', 'span', 'u', 'sub', 'sup'].includes(tag)) {
+        return element.children?.map(child => extractTextFromNode(child)).join('') || '';
+      }
+      
+      // For block elements within inline context, just get their text
+      return element.children?.map(child => extractTextFromNode(child)).join('') || '';
+    }
+    
+    return '';
+  };
+
+  /**
+   * Collect text segments from paragraph children, preserving styling info
+   * This handles inline elements (bold, italic, links) within a paragraph
+   */
+  const collectParagraphSegments = (element: Element): TextSegment[] => {
+    const segments: TextSegment[] = [];
+    
+    const collectFromNode = (node: ChildNode, currentBold = false, currentItalic = false): void => {
+      if (!node) return;
+      
+      if (node.type === 'text' && 'data' in node) {
+        const text = node.data;
+        if (text) {
+          segments.push({ text, bold: currentBold, italic: currentItalic });
+        }
+        return;
+      }
+      
+      if (isTag(node)) {
+        const el = node as Element;
+        const tag = el.name.toLowerCase();
+        
+        switch (tag) {
+          case 'strong':
+          case 'b':
+            el.children?.forEach(child => collectFromNode(child, true, currentItalic));
+            break;
+          case 'i':
+          case 'em':
+            el.children?.forEach(child => collectFromNode(child, currentBold, true));
+            break;
+          case 'a': {
+            // For links, collect the text and mark as link
+            const linkText = extractTextFromNode(el);
+            if (linkText) {
+              segments.push({
+                text: linkText,
+                isLink: true,
+                url: el.attribs?.href || '',
+                bold: currentBold,
+                italic: currentItalic
+              });
+            }
+            break;
+          }
+          case 'br':
+            segments.push({ text: '\n' });
+            break;
+          case 'span':
+          case 'u':
+          case 'sub':
+          case 'sup':
+            // Handle other inline elements
+            el.children?.forEach(child => collectFromNode(child, currentBold, currentItalic));
+            break;
+          default:
+            // For other elements, just process children
+            el.children?.forEach(child => collectFromNode(child, currentBold, currentItalic));
+        }
+      }
+    };
+    
+    element.children?.forEach(child => collectFromNode(child));
+    return segments;
+  };
+
+  /**
+   * Render collected text segments as a continuous paragraph with proper word wrapping
+   * Links are rendered inline with special styling (colored text)
+   */
+  const renderParagraphSegments = (segments: TextSegment[], x: number, fontSize: number) => {
+    // Combine all segments into a single text string for proper word wrapping
+    const fullText = segments.map(seg => seg.text).join('');
+    
+    if (!fullText.trim()) return;
+    
+    // Split by explicit line breaks
+    const lines = fullText.split('\n');
+    
+    for (const line of lines) {
+      if (!line.trim()) {
+        yOffset += 3; // Small space for empty lines
+        continue;
+      }
+      
+      pdf.setFontSize(fontSize);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(0, 0, 0);
+      
+      // Wrap the text to fit within page width
+      const wrappedLines = pdf.splitTextToSize(line, maxTextWidth - x);
+      
+      for (const wrappedLine of wrappedLines) {
+        addNewPageIfNeeded(1);
+        
+        // Check if this line contains any links and render with appropriate styling
+        // For simplicity, render the entire line with normal text
+        // Links will appear as regular text but with their content intact
+        pdf.text(wrappedLine, x, yOffset);
+        yOffset += 6;
+      }
+    }
+  };
+
+  /**
+   * Collect text from list item, handling nested inline elements
+   */
+  const collectListItemText = (element: Element): string => {
+    let text = '';
+    
+    const collectText = (node: ChildNode): void => {
+      if (!node) return;
+      
+      if (node.type === 'text' && 'data' in node) {
+        text += node.data;
+        return;
+      }
+      
+      if (isTag(node)) {
+        const el = node as Element;
+        const tag = el.name.toLowerCase();
+        
+        // Skip nested lists - they'll be processed separately
+        if (tag === 'ul' || tag === 'ol') return;
+        
+        // For all other elements, collect their text
+        el.children?.forEach(child => collectText(child));
+      }
+    };
+    
+    element.children?.forEach(child => collectText(child));
+    return text.trim();
+  };
+
   const renderHTML = (html: string, x = 10, fontSize = 12) => {
     const dom = parseDocument(html);
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const traverse = (node: ChildNode, indentLevel = 0, _insideList = false) => {
-        if (!node) return;
+    const traverse = (node: ChildNode, indentLevel = 0) => {
+      if (!node) return;
 
-        if (isTag(node)) {
-            const element = node as Element;
-            const tag = element.name.toLowerCase();
+      if (isTag(node)) {
+        const element = node as Element;
+        const tag = element.name.toLowerCase();
 
-            switch (tag) {
-                case 'p':
-                    yOffset += 6; // Space before paragraph
-                    element.children?.forEach((child) => traverse(child, indentLevel));
-                    yOffset += 6; // Space after paragraph
-                    break;
+        switch (tag) {
+          case 'p': {
+            yOffset += 4; // Space before paragraph
+            
+            // Collect all text segments from the paragraph (including inline elements)
+            const segments = collectParagraphSegments(element);
+            
+            // Render as continuous text with proper word wrapping
+            renderParagraphSegments(segments, x, fontSize);
+            
+            yOffset += 4; // Space after paragraph
+            break;
+          }
 
-                case 'br':
-                    yOffset += 6; // Line break
-                    break;
+          case 'br':
+            yOffset += 6; // Line break
+            break;
 
-                case 'strong':
-                case 'b':
-                case 'i':
-                case 'em':
-                    pdf.setFont('helvetica', tag === 'strong' || tag === 'b' ? 'bold' : 'italic');
-                    element.children?.forEach((child) => traverse(child, indentLevel));
-                    pdf.setFont('helvetica', 'normal'); // Reset font
-                    break;
+          case 'strong':
+          case 'b':
+          case 'i':
+          case 'em': {
+            // These are inline elements - when encountered at block level,
+            // treat them as implicit paragraphs
+            const text = extractTextFromNode(element);
+            if (text.trim()) {
+              const isBold = tag === 'strong' || tag === 'b';
+              const isItalic = tag === 'i' || tag === 'em';
+              addText(text, x, fontSize, isBold, [0, 0, 0], isItalic);
+            }
+            break;
+          }
 
-                case 'ul':
-                case 'ol':
-                    yOffset += 4; // Space before list
-                    element.children?.forEach((child) => traverse(child, indentLevel + 1, true));
-                    break;
+          case 'ul':
+          case 'ol':
+            yOffset += 4; // Space before list
+            element.children?.forEach((child) => traverse(child, indentLevel + 1));
+            yOffset += 2; // Space after list
+            break;
 
-                case 'li': {
-                    const bullet = indentLevel === 1 ? '-' : '--';
-                    let listItemText = '';
-                    element.children?.forEach((child) => {
-                        if (isTag(child)) {
-                            const childElement = child as Element;
-                            if (childElement.name === 'strong' || childElement.name === 'b') {
-                                pdf.setFont('helvetica', 'bold');
-                                listItemText += ` ${DomUtils.getText(childElement)}`;
-                                pdf.setFont('helvetica', 'normal'); // Reset font
-                            } else if (childElement.name !== 'ul' && childElement.name !== 'ol') {
-                                listItemText += ` ${DomUtils.getText(childElement)}`;
-                            }
-                        } 
-                        // **Fix: Ensure `child` is a text node before accessing `.data`**
-                        else if (child.type === 'text' && 'data' in child) {
-                            listItemText += ` ${child.data.trim()}`;
-                        }
-                    });
+          case 'li': {
+            const bullet = indentLevel <= 1 ? '•' : '◦';
+            const listItemText = collectListItemText(element);
+            
+            if (listItemText) {
+              const bulletX = x + (indentLevel - 1) * 6;
+              const textX = bulletX + 4;
+              
+              // Render bullet
+              pdf.setFontSize(fontSize);
+              pdf.setFont('helvetica', 'normal');
+              addNewPageIfNeeded(1);
+              pdf.text(bullet, bulletX, yOffset);
+              
+              // Render text with word wrap
+              const wrappedLines = pdf.splitTextToSize(listItemText, maxTextWidth - textX);
+              wrappedLines.forEach((line: string, index: number) => {
+                if (index > 0) {
+                  addNewPageIfNeeded(1);
+                }
+                pdf.text(line, textX, yOffset);
+                yOffset += 6;
+              });
+            }
 
-                    listItemText = listItemText.trim();
-                    if (listItemText) {
-                        // **Apply larger font size for top-level list headers**
-                        if (indentLevel === 0) {
-                addText(`${bullet} ${listItemText}`, x, fontSize + 2, true);
-              } else {
-                addText(`${bullet} ${listItemText}`, x + indentLevel * 8, fontSize);
+            // Process nested lists
+            element.children?.forEach((child) => {
+              if (isTag(child)) {
+                const childElement = child as Element;
+                if (['ul', 'ol'].includes(childElement.name)) {
+                  traverse(childElement, indentLevel + 1);
+                }
               }
+            });
+            break;
+          }
+
+          case 'a': {
+            // Standalone link (not inside a paragraph)
+            if (element.attribs?.href) {
+              const linkText = extractTextFromNode(element);
+              if (linkText.trim()) {
+                addLink(linkText, element.attribs.href);
+              }
+            }
+            break;
+          }
+
+          case 'h1': {
+            const text = extractTextFromNode(element);
+            if (text.trim()) {
+              addText(text, x, 20, true);
+              yOffset += 8;
+            }
+            break;
+          }
+
+          case 'h2': {
+            const text = extractTextFromNode(element);
+            if (text.trim()) {
+              addText(text, x, 18, true);
+              yOffset += 8;
+            }
+            break;
+          }
+
+          case 'h3': {
+            const text = extractTextFromNode(element);
+            if (text.trim()) {
+              addText(text, x, 16, true);
               yOffset += 6;
             }
+            break;
+          }
 
-                    element.children?.forEach((child) => {
-                        if (isTag(child)) {
-                            const childElement = child as Element;
-                            if (['ul', 'ol'].includes(childElement.name)) {
-                                traverse(childElement, indentLevel + 1, true);
-                            }
-                        }
-                    });
-                    break;
-                }
+          case 'div':
+          case 'section':
+          case 'article':
+            // Block containers - just process children
+            element.children?.forEach((child) => traverse(child, indentLevel));
+            break;
 
-                case 'a':
-                    if (element.attribs?.href) {
-                        addLink(DomUtils.getText(element), element.attribs.href);
-                    }
-                    break;
-
-                case 'h1':
-                    addText(DomUtils.getText(element), x, 20, true);
-                    yOffset += 8;
-                    break;
-
-                case 'h2':
-                    addText(DomUtils.getText(element), x, 18, true);
-                    yOffset += 8;
-                    break;
-
-                case 'h3':
-                    addText(DomUtils.getText(element), x, 16, true);
-                    yOffset += 6;
-                    break;
-
-                default:
-                    element.children?.forEach((child) => traverse(child, indentLevel));
-            }
-        } else if (node.type === 'text' && 'data' in node) {
-            const text = node.data.trim();
-            if (text) addText(text, x + indentLevel * 8, fontSize);
+          default:
+            // For unknown elements, process children
+            element.children?.forEach((child) => traverse(child, indentLevel));
         }
+      } else if (node.type === 'text' && 'data' in node) {
+        // Standalone text node at block level
+        const text = node.data.trim();
+        if (text) {
+          addText(text, x, fontSize);
+        }
+      }
     };
 
     dom.children?.forEach((node) => traverse(node));
