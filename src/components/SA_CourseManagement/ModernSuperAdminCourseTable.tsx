@@ -1,7 +1,8 @@
 // src/components/SA_CourseManagement/ModernSuperAdminCourseTable.tsx
 import React from 'react';
 import { ModernTable, TableColumn, TextCell, ActionButtons, CommonActionIcons, CourseHyperlink, CopyableUserID, CopyableCourseID } from '../common';
-import { Box, Chip } from '@mui/material';
+import { Box, Chip, Switch, Tooltip } from '@mui/material';
+import { Public as PublicIcon } from '@mui/icons-material';
 import { colors, typography, spacing } from '../../config/designSystem';
 
 interface Course {
@@ -9,6 +10,7 @@ interface Course {
   number: string;
   title: string;
   courseAdmin: string[];
+  isPublic?: boolean;
   createdAt?: Date;
   courseCreatedAt?: Date;
   timestamp?: Date;
@@ -19,6 +21,7 @@ interface ModernSuperAdminCourseTableProps {
   loading?: boolean;
   onAddSuperAdmin: (courseId: string) => void;
   onDeleteCourse: (courseId: string) => void;
+  onTogglePublic: (courseId: string) => void;
   userUid?: string;
 }
 
@@ -27,6 +30,7 @@ const ModernSuperAdminCourseTable: React.FC<ModernSuperAdminCourseTableProps> = 
   loading = false,
   onAddSuperAdmin,
   onDeleteCourse,
+  onTogglePublic,
   userUid,
 }) => {
   const isCourseAdmin = (course: Course): boolean => {
@@ -75,7 +79,7 @@ const ModernSuperAdminCourseTable: React.FC<ModernSuperAdminCourseTableProps> = 
     {
       id: 'number',
       label: 'Course',
-      width: '30%',
+      width: '25%',
       render: (value: string, row: Course) => {
         const isAdmin = isCourseAdmin(row);
         return (
@@ -100,6 +104,20 @@ const ModernSuperAdminCourseTable: React.FC<ModernSuperAdminCourseTableProps> = 
                 }}
               />
             )}
+            {row.isPublic && (
+              <Chip
+                icon={<PublicIcon sx={{ fontSize: 14, color: `${colors.warning} !important` }} />}
+                label="PUBLIC"
+                size="small"
+                sx={{
+                  backgroundColor: colors.warning + '20',
+                  color: colors.warning,
+                  fontSize: typography.fontSize.xs,
+                  fontWeight: typography.fontWeight.bold,
+                  height: '20px',
+                }}
+              />
+            )}
           </Box>
         );
       },
@@ -107,15 +125,43 @@ const ModernSuperAdminCourseTable: React.FC<ModernSuperAdminCourseTableProps> = 
     {
       id: 'id',
       label: 'Course ID',
-      width: '15%',
+      width: '12%',
       render: (value: string) => (
         <CopyableCourseID courseId={value} />
       ),
     },
     {
+      id: 'isPublic',
+      label: 'Public Access',
+      width: '10%',
+      align: 'center',
+      render: (value: boolean | undefined, row: Course) => (
+        <Tooltip 
+          title={row.isPublic 
+            ? 'Click to make this course private' 
+            : 'Click to make this course public (visible to all users)'
+          }
+        >
+          <Switch
+            checked={row.isPublic || false}
+            onChange={() => onTogglePublic(row.id)}
+            size="small"
+            sx={{
+              '& .MuiSwitch-switchBase.Mui-checked': {
+                color: colors.warning,
+              },
+              '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                backgroundColor: colors.warning,
+              },
+            }}
+          />
+        </Tooltip>
+      ),
+    },
+    {
       id: 'createdAt',
       label: 'Created',
-      width: '20%',
+      width: '18%',
       render: (value: unknown, row: Course) => renderCreatedDate(row),
     },
     {

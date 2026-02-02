@@ -7,10 +7,33 @@ import {
   setDoc,
   onSnapshot,
   Unsubscribe,
-  Firestore 
+  Firestore,
+  collection,
+  query,
+  where,
+  getDocs
 } from "firebase/firestore";
 import { UserDetails } from '../contexts/UserContext';
 import { FirebaseUser } from './authService';
+
+/** Course info stored in user's classes object */
+export interface UserCourseInfo {
+  number: string;
+  title: string;
+  isCourseAdmin: boolean;
+  isPublic?: boolean;
+  courseCreatedAt?: Date;
+  enrolledAt?: Date;
+}
+
+/** Public course data fetched from Firestore */
+export interface PublicCourseData {
+  id: string;
+  number: string;
+  title: string;
+  isPublic: boolean;
+  courseCreatedAt?: Date;
+}
 
 export interface UserService {
   getUserDetails: (uid: string) => Promise<UserDetails | null>;
@@ -18,18 +41,16 @@ export interface UserService {
   updateUserLogin: (uid: string) => Promise<void>;
   refreshUserDetails: (uid: string) => Promise<UserDetails | null>;
   subscribeToUserDetails: (uid: string, callback: (details: UserDetails | null) => void) => Unsubscribe;
+  getPublicCourses: () => Promise<PublicCourseData[]>;
 }
 
 class FirestoreUserService implements UserService {
   private db: Firestore | null = null;
-  private publicCourseId: string;
+  // Keep legacy env var for backwards compatibility during migration
+  private legacyPublicCourseId: string | undefined;
 
   constructor() {
-    this.publicCourseId = import.meta.env.VITE_PUBLIC_COURSE_ID;
-    
-    if (!this.publicCourseId) {
-      throw new Error("Public course ID is not defined in environment variables.");
-    }
+    this.legacyPublicCourseId = import.meta.env.VITE_PUBLIC_COURSE_ID;
   }
 
   private initialize() {
@@ -61,16 +82,28 @@ class FirestoreUserService implements UserService {
   async createUserDocument(user: FirebaseUser): Promise<UserDetails> {
     this.initialize();
     try {
-      const publicCourse = await this.getPublicCourseInfo();
+      // Fetch all public courses and add them to the new user
+      const publicCourses = await this.getPublicCourses();
+      const classesObj: Record<string, UserCourseInfo> = {};
+      
+      for (const course of publicCourses) {
+        classesObj[course.id] = {
+          number: course.number,
+          title: course.title,
+          isCourseAdmin: false,
+          isPublic: true,
+          courseCreatedAt: course.courseCreatedAt,
+          enrolledAt: new Date(),
+        };
+      }
+
       const userRef = doc(this.db!, "users", user.uid);
       
       const newUserData = {
         isAdmin: false,
         isSuperAdmin: false,
         lastLogin: serverTimestamp(),
-        classes: {
-          [this.publicCourseId]: publicCourse,
-        },
+        classes: classesObj,
       };
       
       await setDoc(userRef, newUserData);
@@ -80,9 +113,7 @@ class FirestoreUserService implements UserService {
         isAdmin: false,
         isSuperAdmin: false,
         lastLogin: serverTimestamp(),
-        classes: {
-          [this.publicCourseId]: publicCourse,
-        },
+        classes: classesObj,
       };
     } catch (error) {
       console.error("Error creating user document:", error);
@@ -132,25 +163,69 @@ class FirestoreUserService implements UserService {
   async ensurePublicCourseAccess(uid: string, existingUserDetails: UserDetails): Promise<UserDetails> {
     this.initialize();
     try {
-      // Check if user already has access to public course
-      if (existingUserDetails.classes && existingUserDetails.classes[this.publicCourseId]) {
+      // Fetch all public courses from Firestore
+      const publicCourses = await this.getPublicCourses();
+      
+      if (publicCourses.length === 0) {
+        console.warn("No public courses found in database");
+        return existingUserDetails;
+      }
+
+      const existingClasses = existingUserDetails.classes || {};
+      const updates: Record<string, UserCourseInfo> = {};
+      let hasUpdates = false;
+      
+      // Check which public courses the user doesn't have and add them
+      for (const course of publicCourses) {
+        if (!existingClasses[course.id]) {
+          updates[`classes.${course.id}`] = {
+            number: course.number,
+            title: course.title,
+            isCourseAdmin: false,
+            isPublic: true,
+            courseCreatedAt: course.courseCreatedAt,
+            enrolledAt: new Date(),
+          };
+          hasUpdates = true;
+        } else if (!existingClasses[course.id].isPublic) {
+          // Course exists but isPublic flag is not set - update it
+          updates[`classes.${course.id}.isPublic`] = true as unknown as UserCourseInfo;
+          hasUpdates = true;
+        }
+      }
+      
+      // If no updates needed, return existing details
+      if (!hasUpdates) {
         return existingUserDetails;
       }
       
-      // Add public course access
-      const publicCourse = await this.getPublicCourseInfo();
+      // Apply updates to Firestore
       const userRef = doc(this.db!, "users", uid);
+      await updateDoc(userRef, updates);
       
-      await updateDoc(userRef, {
-        [`classes.${this.publicCourseId}`]: publicCourse,
-      });
+      // Build updated classes object for return
+      const updatedClasses = { ...existingClasses };
+      for (const course of publicCourses) {
+        if (!updatedClasses[course.id]) {
+          updatedClasses[course.id] = {
+            number: course.number,
+            title: course.title,
+            isCourseAdmin: false,
+            isPublic: true,
+            courseCreatedAt: course.courseCreatedAt,
+            enrolledAt: new Date(),
+          };
+        } else {
+          updatedClasses[course.id] = {
+            ...updatedClasses[course.id],
+            isPublic: true,
+          };
+        }
+      }
       
       return {
         ...existingUserDetails,
-        classes: {
-          ...(existingUserDetails.classes || {}),
-          [this.publicCourseId]: publicCourse,
-        },
+        classes: updatedClasses,
       };
     } catch (error) {
       console.error("Error ensuring public course access:", error);
@@ -158,30 +233,86 @@ class FirestoreUserService implements UserService {
     }
   }
 
-  private async getPublicCourseInfo() {
+  /**
+   * Fetch all public courses from Firestore
+   * Queries courses collection for documents where isPublic === true
+   * Falls back to legacy single public course ID if no isPublic courses found
+   */
+  async getPublicCourses(): Promise<PublicCourseData[]> {
     this.initialize();
     try {
-      const publicCourseRef = doc(this.db!, "courses", this.publicCourseId);
+      const coursesRef = collection(this.db!, "courses");
+      const publicQuery = query(coursesRef, where("isPublic", "==", true));
+      const querySnapshot = await getDocs(publicQuery);
+      
+      const publicCourses: PublicCourseData[] = [];
+      
+      querySnapshot.forEach((docSnapshot) => {
+        const data = docSnapshot.data();
+        if (data.number && data.title) {
+          publicCourses.push({
+            id: docSnapshot.id,
+            number: data.number,
+            title: data.title,
+            isPublic: true,
+            courseCreatedAt: data.courseCreatedAt?.toDate?.() || data.createdAt?.toDate?.() || undefined,
+          });
+        }
+      });
+      
+      // Fallback: If no public courses found via isPublic field,
+      // check legacy env var for backwards compatibility
+      if (publicCourses.length === 0 && this.legacyPublicCourseId) {
+        console.log("No public courses found via isPublic field, falling back to legacy env var");
+        const legacyCourse = await this.getLegacyPublicCourseInfo();
+        if (legacyCourse) {
+          publicCourses.push(legacyCourse);
+        }
+      }
+      
+      return publicCourses;
+    } catch (error) {
+      console.error("Error fetching public courses:", error);
+      throw new Error("Failed to fetch public courses");
+    }
+  }
+
+  /**
+   * Legacy method for backwards compatibility
+   * Fetches single public course by ID from environment variable
+   */
+  private async getLegacyPublicCourseInfo(): Promise<PublicCourseData | null> {
+    if (!this.legacyPublicCourseId) {
+      return null;
+    }
+    
+    this.initialize();
+    try {
+      const publicCourseRef = doc(this.db!, "courses", this.legacyPublicCourseId);
       const publicCourseDoc = await getDoc(publicCourseRef);
       
       if (!publicCourseDoc.exists()) {
-        throw new Error("Public course document does not exist in the courses collection!");
+        console.warn("Legacy public course document does not exist");
+        return null;
       }
       
-      const publicCourseData = publicCourseDoc.data();
+      const data = publicCourseDoc.data();
       
-      if (!publicCourseData || !publicCourseData.number || !publicCourseData.title) {
-        throw new Error("Public course data is incomplete or invalid.");
+      if (!data || !data.number || !data.title) {
+        console.warn("Legacy public course data is incomplete");
+        return null;
       }
       
       return {
-        number: publicCourseData.number,
-        title: publicCourseData.title,
-        isCourseAdmin: false,
+        id: this.legacyPublicCourseId,
+        number: data.number,
+        title: data.title,
+        isPublic: true,
+        courseCreatedAt: data.courseCreatedAt?.toDate?.() || data.createdAt?.toDate?.() || undefined,
       };
     } catch (error) {
-      console.error("Error fetching public course info:", error);
-      throw new Error("Failed to fetch public course information");
+      console.error("Error fetching legacy public course info:", error);
+      return null;
     }
   }
 }

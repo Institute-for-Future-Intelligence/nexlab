@@ -14,13 +14,16 @@ import AdditionalCourseInfo from './AdditionalCourseInfo';
 
 const SupplementalMaterials: React.FC = () => {
   const { userDetails } = useUser();
-  const { userCourses } = useCourses();
+  const { userCourses, publicCourses } = useCourses();
   const [searchParams] = useSearchParams();
   const selectedCourse = searchParams.get('course') || null; // Get selected course ID from URL. Ensure it's either a string or null
 
-  // Find selected course data
+  // Combine all courses for searching (public + user courses)
+  const allCourses = useMemo(() => [...publicCourses, ...userCourses], [publicCourses, userCourses]);
+
+  // Find selected course data from all available courses
   const selectedCourseData = useMemo(() => {
-    const courseData = userCourses.find(course => course.id === selectedCourse);
+    const courseData = allCourses.find(course => course.id === selectedCourse);
     
     // Debug logging for course admin status
     if (selectedCourse && courseData) {
@@ -28,6 +31,7 @@ const SupplementalMaterials: React.FC = () => {
         courseId: selectedCourse,
         courseTitle: courseData.title,
         isCourseAdmin: courseData.isCourseAdmin,
+        isPublic: courseData.isPublic,
         userIsAdmin: userDetails?.isAdmin,
         shouldShowAddButton: userDetails?.isAdmin && courseData.isCourseAdmin,
         timestamp: new Date().toISOString()
@@ -35,7 +39,7 @@ const SupplementalMaterials: React.FC = () => {
     }
     
     return courseData;
-  }, [userCourses, selectedCourse, userDetails?.isAdmin]);
+  }, [allCourses, selectedCourse, userDetails?.isAdmin]);
 
   return (
     <Box className="supplemental-container">
@@ -44,7 +48,7 @@ const SupplementalMaterials: React.FC = () => {
       {/* If no course is selected, show Course Selector */}
       {!selectedCourse ? (
         <>
-          <CourseSelector courses={userCourses} />
+          <CourseSelector courses={allCourses} />
         </>
       ) : (
         // If a course is selected, show materials and add button

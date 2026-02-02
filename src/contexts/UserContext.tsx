@@ -15,6 +15,7 @@ export interface UserDetails {
     number: string; 
     title: string; 
     isCourseAdmin: boolean;
+    isPublic?: boolean; // Whether this is a public course
     courseCreatedAt?: Date | FirebaseTimestamp; // When the course was originally created
     enrolledAt?: Date | FirebaseTimestamp; // When the user was enrolled in this course
   }>;
