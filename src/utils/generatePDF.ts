@@ -158,7 +158,7 @@ export const handleDownloadPDF = async (materialData: Material | null, setProgre
           case 'em':
             el.children?.forEach(child => collectFromNode(child, currentBold, true));
             break;
-          case 'a':
+          case 'a': {
             // For links, collect the text and mark as link
             const linkText = extractTextFromNode(el);
             if (linkText) {
@@ -171,6 +171,7 @@ export const handleDownloadPDF = async (materialData: Material | null, setProgre
               });
             }
             break;
+          }
           case 'br':
             segments.push({ text: '\n' });
             break;
