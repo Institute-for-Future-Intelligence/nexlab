@@ -59,11 +59,13 @@ const CourseSelector: React.FC<CourseSelectorProps> = ({ courses }) => {
 
         <Box sx={{ mt: spacing[3] }}>
           {/* Public Courses */}
-          <CourseSection
-            title="Public Course"
-            courses={publicCourses}
-            onCourseClick={handleCourseClick}
-          />
+          {publicCourses.length > 0 && (
+            <CourseSection
+              title={publicCourses.length === 1 ? "Public Course" : "Public Courses"}
+              courses={publicCourses}
+              onCourseClick={handleCourseClick}
+            />
+          )}
 
           {/* User Courses */}
           <CourseSection

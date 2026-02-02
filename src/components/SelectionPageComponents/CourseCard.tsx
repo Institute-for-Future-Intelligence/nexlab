@@ -17,7 +17,8 @@ interface CourseCardProps {
 }
 
 const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
-  const isPublicCourse = course.isPublic || course.id === 'xsA42JCvfCUtmyoyx45s'; // Public course ID from config
+  // Use the isPublic field from the course data (set when user is enrolled in public courses)
+  const isPublicCourse = course.isPublic ?? false;
 
   return (
     <Card

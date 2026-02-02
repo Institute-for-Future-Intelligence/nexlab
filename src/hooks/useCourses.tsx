@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useUser } from './useUser';
 import { FirebaseTimestamp, getDateFromTimestamp } from '../types/firebase';
 
-interface Course {
+export interface Course {
   id: string;
   number: string;
   title: string;
@@ -52,7 +52,8 @@ export const useCourses = (): SortedCourses => {
         id,
         number: course.number,
         title: course.title,
-        isPublic: id === import.meta.env.VITE_PUBLIC_COURSE_ID, // Public course ID
+        // Read isPublic from user's classes data (set when enrolled in public course)
+        isPublic: course.isPublic ?? false,
         courseCreatedAt: courseCreatedAt || undefined,
         enrolledAt: enrolledAt || undefined,
         isCourseAdmin: course.isCourseAdmin,
@@ -62,6 +63,9 @@ export const useCourses = (): SortedCourses => {
     // Separate public and user courses
     const publicCourses = courses.filter(course => course.isPublic);
     const userCourses = courses.filter(course => !course.isPublic);
+
+    // Sort public courses alphabetically by course number
+    publicCourses.sort((a, b) => a.number.localeCompare(b.number));
 
     // Sort user courses by enrollment date (newest enrollment first)
     // This shows recently enrolled courses at the top

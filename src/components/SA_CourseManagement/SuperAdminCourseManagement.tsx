@@ -17,6 +17,7 @@ interface Course {
   title: string;
   number: string;
   courseAdmin: string[];
+  isPublic?: boolean;
   createdAt?: Date;
   courseCreatedAt?: Date;
   timestamp?: Date;
@@ -58,6 +59,7 @@ const SuperAdminCourseManagement: React.FC = () => {
             title: data.title || 'Untitled',
             number: data.number || 'N/A',
             courseAdmin: data.courseAdmin || [],
+            isPublic: data.isPublic || false,
             createdAt: convertTimestamp(data.createdAt),
             courseCreatedAt: convertTimestamp(data.courseCreatedAt),
             timestamp: convertTimestamp(data.timestamp)
@@ -137,6 +139,33 @@ const SuperAdminCourseManagement: React.FC = () => {
   const handleDeleteCourse = (courseId: string) => {
     setSelectedCourseId(courseId);
     setDialogOpen(true);
+  };
+
+  const handleTogglePublic = async (courseId: string) => {
+    const course = courses.find(c => c.id === courseId);
+    if (!course) return;
+
+    const newPublicStatus = !course.isPublic;
+
+    try {
+      const courseRef = doc(db, 'courses', courseId);
+      await updateDoc(courseRef, { isPublic: newPublicStatus });
+
+      // Update local state
+      setCourses(courses.map(c =>
+        c.id === courseId ? { ...c, isPublic: newPublicStatus } : c
+      ));
+
+      showSnackbar(
+        newPublicStatus 
+          ? `Course "${course.number}" is now public. New users will automatically have access.`
+          : `Course "${course.number}" is no longer public.`,
+        'success'
+      );
+    } catch (error) {
+      console.error('Error toggling public status:', error);
+      showSnackbar('Failed to update public status.', 'error');
+    }
   };
 
   const confirmDeleteCourse = async () => {
@@ -221,6 +250,7 @@ const SuperAdminCourseManagement: React.FC = () => {
         loading={loading}
         onAddSuperAdmin={handleAddSuperAdmin}
         onDeleteCourse={handleDeleteCourse}
+        onTogglePublic={handleTogglePublic}
         userUid={userDetails?.uid}
       />
       {/* Snackbar for Notifications */}

@@ -12,12 +12,17 @@ import {
 } from '@mui/icons-material';
 
 import { useUser } from '../hooks/useUser';
+import { useCourses } from '../hooks/useCourses';
 import { colors, typography, spacing, borderRadius, shadows, animations } from '../config/designSystem';
 import { PageHeader } from './common';
 
 const SelectionPage: React.FC = () => {
   const { userDetails } = useUser();
+  const { publicCourses } = useCourses();
   const navigate = useNavigate();
+  
+  // Get the first public course for Quick-Start Guide link
+  const firstPublicCourse = publicCourses.length > 0 ? publicCourses[0] : null;
 
   const isLabNotebookDisabled = userDetails && !userDetails.isAdmin && 
     (!userDetails.classes || Object.keys(userDetails.classes).length === 0);
@@ -205,8 +210,13 @@ const SelectionPage: React.FC = () => {
                 }
               }}
               onClick={() => {
-                const baseUrl = window.location.hostname === 'nexlab.bio' ? 'https://nexlab.bio' : '';
-                window.open(`${baseUrl}/view-material/xsA42JCvfCUtmyoyx45s?material=xsA42JCvfCUtmyoyx45s`, '_blank');
+                if (firstPublicCourse) {
+                  // Navigate to the first public course's materials
+                  navigate(`/supplemental-materials?course=${firstPublicCourse.id}`);
+                } else {
+                  // Fallback to course materials page if no public course available
+                  navigate('/supplemental-materials');
+                }
               }}
             >
               <CardContent sx={{ 
