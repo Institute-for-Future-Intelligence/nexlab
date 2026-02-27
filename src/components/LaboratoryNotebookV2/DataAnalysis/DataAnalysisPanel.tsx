@@ -99,6 +99,13 @@ const DataAnalysisPanel: React.FC<DataAnalysisPanelProps> = ({
   const [randomSeed, setRandomSeed] = useState<number>(42);
   const [useCrossValidation, setUseCrossValidation] = useState<boolean>(false);
   const [cvFolds, setCvFolds] = useState<number>(5);
+  
+  // ML algorithm selection and hyperparameters
+  const [selectedMLAlgorithm, setSelectedMLAlgorithm] = useState<string>('logistic');
+  const [nEstimators, setNEstimators] = useState<number>(100);
+  const [maxDepth, setMaxDepth] = useState<number>(10);
+  const [kNeighbors, setKNeighbors] = useState<number>(5);
+  const [minSamplesLeaf, setMinSamplesLeaf] = useState<number>(1);
 
   // Analysis results state
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
@@ -308,7 +315,11 @@ const DataAnalysisPanel: React.FC<DataAnalysisPanelProps> = ({
           result = dataAnalysisService.performMLClassification(dataset, featureVariables, targetVariable, {
             splitRatio: trainTestSplit / 100,
             randomSeed,
-            mlAlgorithm: 'logistic',
+            mlAlgorithm: selectedMLAlgorithm as any,
+            nEstimators,
+            maxDepth,
+            kNeighbors,
+            minSamplesLeaf,
           });
           break;
         }
@@ -372,7 +383,7 @@ const DataAnalysisPanel: React.FC<DataAnalysisPanelProps> = ({
         </Typography>
         <Typography variant="body2" sx={{ color: colors.text.secondary }}>
           Upload CSV datasets and perform statistical analyses including linear regression,
-          descriptive statistics, and correlation analysis.
+          descriptive statistics, correlation analysis, and machine learning (Random Forest, Decision Trees, KNN, and more).
         </Typography>
       </Box>
 
@@ -477,7 +488,42 @@ const DataAnalysisPanel: React.FC<DataAnalysisPanelProps> = ({
                           Machine Learning (Train/Test Split)
                         </MenuItem>
                         <MenuItem value="ml_regression">ML: Regression with Train/Test</MenuItem>
-                        <MenuItem value="ml_classification">ML: Classification with Train/Test</MenuItem>
+                        <MenuItem 
+                          value="ml_classification"
+                          onClick={() => {
+                            setAnalysisType('ml_classification');
+                            setSelectedMLAlgorithm('logistic');
+                          }}
+                        >
+                          ML: Classification - Logistic Regression
+                        </MenuItem>
+                        <MenuItem 
+                          value="ml_classification_rf"
+                          onClick={() => {
+                            setAnalysisType('ml_classification');
+                            setSelectedMLAlgorithm('random_forest');
+                          }}
+                        >
+                          ML: Classification - Random Forest ⭐
+                        </MenuItem>
+                        <MenuItem 
+                          value="ml_classification_dt"
+                          onClick={() => {
+                            setAnalysisType('ml_classification');
+                            setSelectedMLAlgorithm('decision_tree');
+                          }}
+                        >
+                          ML: Classification - Decision Tree
+                        </MenuItem>
+                        <MenuItem 
+                          value="ml_classification_knn"
+                          onClick={() => {
+                            setAnalysisType('ml_classification');
+                            setSelectedMLAlgorithm('knn');
+                          }}
+                        >
+                          ML: Classification - K-Nearest Neighbors
+                        </MenuItem>
                         <Divider sx={{ my: 1 }} />
                         <MenuItem value="multiple_regression" disabled>
                           Multiple Regression (Coming Soon)
@@ -694,6 +740,92 @@ const DataAnalysisPanel: React.FC<DataAnalysisPanelProps> = ({
                           helperText="Set a fixed seed to get consistent train/test splits"
                           fullWidth
                         />
+
+                        {/* Algorithm-Specific Hyperparameters */}
+                        {analysisType === 'ml_classification' && (
+                          <Paper sx={{ p: 2, backgroundColor: colors.neutral[50], borderRadius: borderRadius.sm }}>
+                            <Typography variant="body2" sx={{ fontWeight: 600, mb: 2 }}>
+                              Algorithm: {selectedMLAlgorithm === 'random_forest' ? 'Random Forest' : 
+                                         selectedMLAlgorithm === 'decision_tree' ? 'Decision Tree' :
+                                         selectedMLAlgorithm === 'knn' ? 'K-Nearest Neighbors' :
+                                         'Logistic Regression'}
+                            </Typography>
+
+                            {/* Random Forest Hyperparameters */}
+                            {selectedMLAlgorithm === 'random_forest' && (
+                              <Stack spacing={2}>
+                                <TextField
+                                  label="Number of Trees"
+                                  type="number"
+                                  value={nEstimators}
+                                  onChange={(e) => setNEstimators(Number(e.target.value))}
+                                  inputProps={{ min: 10, max: 500, step: 10 }}
+                                  helperText="More trees = better accuracy but slower (default: 100)"
+                                  fullWidth
+                                  size="small"
+                                />
+                                <Alert severity="info" sx={{ fontSize: '0.75rem' }}>
+                                  Random Forest builds multiple decision trees and combines their predictions for better accuracy and reduced overfitting.
+                                </Alert>
+                              </Stack>
+                            )}
+
+                            {/* Decision Tree Hyperparameters */}
+                            {selectedMLAlgorithm === 'decision_tree' && (
+                              <Stack spacing={2}>
+                                <TextField
+                                  label="Max Tree Depth"
+                                  type="number"
+                                  value={maxDepth}
+                                  onChange={(e) => setMaxDepth(Number(e.target.value))}
+                                  inputProps={{ min: 1, max: 50 }}
+                                  helperText="Deeper trees = more complex model (default: 10)"
+                                  fullWidth
+                                  size="small"
+                                />
+                                <TextField
+                                  label="Min Samples per Leaf"
+                                  type="number"
+                                  value={minSamplesLeaf}
+                                  onChange={(e) => setMinSamplesLeaf(Number(e.target.value))}
+                                  inputProps={{ min: 1, max: 100 }}
+                                  helperText="Higher values prevent overfitting (default: 1)"
+                                  fullWidth
+                                  size="small"
+                                />
+                                <Alert severity="info" sx={{ fontSize: '0.75rem' }}>
+                                  Decision Trees create interpretable rules by splitting data at each node. Great for understanding feature relationships.
+                                </Alert>
+                              </Stack>
+                            )}
+
+                            {/* KNN Hyperparameters */}
+                            {selectedMLAlgorithm === 'knn' && (
+                              <Stack spacing={2}>
+                                <TextField
+                                  label="Number of Neighbors (K)"
+                                  type="number"
+                                  value={kNeighbors}
+                                  onChange={(e) => setKNeighbors(Number(e.target.value))}
+                                  inputProps={{ min: 1, max: 50 }}
+                                  helperText="Higher K = smoother decision boundary (default: 5)"
+                                  fullWidth
+                                  size="small"
+                                />
+                                <Alert severity="info" sx={{ fontSize: '0.75rem' }}>
+                                  KNN classifies samples based on the K nearest neighbors. Lower K is more sensitive to noise, higher K is smoother.
+                                </Alert>
+                              </Stack>
+                            )}
+
+                            {/* Logistic Regression Info */}
+                            {selectedMLAlgorithm === 'logistic' && (
+                              <Alert severity="info" sx={{ fontSize: '0.75rem' }}>
+                                Logistic Regression uses gradient descent (1000 iterations) with feature normalization for binary classification.
+                              </Alert>
+                            )}
+                          </Paper>
+                        )}
 
                         {/* Cross-Validation Options (for ML Regression only) */}
                         {analysisType === 'ml_regression' && (

@@ -111,8 +111,9 @@ export interface AnalysisOptions {
   // ML-specific options
   mlAlgorithm?: 'decision_tree' | 'random_forest' | 'logistic' | 'naive_bayes' | 'knn';
   maxDepth?: number;  // For tree-based models
-  nEstimators?: number;  // For random forest
-  kNeighbors?: number;  // For KNN
+  nEstimators?: number;  // For random forest (default: 100)
+  kNeighbors?: number;  // For KNN (default: 5)
+  minSamplesLeaf?: number;  // For decision trees (default: 1)
   crossValidationFolds?: number;  // K-fold cross-validation
 }
 

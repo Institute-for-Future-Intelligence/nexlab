@@ -13,6 +13,9 @@ import {
   linearRegression,
   linearRegressionLine,
 } from 'simple-statistics';
+import { RandomForestClassifier } from 'ml-random-forest';
+import { DecisionTreeClassifier } from 'ml-cart';
+import KNN from 'ml-knn';
 import {
   Dataset,
   DatasetMetadata,
@@ -850,10 +853,67 @@ class DataAnalysisService {
         return prob >= 0.5 ? 1 : 0;
       };
       
-      trainPredictions = trainX.map((x) => indexToClass.get(predict(x)) || uniqueClasses[0]);
-      testPredictions = testX.map((x) => indexToClass.get(predict(x)) || uniqueClasses[0]);
+      trainPredictions = trainX.map((x) => indexToClass.get(predict(x)) || String(uniqueClasses[0]));
+      testPredictions = testX.map((x) => indexToClass.get(predict(x)) || String(uniqueClasses[0]));
+    } else if (mlAlgorithm === 'random_forest') {
+      // Random Forest Classifier (handles both binary and multi-class)
+      const RF = new RandomForestClassifier({
+        nEstimators: options.nEstimators || 100,
+        maxFeatures: Math.floor(Math.sqrt(featureVariables.length)),
+        replacement: true,
+        seed: randomSeed,
+      });
+
+      // Convert labels to numeric indices for training
+      const trainY = trainData.labels.map((label) => classToIndex.get(String(label)) || 0);
+      const testY = testData.labels.map((label) => classToIndex.get(String(label)) || 0);
+
+      // Train the model
+      RF.train(trainData.features, trainY);
+
+      // Make predictions (returns numeric indices)
+      const trainPredIndices = RF.predict(trainData.features);
+      const testPredIndices = RF.predict(testData.features);
+
+      // Convert indices back to class labels
+      trainPredictions = trainPredIndices.map((idx: number) => indexToClass.get(idx) || String(uniqueClasses[0]));
+      testPredictions = testPredIndices.map((idx: number) => indexToClass.get(idx) || String(uniqueClasses[0]));
+    } else if (mlAlgorithm === 'decision_tree') {
+      // Decision Tree Classifier (handles both binary and multi-class)
+      const DT = new DecisionTreeClassifier({
+        maxDepth: options.maxDepth || 10,
+        minNumSamples: options.minSamplesLeaf || 1,
+      });
+
+      // Convert labels to numeric indices
+      const trainY = trainData.labels.map((label) => classToIndex.get(String(label)) || 0);
+
+      // Train the model
+      DT.train(trainData.features, trainY);
+
+      // Make predictions
+      const trainPredIndices = DT.predict(trainData.features);
+      const testPredIndices = DT.predict(testData.features);
+
+      // Convert indices back to class labels
+      trainPredictions = trainPredIndices.map((idx: number) => indexToClass.get(idx) || String(uniqueClasses[0]));
+      testPredictions = testPredIndices.map((idx: number) => indexToClass.get(idx) || String(uniqueClasses[0]));
+    } else if (mlAlgorithm === 'knn') {
+      // K-Nearest Neighbors Classifier (handles both binary and multi-class)
+      const trainY = trainData.labels.map((label) => classToIndex.get(String(label)) || 0);
+
+      // Create KNN model
+      const knn = new KNN(trainData.features, trainY, { k: options.kNeighbors || 5 });
+
+      // Make predictions
+      const trainPredIndices = knn.predict(trainData.features);
+      const testPredIndices = knn.predict(testData.features);
+
+      // Convert indices back to class labels
+      trainPredictions = trainPredIndices.map((idx: number) => indexToClass.get(idx) || String(uniqueClasses[0]));
+      testPredictions = testPredIndices.map((idx: number) => indexToClass.get(idx) || String(uniqueClasses[0]));
     } else {
-      // Fallback to majority class for multi-class (>2 classes)
+      // Fallback to majority class for unsupported algorithms or multi-class with logistic
       const classCounts = new Map<string, number>();
       trainData.labels.forEach((label) => {
         const key = String(label);
@@ -919,11 +979,41 @@ class DataAnalysisService {
     // Calculate feature importance
     const featureImportance = this.calculateFeatureImportance(dataset, featureVariables, targetVariable);
 
+    // Determine algorithm name for display
+    const getAlgorithmName = (): string => {
+      if (mlAlgorithm === 'random_forest') {
+        return `Random Forest (${options.nEstimators || 100} trees)`;
+      } else if (mlAlgorithm === 'decision_tree') {
+        return `Decision Tree (max depth: ${options.maxDepth || 10})`;
+      } else if (mlAlgorithm === 'knn') {
+        return `K-Nearest Neighbors (k=${options.kNeighbors || 5})`;
+      } else if (mlAlgorithm === 'logistic' && uniqueClasses.length === 2) {
+        return 'Logistic Regression (Gradient Descent)';
+      } else {
+        return 'Majority Class Baseline';
+      }
+    };
+
+    // Generate algorithm-specific summary
+    const getSummary = (): string => {
+      const baseText = `Trained ${getAlgorithmName()} on ${trainData.labels.length} samples (${(splitRatio * 100).toFixed(0)}% train / ${(100 - splitRatio * 100).toFixed(0)}% test split). Test accuracy: ${(testMetrics.accuracy * 100).toFixed(2)}%.`;
+      
+      if (mlAlgorithm === 'random_forest') {
+        return `${baseText} Random Forest uses ensemble learning with ${options.nEstimators || 100} decision trees to improve accuracy and reduce overfitting.`;
+      } else if (mlAlgorithm === 'decision_tree') {
+        return `${baseText} Decision Tree creates interpretable rules by splitting data at each node based on feature values.`;
+      } else if (mlAlgorithm === 'knn') {
+        return `${baseText} KNN classifies samples based on the ${options.kNeighbors || 5} nearest neighbors in the feature space.`;
+      } else if (mlAlgorithm === 'logistic' && uniqueClasses.length === 2) {
+        return `${baseText} Model uses normalized features and sigmoid activation for binary classification.`;
+      } else {
+        return baseText;
+      }
+    };
+
     const result: MLClassificationResult = {
       type: 'ml_classification',
-      algorithm: uniqueClasses.length === 2 
-        ? 'Logistic Regression (Gradient Descent)'
-        : mlAlgorithm === 'logistic' ? 'Logistic Regression (Baseline)' : 'Decision Tree',
+      algorithm: getAlgorithmName(),
       trainingSize: trainData.labels.length,
       testSize: testData.labels.length,
       splitRatio,
@@ -947,9 +1037,7 @@ class DataAnalysisService {
           predicted: testPredictions[i],
         })),
       },
-      summary: uniqueClasses.length === 2
-        ? `Trained logistic regression classifier with gradient descent (1000 iterations) on ${trainData.labels.length} samples (${(splitRatio * 100).toFixed(0)}% split). Test accuracy: ${(testMetrics.accuracy * 100).toFixed(2)}%. Model uses normalized features and sigmoid activation for binary classification.`
-        : `Trained ${mlAlgorithm} model on ${trainData.labels.length} samples (${(splitRatio * 100).toFixed(0)}% split). Test accuracy: ${(testMetrics.accuracy * 100).toFixed(2)}%. This is a baseline implementation - for production use, integrate with TensorFlow.js or ml.js for advanced algorithms.`,
+      summary: getSummary(),
       recommendations: [
         testMetrics.accuracy < 0.6 
           ? '⚠️ Low accuracy - consider more features or different algorithm' 
@@ -965,8 +1053,13 @@ class DataAnalysisService {
         testMetrics.accuracy > 0.85 && testMetrics.precision < 0.8
           ? '⚠️ Low precision - model has many false positives. Consider adjusting threshold.'
           : '',
-        'Try different feature combinations to optimize performance',
-        uniqueClasses.length === 2 ? 'Model uses gradient descent with 1000 iterations' : 'Consider enabling cross-validation for more robust evaluation',
+        mlAlgorithm === 'random_forest'
+          ? `Try adjusting the number of trees (current: ${options.nEstimators || 100}) to balance accuracy and speed`
+          : mlAlgorithm === 'decision_tree'
+          ? `Try adjusting max depth (current: ${options.maxDepth || 10}) to prevent overfitting`
+          : mlAlgorithm === 'knn'
+          ? `Try different k values (current: ${options.kNeighbors || 5}) - lower k is more sensitive to noise`
+          : 'Try different feature combinations to optimize performance',
       ].filter(Boolean),
     };
 
