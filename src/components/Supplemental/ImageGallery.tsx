@@ -65,7 +65,8 @@ interface SmartImageProps {
 const SmartImage: React.FC<SmartImageProps> = ({ src, alt, title }) => {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
-  const [retryAttempt] = useState(0);
+  const [retryAttempt, setRetryAttempt] = useState(0);
+  const MAX_RETRIES = 3;
 
   // Preload image with retry mechanism
   useEffect(() => {
@@ -74,34 +75,46 @@ const SmartImage: React.FC<SmartImageProps> = ({ src, alt, title }) => {
     
     const img = new Image();
     
-    // Skip crossOrigin to avoid CORS issues for now
-    // TODO: Fix Firebase Storage CORS configuration
-    // if (retryAttempt === 0) {
-    //   img.crossOrigin = 'anonymous';
-    // }
+    // Enable CORS for Firebase Storage images
+    // This allows Canvas API and PDF generation to access image data
+    // Requires Firebase Storage CORS configuration to be set
+    img.crossOrigin = 'anonymous';
     
     img.src = src;
     
     img.onload = () => {
-      console.log(`✅ SmartImage loaded: ${src.substring(0, 50)}...`);
+      console.log(`✅ SmartImage loaded: ${src.substring(0, 50)}... (attempt ${retryAttempt + 1})`);
       setLoaded(true);
     };
     
     img.onerror = (error) => {
-      console.error(`❌ SmartImage failed to load: ${src}`, error);
-      console.error(`Image details:`, {
-        src,
-        naturalWidth: img.naturalWidth,
-        naturalHeight: img.naturalHeight,
-        complete: img.complete
-      });
+      console.error(`❌ SmartImage failed to load: ${src} (attempt ${retryAttempt + 1}/${MAX_RETRIES})`, error);
       
-      // Log the error for debugging
-      console.error(`Image load failed. URL accessible via curl but blocked in browser.`);
-      console.error(`This is likely a Firebase Storage CORS configuration issue.`);
-      console.error(`Fix: Configure CORS to allow ${window.location.origin}`);
-      
-      setError(true);
+      // Retry logic for transient network failures
+      if (retryAttempt < MAX_RETRIES) {
+        const delay = 1000 * Math.pow(2, retryAttempt); // Exponential backoff: 1s, 2s, 4s
+        console.log(`🔄 Retrying image load in ${delay}ms...`);
+        
+        setTimeout(() => {
+          setRetryAttempt(prev => prev + 1);
+        }, delay);
+      } else {
+        console.error(`❌ Image failed to load after ${MAX_RETRIES} attempts`);
+        console.error(`Image details:`, {
+          src,
+          naturalWidth: img.naturalWidth,
+          naturalHeight: img.naturalHeight,
+          complete: img.complete
+        });
+        
+        // Log potential causes
+        if (src.includes('firebasestorage.googleapis.com')) {
+          console.error(`⚠️ Firebase Storage CORS may not be configured.`);
+          console.error(`Run: gsutil cors set firebase-storage-cors.json gs://YOUR_BUCKET_NAME`);
+        }
+        
+        setError(true);
+      }
     };
 
     return () => {
@@ -129,7 +142,7 @@ const SmartImage: React.FC<SmartImageProps> = ({ src, alt, title }) => {
           }}
         >
           <Typography variant="body2" color="error" gutterBottom>
-            Image failed to load
+            ❌ Image failed to load after 3 attempts
           </Typography>
           <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', wordBreak: 'break-all' }}>
             {title}
@@ -137,6 +150,11 @@ const SmartImage: React.FC<SmartImageProps> = ({ src, alt, title }) => {
           <Typography variant="caption" color="text.secondary" sx={{ mt: 1, fontSize: '0.7rem' }}>
             URL: {src.substring(0, 60)}...
           </Typography>
+          {src.includes('firebasestorage.googleapis.com') && (
+            <Typography variant="caption" color="warning.main" sx={{ mt: 1, textAlign: 'center', fontSize: '0.7rem' }}>
+              ⚠️ Possible CORS configuration issue
+            </Typography>
+          )}
         </Box>
         <Typography variant="body2" sx={{ fontStyle: 'italic', mt: 1 }}>{title}</Typography>
       </ImageContainer>
