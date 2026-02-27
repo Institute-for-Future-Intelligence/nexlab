@@ -39,7 +39,7 @@ export const publishScheduledMaterials = functions.pubsub
   });
 
 /**
- * Cloud Function: Process Course/Syllabus with Gemini 3
+ * Cloud Function: Process Course/Syllabus with Gemini 3.1
  * Keeps API key server-side for security
  */
 export const processCourseWithGemini = functions
@@ -86,7 +86,7 @@ export const processCourseWithGemini = functions
       };
 
       const response = await ai.models.generateContent({
-        model: "gemini-3-pro-preview",
+        model: "gemini-3.1-pro-preview",
         contents: prompt,
         config: requestConfig,
       });
@@ -118,7 +118,7 @@ export const processCourseWithGemini = functions
   });
 
 /**
- * Cloud Function: Process Material Import with Gemini 3
+ * Cloud Function: Process Material Import with Gemini 3.1
  * Separate function for material processing with dedicated API key option
  * Uses 'low' thinking level for faster processing of materials
  */
@@ -172,7 +172,7 @@ export const processMaterialWithGemini = functions
       };
 
       const response = await ai.models.generateContent({
-        model: "gemini-3-pro-preview",
+        model: "gemini-3.1-pro-preview",
         contents: prompt,
         config: requestConfig,
       });
