@@ -20,7 +20,7 @@ interface GeminiResponse {
 }
 
 /**
- * Call Gemini 3 for course/syllabus processing via Firebase Function
+ * Call Gemini 3.1 for course/syllabus processing via Firebase Function
  * API key is kept server-side for security
  */
 export const callGeminiForCourse = async (
@@ -65,7 +65,7 @@ export const callGeminiForCourse = async (
 };
 
 /**
- * Call Gemini 3 for material import via Firebase Function
+ * Call Gemini 3.1 for material import via Firebase Function
  * Uses 'low' thinking level for faster processing
  */
 export const callGeminiForMaterial = async (
