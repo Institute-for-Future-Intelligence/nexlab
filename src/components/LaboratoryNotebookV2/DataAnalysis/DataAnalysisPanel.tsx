@@ -95,6 +95,8 @@ const DataAnalysisPanel: React.FC<DataAnalysisPanelProps> = ({
   const [analysisDescription, setAnalysisDescription] = useState<string>('');
   
   // ML-specific configuration
+  const [mlAlgorithm, setMlAlgorithm] = useState<'logistic' | 'linear' | 'decision_tree' | 'random_forest' | 'knn'>('logistic');
+  const [nClusters, setNClusters] = useState<number>(3);
   const [trainTestSplit, setTrainTestSplit] = useState<number>(80); // 80% training, 20% testing
   const [randomSeed, setRandomSeed] = useState<number>(42);
   const [useCrossValidation, setUseCrossValidation] = useState<boolean>(false);
@@ -279,6 +281,10 @@ const DataAnalysisPanel: React.FC<DataAnalysisPanelProps> = ({
             splitRatio: trainTestSplit / 100,
             randomSeed,
             crossValidationFolds: useCrossValidation ? cvFolds : undefined,
+            mlAlgorithm: mlAlgorithm === 'linear' ? undefined : mlAlgorithm,
+            maxDepth: 10,
+            nEstimators: 50,
+            kNeighbors: undefined,
           });
           break;
         }
@@ -308,7 +314,21 @@ const DataAnalysisPanel: React.FC<DataAnalysisPanelProps> = ({
           result = dataAnalysisService.performMLClassification(dataset, featureVariables, targetVariable, {
             splitRatio: trainTestSplit / 100,
             randomSeed,
-            mlAlgorithm: 'logistic',
+            mlAlgorithm: mlAlgorithm === 'logistic' ? 'logistic' : mlAlgorithm,
+            maxDepth: 10,
+            nEstimators: 50,
+            kNeighbors: undefined,
+          });
+          break;
+        }
+
+        case 'ml_clustering': {
+          if (featureVariables.length === 0) {
+            throw new Error('Please select at least one feature variable for clustering');
+          }
+          result = dataAnalysisService.performMLClustering(dataset, featureVariables, {
+            nClusters,
+            randomSeed,
           });
           break;
         }
@@ -372,7 +392,8 @@ const DataAnalysisPanel: React.FC<DataAnalysisPanelProps> = ({
         </Typography>
         <Typography variant="body2" sx={{ color: colors.text.secondary }}>
           Upload CSV datasets and perform statistical analyses including linear regression,
-          descriptive statistics, and correlation analysis.
+          descriptive statistics, correlation analysis, and ML algorithms (Decision Tree,
+          Random Forest, KNN, K-Means clustering).
         </Typography>
       </Box>
 
@@ -463,9 +484,12 @@ const DataAnalysisPanel: React.FC<DataAnalysisPanelProps> = ({
                       <Select
                         value={analysisType}
                         onChange={(e) => {
-                          setAnalysisType(e.target.value as AnalysisType);
+                          const newType = e.target.value as AnalysisType;
+                          setAnalysisType(newType);
                           setTargetVariable('');
                           setFeatureVariables([]);
+                          if (newType === 'ml_classification') setMlAlgorithm('logistic');
+                          else if (newType === 'ml_regression') setMlAlgorithm('linear');
                         }}
                         label="Analysis Type"
                       >
@@ -478,6 +502,7 @@ const DataAnalysisPanel: React.FC<DataAnalysisPanelProps> = ({
                         </MenuItem>
                         <MenuItem value="ml_regression">ML: Regression with Train/Test</MenuItem>
                         <MenuItem value="ml_classification">ML: Classification with Train/Test</MenuItem>
+                        <MenuItem value="ml_clustering">ML: K-Means Clustering</MenuItem>
                         <Divider sx={{ my: 1 }} />
                         <MenuItem value="multiple_regression" disabled>
                           Multiple Regression (Coming Soon)
@@ -545,6 +570,76 @@ const DataAnalysisPanel: React.FC<DataAnalysisPanelProps> = ({
                               <ListItemText primary={varName} />
                             </MenuItem>
                           ))}
+                        </Select>
+                      </FormControl>
+                    )}
+
+                    {/* ML Clustering: Feature variables + Number of clusters */}
+                    {analysisType === 'ml_clustering' && (
+                      <>
+                        <FormControl fullWidth>
+                          <InputLabel>Feature Variables (for clustering)</InputLabel>
+                          <Select
+                            multiple
+                            value={featureVariables}
+                            onChange={(e) => setFeatureVariables(e.target.value as string[])}
+                            label="Feature Variables (for clustering)"
+                            renderValue={(selected) => (
+                              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                {(selected as string[]).map((value) => (
+                                  <Chip key={value} label={value} size="small" />
+                                ))}
+                              </Box>
+                            )}
+                          >
+                            {getAvailableVariables(true).map((varName) => (
+                              <MenuItem key={varName} value={varName}>
+                                <Checkbox checked={featureVariables.indexOf(varName) > -1} />
+                                <ListItemText primary={varName} />
+                              </MenuItem>
+                            ))}
+                          </Select>
+                          <Typography variant="caption" sx={{ mt: 0.5, color: colors.text.secondary }}>
+                            Select numeric columns to cluster on (no target variable)
+                          </Typography>
+                        </FormControl>
+                        <TextField
+                          label="Number of Clusters (K)"
+                          type="number"
+                          value={nClusters}
+                          onChange={(e) => setNClusters(Math.max(2, Math.min(20, Number(e.target.value) || 2)))}
+                          inputProps={{ min: 2, max: 20 }}
+                          helperText="K clusters to group your data into (2–20)"
+                          fullWidth
+                        />
+                      </>
+                    )}
+
+                    {/* ML Algorithm Selector (Classification & Regression) */}
+                    {(analysisType === 'ml_regression' || analysisType === 'ml_classification') && (
+                      <FormControl fullWidth>
+                        <InputLabel>Algorithm</InputLabel>
+                        <Select
+                          value={mlAlgorithm}
+                          onChange={(e) => setMlAlgorithm(e.target.value as typeof mlAlgorithm)}
+                          label="Algorithm"
+                        >
+                          {analysisType === 'ml_classification' && (
+                            <>
+                              <MenuItem value="logistic">Logistic Regression</MenuItem>
+                              <MenuItem value="decision_tree">Decision Tree</MenuItem>
+                              <MenuItem value="random_forest">Random Forest</MenuItem>
+                              <MenuItem value="knn">K-Nearest Neighbors</MenuItem>
+                            </>
+                          )}
+                          {analysisType === 'ml_regression' && (
+                            <>
+                              <MenuItem value="linear">Linear Regression</MenuItem>
+                              <MenuItem value="decision_tree">Decision Tree</MenuItem>
+                              <MenuItem value="random_forest">Random Forest</MenuItem>
+                              <MenuItem value="knn">K-Nearest Neighbors</MenuItem>
+                            </>
+                          )}
                         </Select>
                       </FormControl>
                     )}
@@ -746,7 +841,8 @@ const DataAnalysisPanel: React.FC<DataAnalysisPanelProps> = ({
                         (analysisType === 'linear_regression' && (!targetVariable || featureVariables.length === 0)) ||
                         (analysisType === 'descriptive_stats' && featureVariables.length === 0) ||
                         (analysisType === 'correlation' && featureVariables.length < 2) ||
-                        ((analysisType === 'ml_regression' || analysisType === 'ml_classification') && (!targetVariable || featureVariables.length === 0))
+                        ((analysisType === 'ml_regression' || analysisType === 'ml_classification') && (!targetVariable || featureVariables.length === 0)) ||
+                        (analysisType === 'ml_clustering' && featureVariables.length === 0)
                       }
                       startIcon={(isAnalyzing || isLoadingDataset) ? <CircularProgress size={20} /> : <AnalyticsIcon />}
                       sx={{ textTransform: 'none' }}
@@ -770,6 +866,11 @@ const DataAnalysisPanel: React.FC<DataAnalysisPanelProps> = ({
                         {analysisType === 'correlation' && featureVariables.length < 2 && (
                           <Alert severity="info">
                             Please select at least two variables for correlation analysis
+                          </Alert>
+                        )}
+                        {analysisType === 'ml_clustering' && featureVariables.length === 0 && (
+                          <Alert severity="info">
+                            Please select at least one feature variable for clustering
                           </Alert>
                         )}
                         {(analysisType === 'ml_regression' || analysisType === 'ml_classification') && (!targetVariable || featureVariables.length === 0) && (

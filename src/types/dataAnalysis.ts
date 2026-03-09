@@ -86,8 +86,9 @@ export type AnalysisType =
   | 'hypothesis_test'
   | 'anova'
   | 'classification'
-  | 'ml_classification'      // ML: Decision Tree, Random Forest, etc.
-  | 'ml_regression';          // ML: Supervised regression models
+  | 'ml_classification'      // ML: Decision Tree, Random Forest, KNN, etc.
+  | 'ml_regression'          // ML: Supervised regression models
+  | 'ml_clustering';         // ML: Unsupervised (K-Means)
 
 export interface AnalysisConfig {
   type: AnalysisType;
@@ -114,6 +115,7 @@ export interface AnalysisOptions {
   nEstimators?: number;  // For random forest
   kNeighbors?: number;  // For KNN
   crossValidationFolds?: number;  // K-fold cross-validation
+  nClusters?: number;  // For K-Means clustering
 }
 
 // ============================================================================
@@ -305,6 +307,20 @@ export interface MLRegressionResult {
   recommendations: string[];
 }
 
+export interface MLClusteringResult {
+  type: 'ml_clustering';
+  algorithm: 'kmeans';
+  nClusters: number;
+  nSamples: number;
+  iterations: number;
+  clusterSizes: number[];
+  centroids: number[][];
+  featureVariables: string[];
+  clusterAssignments: number[];
+  summary: string;
+  recommendations: string[];
+}
+
 export type AnalysisResult = 
   | LinearRegressionResult 
   | MultipleRegressionResult
@@ -312,7 +328,8 @@ export type AnalysisResult =
   | CorrelationResult
   | DescriptiveStatsResult
   | MLClassificationResult
-  | MLRegressionResult;
+  | MLRegressionResult
+  | MLClusteringResult;
 
 // ============================================================================
 // Saved Analysis
@@ -432,4 +449,8 @@ export function isMLClassification(result: AnalysisResult): result is MLClassifi
 
 export function isMLRegression(result: AnalysisResult): result is MLRegressionResult {
   return result.type === 'ml_regression';
+}
+
+export function isMLClustering(result: AnalysisResult): result is MLClusteringResult {
+  return result.type === 'ml_clustering';
 }

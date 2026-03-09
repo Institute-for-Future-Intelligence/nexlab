@@ -48,11 +48,13 @@ import {
   CorrelationResult,
   MLClassificationResult,
   MLRegressionResult,
+  MLClusteringResult,
   isLinearRegression,
   isDescriptiveStats,
   isCorrelation,
   isMLClassification,
   isMLRegression,
+  isMLClustering,
 } from '../../../types/dataAnalysis';
 
 interface AnalysisVisualizationProps {
@@ -78,6 +80,10 @@ const AnalysisVisualization: React.FC<AnalysisVisualizationProps> = ({ result })
 
   if (isMLClassification(result)) {
     return <MLClassificationView result={result} />;
+  }
+
+  if (isMLClustering(result)) {
+    return <MLClusteringView result={result} />;
   }
 
   return (
@@ -1003,6 +1009,124 @@ const MLClassificationView: React.FC<{ result: MLClassificationResult }> = ({ re
         <Divider sx={{ my: 2 }} />
 
         <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Recommendations</Typography>
+        <Stack spacing={1}>
+          {result.recommendations.map((rec, idx) => (
+            <Box key={idx} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+              <InfoIcon sx={{ fontSize: 18, color: colors.primary[500], mt: 0.3 }} />
+              <Typography variant="body2">{rec}</Typography>
+            </Box>
+          ))}
+        </Stack>
+      </Paper>
+    </Box>
+  );
+};
+
+// ============================================================================
+// ML Clustering Visualization
+// ============================================================================
+
+const MLClusteringView: React.FC<{ result: MLClusteringResult }> = ({ result }) => {
+  const clusterSummaryData = result.clusterSizes.map((size, i) => ({
+    name: `Cluster ${i + 1}`,
+    size,
+    centroid: result.centroids[i]
+      ?.map((v) => v.toFixed(2))
+      .join(', ') ?? '-',
+  }));
+
+  const clusterColors = [
+    colors.primary[500],
+    colors.secondary[500],
+    colors.success,
+    colors.warning,
+    colors.error,
+  ];
+
+  return (
+    <Box>
+      <Paper sx={{ p: 3, mb: 3, backgroundColor: colors.primary[50], borderRadius: borderRadius.md }}>
+        <Stack direction="row" spacing={2} sx={{ mb: 2, alignItems: 'center' }}>
+          <Chip label={result.algorithm} color="primary" />
+          <Chip label={`${result.nClusters} clusters`} variant="outlined" />
+          <Chip label={`${result.nSamples} samples`} variant="outlined" />
+          <Chip label={`${result.iterations} iterations`} variant="outlined" />
+        </Stack>
+      </Paper>
+
+      <Paper sx={{ p: 3, mb: 3, borderRadius: borderRadius.md }}>
+        <Typography variant="h6" sx={{ mb: 2, fontFamily: typography.fontFamily.display }}>
+          Cluster Sizes
+        </Typography>
+        <ResponsiveContainer width="100%" height={Math.max(200, result.nClusters * 50)}>
+          <BarChart data={clusterSummaryData} layout="vertical" margin={{ left: 80, right: 30 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke={colors.neutral[200]} />
+            <XAxis type="number" label={{ value: 'Number of Points', position: 'bottom' }} />
+            <YAxis type="category" dataKey="name" width={70} />
+            <Tooltip />
+            <Bar dataKey="size">
+              {clusterSummaryData.map((_, index) => (
+                <Cell key={index} fill={clusterColors[index % clusterColors.length]} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </Paper>
+
+      <Paper sx={{ p: 3, mb: 3, borderRadius: borderRadius.md }}>
+        <Typography variant="h6" sx={{ mb: 2, fontFamily: typography.fontFamily.display }}>
+          Cluster Centroids
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 2, color: colors.text.secondary }}>
+          Center point of each cluster (coordinates in feature space)
+        </Typography>
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow sx={{ backgroundColor: colors.neutral[100] }}>
+                <TableCell sx={{ fontWeight: 700 }}>Cluster</TableCell>
+                {result.featureVariables.map((f) => (
+                  <TableCell key={f} sx={{ fontWeight: 700 }} align="right">
+                    {f}
+                  </TableCell>
+                ))}
+                <TableCell sx={{ fontWeight: 700 }} align="right">
+                  Size
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {result.centroids.map((centroid, i) => (
+                <TableRow key={i}>
+                  <TableCell>
+                    <Chip
+                      label={`Cluster ${i + 1}`}
+                      size="small"
+                      sx={{ backgroundColor: clusterColors[i % clusterColors.length] + '30' }}
+                    />
+                  </TableCell>
+                  {centroid.map((val, j) => (
+                    <TableCell key={j} align="right">
+                      {val.toFixed(4)}
+                    </TableCell>
+                  ))}
+                  <TableCell align="right">{result.clusterSizes[i]}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
+
+      <Paper sx={{ p: 3, mb: 3, borderRadius: borderRadius.md }}>
+        <Typography variant="h6" sx={{ mb: 2, fontFamily: typography.fontFamily.display }}>
+          Summary
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 2 }}>{result.summary}</Typography>
+        <Divider sx={{ my: 2 }} />
+        <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+          Recommendations
+        </Typography>
         <Stack spacing={1}>
           {result.recommendations.map((rec, idx) => (
             <Box key={idx} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
