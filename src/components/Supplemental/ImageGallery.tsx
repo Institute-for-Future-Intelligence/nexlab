@@ -7,7 +7,7 @@ interface ImageGalleryProps {
 }
 
 // Styled components for smooth transitions
-const ImageContainer = ({ children, ...props }: any) => (
+const ImageContainer: React.FC<React.ComponentProps<typeof Box>> = ({ children, ...props }) => (
   <Box
     {...props}
     sx={{
@@ -20,7 +20,14 @@ const ImageContainer = ({ children, ...props }: any) => (
   </Box>
 );
 
-const StyledImage = ({ src, alt, ...props }: any) => (
+const StyledImage: React.FC<React.ImgHTMLAttributes<HTMLImageElement>> = ({
+  src,
+  alt,
+  style,
+  onMouseEnter,
+  onMouseLeave,
+  ...props
+}) => (
   <img
     src={src}
     alt={alt}
@@ -32,20 +39,22 @@ const StyledImage = ({ src, alt, ...props }: any) => (
       borderRadius: 8,
       boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
       transition: 'all 0.3s ease-in-out',
-      ...props.style
+      ...style
     }}
     onMouseEnter={(e) => {
       e.currentTarget.style.transform = 'scale(1.02)';
       e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.15)';
+      onMouseEnter?.(e);
     }}
     onMouseLeave={(e) => {
       e.currentTarget.style.transform = 'scale(1)';
       e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+      onMouseLeave?.(e);
     }}
   />
 );
 
-const ImageSkeleton = (props: any) => (
+const ImageSkeleton: React.FC<React.ComponentProps<typeof Skeleton>> = (props) => (
   <Skeleton
     {...props}
     sx={{
@@ -88,6 +97,9 @@ const SmartImage: React.FC<SmartImageProps> = ({ src, alt, title }) => {
     };
     
     img.onerror = (error) => {
+      const isFirebaseStorageImage = src.includes('firebasestorage.googleapis.com');
+      const isInlineImage = src.startsWith('data:image/');
+
       console.error(`❌ SmartImage failed to load: ${src}`, error);
       console.error(`Image details:`, {
         src,
@@ -95,11 +107,13 @@ const SmartImage: React.FC<SmartImageProps> = ({ src, alt, title }) => {
         naturalHeight: img.naturalHeight,
         complete: img.complete
       });
-      
-      // Log the error for debugging
-      console.error(`Image load failed. URL accessible via curl but blocked in browser.`);
-      console.error(`This is likely a Firebase Storage CORS configuration issue.`);
-      console.error(`Fix: Configure CORS to allow ${window.location.origin}`);
+      console.error(
+        'Image load failed in the browser. This usually means the stored object is invalid, mislabeled, or the URL points at a non-image response.',
+        {
+          isFirebaseStorageImage,
+          isInlineImage,
+        }
+      );
       
       setError(true);
     };

@@ -10,7 +10,6 @@ import {
   IconButton,
   Card,
   CardContent,
-  CardActions,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -18,10 +17,10 @@ import {
   Grid,
   Chip,
 } from '@mui/material';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import Resizer from 'react-image-file-resizer';
 import { v4 as uuidv4 } from 'uuid';
 import { designSystemTheme, borderRadius } from '../../config/designSystem';
+import { uploadMaterialImageFile } from '../../services/imageUploadService';
 
 import {
   Image as ImageIcon,
@@ -51,8 +50,6 @@ const ImageManager: React.FC<ImageManagerProps> = ({ sectionId, images, onImages
   const [editingImage, setEditingImage] = useState<ImageData | null>(null);
   const [editTitle, setEditTitle] = useState('');
 
-  const storage = getStorage();
-
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
@@ -60,12 +57,16 @@ const ImageManager: React.FC<ImageManagerProps> = ({ sectionId, images, onImages
 
       for (const file of files) {
         try {
+          const uploadId = uuidv4();
           const compressedImage = await compressImage(file);
-          const imageUrl = await uploadImage(compressedImage);
+          const imageUrl = await uploadMaterialImageFile(compressedImage, sectionId, {
+            originalFilename: file.name,
+            uploadId,
+          });
           newImages.push({ 
             url: imageUrl.url, 
             title: `Image ${images.length + newImages.length + 1}`,
-            id: uuidv4()
+            id: uploadId
           });
         } catch (error) {
           setSnackbarMessage('Failed to upload images');
@@ -124,19 +125,6 @@ const ImageManager: React.FC<ImageManagerProps> = ({ sectionId, images, onImages
       } else {
         resolve(image);
       }
-    });
-  };
-
-  const uploadImage = (image: File): Promise<{ url: string, path: string }> => {
-    return new Promise((resolve, reject) => {
-      const storageRef = ref(storage, `materials/${sectionId}/${image.name}`);
-      uploadBytes(storageRef, image)
-        .then((snapshot) => {
-          getDownloadURL(snapshot.ref).then((url) => {
-            resolve({ url, path: snapshot.ref.fullPath });
-          });
-        })
-        .catch((error) => reject(error));
     });
   };
 
