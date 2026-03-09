@@ -16,6 +16,7 @@ import {
   DialogActions,
   Grid,
   Chip,
+  LinearProgress,
 } from '@mui/material';
 import Resizer from 'react-image-file-resizer';
 import { v4 as uuidv4 } from 'uuid';
@@ -49,11 +50,19 @@ const ImageManager: React.FC<ImageManagerProps> = ({ sectionId, images, onImages
   const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success'>('success');
   const [editingImage, setEditingImage] = useState<ImageData | null>(null);
   const [editTitle, setEditTitle] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{ completed: number; total: number } | null>(null);
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
       const newImages: ImageData[] = [];
+      const total = files.length;
+
+      setIsUploading(true);
+      setUploadProgress({ completed: 0, total });
+
+      let completed = 0;
 
       for (const file of files) {
         try {
@@ -73,12 +82,23 @@ const ImageManager: React.FC<ImageManagerProps> = ({ sectionId, images, onImages
           setSnackbarSeverity('error');
           setOpenSnackbar(true);
         }
+
+        completed += 1;
+        setUploadProgress({ completed, total });
       }
 
       onImagesChange([...images, ...newImages]);
-      setSnackbarMessage('Image(s) uploaded successfully');
-      setSnackbarSeverity('success');
-      setOpenSnackbar(true);
+      if (newImages.length > 0) {
+        setSnackbarMessage(`Uploaded ${newImages.length} image${newImages.length === 1 ? '' : 's'} successfully`);
+        setSnackbarSeverity('success');
+        setOpenSnackbar(true);
+      }
+
+      setIsUploading(false);
+      setUploadProgress(null);
+
+      // Reset the input so selecting the same files again still triggers onChange
+      e.target.value = '';
     }
   };
 
@@ -140,21 +160,53 @@ const ImageManager: React.FC<ImageManagerProps> = ({ sectionId, images, onImages
           size="small" 
           sx={{ ml: 2 }}
         />
+        {isUploading && uploadProgress && (
+          <Typography
+            variant="body2"
+            sx={{
+              ml: 2,
+              color: designSystemTheme.palette.text.secondary,
+            }}
+          >
+            Uploading {uploadProgress.completed}/{uploadProgress.total}
+          </Typography>
+        )}
       </Box>
 
       <Button 
         variant="contained" 
         component="label" 
         startIcon={<AddIcon />}
+        disabled={isUploading}
         sx={{
           mb: 3,
           textTransform: 'none',
           borderRadius: borderRadius.xl,
         }}
       >
-        Add Images
+        {isUploading && uploadProgress
+          ? `Uploading ${uploadProgress.completed}/${uploadProgress.total}...`
+          : 'Add Images'}
         <input type="file" hidden accept="image/*" multiple onChange={handleImageChange} />
       </Button>
+
+      {isUploading && uploadProgress && (
+        <Box sx={{ mb: 3 }}>
+          <LinearProgress
+            variant="determinate"
+            value={(uploadProgress.completed / uploadProgress.total) * 100}
+            sx={{
+              height: 6,
+              borderRadius: borderRadius.xl,
+              backgroundColor: designSystemTheme.palette.grey[200],
+              '& .MuiLinearProgress-bar': {
+                borderRadius: borderRadius.xl,
+                backgroundColor: designSystemTheme.palette.primary.main,
+              },
+            }}
+          />
+        </Box>
+      )}
 
       {images.length > 0 && (
         <Grid container spacing={2}>
