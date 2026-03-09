@@ -762,7 +762,7 @@ const AddMaterialFormModern: React.FC<AddMaterialFormModernProps> = ({ materialD
                     }}
                   >
                     <ImageManager
-                      sectionId={getCurrentSectionId()}
+                      sectionId={materialId || getCurrentSectionId()}
                       images={getCurrentImages()}
                       onImagesChange={updateCurrentImages}
                     />

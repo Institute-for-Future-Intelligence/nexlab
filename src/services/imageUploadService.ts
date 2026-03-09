@@ -9,6 +9,7 @@ import {
   ImageReference as EnhancedImageReference 
 } from './enhancedImageUploadService';
 import { ImageReference } from '../utils/textExtraction';
+import { buildStorageImageFilename, resolveImageContentType } from '../utils/storageImageFilename';
 
 export interface UploadedImage {
   url: string;
@@ -17,6 +18,40 @@ export interface UploadedImage {
   slideNumber?: number;
   index?: number; // For maintaining order during batch processing
 }
+
+export const uploadMaterialImageFile = async (
+  imageFile: Blob,
+  storageFolder: string,
+  options: {
+    originalFilename?: string;
+    uploadId?: string;
+  } = {}
+): Promise<{ url: string; path: string }> => {
+  const storage = getStorage();
+  const uploadId = options.uploadId || uuidv4();
+  const fileDescriptor = {
+    name: options.originalFilename || ('name' in imageFile ? imageFile.name : 'image'),
+    type: imageFile.type,
+  };
+  const uniqueFilename = buildStorageImageFilename(fileDescriptor, uploadId);
+  const contentType = resolveImageContentType(fileDescriptor);
+  const storageRef = ref(storage, `materials/${storageFolder}/${uniqueFilename}`);
+
+  const snapshot = await uploadBytes(storageRef, imageFile, {
+    contentType,
+    cacheControl: 'public,max-age=31536000,immutable',
+    customMetadata: {
+      originalFilename: fileDescriptor.name || 'image',
+      uploadSource: 'material-builder',
+    },
+  });
+  const downloadURL = await getDownloadURL(snapshot.ref);
+
+  return {
+    url: downloadURL,
+    path: snapshot.ref.fullPath,
+  };
+};
 
 /**
  * Fast compress and normalize image blob for web compatibility
