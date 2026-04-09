@@ -1,7 +1,7 @@
 // src/components/ChatbotIntegration/ChatbotWrapper.tsx
 
 import { useImperativeHandle, forwardRef, useRef, useState } from 'react';
-import { ChatbotInterface } from 'rag-chatbot-interface-ifi';
+import { ChatbotInterface } from 'chatbot-interface-ifi';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../../config/firestore';
 import ErrorBoundary from './ErrorBoundary';
@@ -11,10 +11,12 @@ import { Chat as ChatIcon, ExpandLess, ExpandMore } from '@mui/icons-material';
 
 interface ChatbotWrapperProps {
   chatbotId: string;
+  enableGuidedQuestions?: boolean;
+  onSwitchToLearn?: () => void;
 }
 
 const ChatbotWrapper = forwardRef<{ endConversation: () => void }, ChatbotWrapperProps>(
-  ({ chatbotId }, ref) => {
+  ({ chatbotId, enableGuidedQuestions = false, onSwitchToLearn }, ref) => {
     const { userDetails } = useUser();
     const chatbotRef = useRef<{ endConversation: () => void } | null>(null);
     const [isOpen, setIsOpen] = useState(false);
@@ -171,6 +173,9 @@ const ChatbotWrapper = forwardRef<{ endConversation: () => void }, ChatbotWrappe
                   ref={chatbotRef}
                   chatbotId={chatbotId}
                   onConversationStart={handleConversationStart}
+                  enableGuidedQuestions={enableGuidedQuestions}
+                  onSwitchToLearn={onSwitchToLearn}
+                  isActive={isOpen}
                 />
               </ErrorBoundary>
             </Box>
