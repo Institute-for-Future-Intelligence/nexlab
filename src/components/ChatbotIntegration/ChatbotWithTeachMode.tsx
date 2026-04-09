@@ -190,6 +190,8 @@ const ChatbotWithTeachMode = forwardRef<ChatbotWithTeachModeRef, ChatbotWithTeac
             variant="text"
             onClick={() => setIsOpen(!isOpen)}
             sx={{
+              position: 'relative',
+              zIndex: 1000,
               background: isOpen
                 ? mode === 'chat'
                   ? '#0B53C0 !important'
@@ -211,6 +213,7 @@ const ChatbotWithTeachMode = forwardRef<ChatbotWithTeachModeRef, ChatbotWithTeac
               minWidth: 'auto',
               width: '100%',
               justifyContent: 'flex-start',
+              cursor: 'pointer',
               '&:hover': {
                 background:
                   mode === 'chat' ? '#064a9e !important' : '#1B5E20 !important',
@@ -299,12 +302,19 @@ const ChatbotWithTeachMode = forwardRef<ChatbotWithTeachModeRef, ChatbotWithTeac
                 borderRadius: '0 0 16px 16px',
                 overflow: 'hidden',
                 position: 'relative',
-                minHeight: 400, // Ensure consistent height
+                minHeight: 400,
+                zIndex: 1, // Below the button
               }}
             >
               <ErrorBoundary>
                 {/* Chat Mode */}
-                <Box style={panelStyle(mode === 'chat')}>
+                <Box 
+                  style={panelStyle(mode === 'chat')}
+                  sx={{ 
+                    zIndex: 1,
+                    pointerEvents: mode === 'chat' ? 'auto' : 'none',
+                  }}
+                >
                   <ChatbotInterface
                     ref={chatbotRef}
                     chatbotId={chatbotId}
@@ -316,7 +326,13 @@ const ChatbotWithTeachMode = forwardRef<ChatbotWithTeachModeRef, ChatbotWithTeac
                 </Box>
 
                 {/* Teach Mode */}
-                <Box style={panelStyle(mode === 'teach')}>
+                <Box 
+                  style={panelStyle(mode === 'teach')}
+                  sx={{ 
+                    zIndex: 1,
+                    pointerEvents: mode === 'teach' ? 'auto' : 'none',
+                  }}
+                >
                   {isLoadingSessions ? (
                     <Box
                       sx={{
