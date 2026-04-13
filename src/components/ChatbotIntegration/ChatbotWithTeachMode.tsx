@@ -149,16 +149,9 @@ const ChatbotWithTeachMode = forwardRef<ChatbotWithTeachModeRef, ChatbotWithTeac
       switchToTeach: handleSwitchToTeach,
     }));
 
-    // Panel visibility style
+    // Panel visibility style (no absolute positioning to avoid layout issues)
     const panelStyle = (isActive: boolean) => ({
-      opacity: isActive ? 1 : 0,
-      pointerEvents: isActive ? 'auto' : 'none',
-      transition: 'opacity 0.3s ease',
-      position: 'absolute' as const,
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
+      display: isActive ? 'block' : 'none',
     });
 
     return (
@@ -190,8 +183,6 @@ const ChatbotWithTeachMode = forwardRef<ChatbotWithTeachModeRef, ChatbotWithTeac
             variant="text"
             onClick={() => setIsOpen(!isOpen)}
             sx={{
-              position: 'relative',
-              zIndex: 1000,
               background: isOpen
                 ? mode === 'chat'
                   ? '#0B53C0 !important'
@@ -213,7 +204,6 @@ const ChatbotWithTeachMode = forwardRef<ChatbotWithTeachModeRef, ChatbotWithTeac
               minWidth: 'auto',
               width: '100%',
               justifyContent: 'flex-start',
-              cursor: 'pointer',
               '&:hover': {
                 background:
                   mode === 'chat' ? '#064a9e !important' : '#1B5E20 !important',
@@ -230,6 +220,22 @@ const ChatbotWithTeachMode = forwardRef<ChatbotWithTeachModeRef, ChatbotWithTeac
                   mode === 'chat' ? '#064a9e !important' : '#1B5E20 !important',
                 backgroundColor:
                   mode === 'chat' ? '#064a9e !important' : '#1B5E20 !important',
+              },
+              '&:focus': {
+                background: isOpen 
+                  ? (mode === 'chat' ? '#0B53C0 !important' : '#2E7D32 !important')
+                  : (mode === 'chat' ? '#064a9e !important' : '#1B5E20 !important'),
+                backgroundColor: isOpen 
+                  ? (mode === 'chat' ? '#0B53C0 !important' : '#2E7D32 !important')
+                  : (mode === 'chat' ? '#064a9e !important' : '#1B5E20 !important'),
+              },
+              '&.Mui-focusVisible': {
+                background: isOpen 
+                  ? (mode === 'chat' ? '#0B53C0 !important' : '#2E7D32 !important')
+                  : (mode === 'chat' ? '#064a9e !important' : '#1B5E20 !important'),
+                backgroundColor: isOpen 
+                  ? (mode === 'chat' ? '#0B53C0 !important' : '#2E7D32 !important')
+                  : (mode === 'chat' ? '#064a9e !important' : '#1B5E20 !important'),
               },
               transition: 'all 0.2s ease-in-out',
             }}
@@ -301,20 +307,11 @@ const ChatbotWithTeachMode = forwardRef<ChatbotWithTeachModeRef, ChatbotWithTeac
                 background: 'white',
                 borderRadius: '0 0 16px 16px',
                 overflow: 'hidden',
-                position: 'relative',
-                minHeight: 400,
-                zIndex: 1, // Below the button
               }}
             >
               <ErrorBoundary>
                 {/* Chat Mode */}
-                <Box 
-                  style={panelStyle(mode === 'chat')}
-                  sx={{ 
-                    zIndex: 1,
-                    pointerEvents: mode === 'chat' ? 'auto' : 'none',
-                  }}
-                >
+                <Box style={panelStyle(mode === 'chat')}>
                   <ChatbotInterface
                     ref={chatbotRef}
                     chatbotId={chatbotId}
@@ -326,13 +323,7 @@ const ChatbotWithTeachMode = forwardRef<ChatbotWithTeachModeRef, ChatbotWithTeac
                 </Box>
 
                 {/* Teach Mode */}
-                <Box 
-                  style={panelStyle(mode === 'teach')}
-                  sx={{ 
-                    zIndex: 1,
-                    pointerEvents: mode === 'teach' ? 'auto' : 'none',
-                  }}
-                >
+                <Box style={panelStyle(mode === 'teach')}>
                   {isLoadingSessions ? (
                     <Box
                       sx={{
