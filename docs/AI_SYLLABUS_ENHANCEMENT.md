@@ -188,11 +188,15 @@ interface LabSpecific {
 
 ## 🔧 Configuration
 
+### API Keys (updated 2026-08-19)
+
+The Gemini key is **server-side only** — stored in Cloud Secret Manager as
+`GEMINI_COURSE_KEY` and read by the `processCourseWithGemini` Cloud Function.
+`VITE_GEMINI_COURSE_API_KEY` no longer exists.
+See [DEPLOYMENT.md](./DEPLOYMENT.md#cloud-functions--ai-keys).
+
 ### Environment Variables
 ```bash
-# Required for AI processing
-VITE_GEMINI_COURSE_API_KEY=your_gemini_api_key
-
 # Optional configuration
 VITE_ENABLE_AI_PROCESSING=true
 VITE_AI_MAX_RETRIES=3
@@ -337,7 +341,7 @@ npm install @google/generative-ai
 ```
 
 ### Configuration
-1. **Set up environment variables** (VITE_GEMINI_COURSE_API_KEY required)
+1. **Set up environment variables** (~~VITE_GEMINI_COURSE_API_KEY~~ — no longer needed; the key is server-side, see above)
 2. **Configure PDF.js worker** (automatic setup via npm scripts)
 3. **Test with sample syllabi** (provided in `public/test-samples/`)
 4. **Deploy with appropriate API limits** and error monitoring

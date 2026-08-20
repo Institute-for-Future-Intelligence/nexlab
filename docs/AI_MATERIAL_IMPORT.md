@@ -161,14 +161,16 @@ Three major issues were resolved to ensure complete PowerPoint import functional
 
 ## 🔧 Configuration
 
+### API Keys (updated 2026-08-19)
+
+Gemini keys are **server-side only** — they live in Cloud Secret Manager
+(`GEMINI_MATERIAL_KEY`, falling back to `GEMINI_COURSE_KEY`) and are read by the
+`processMaterialWithGemini` Cloud Function. No `VITE_GEMINI_*` variables exist
+anymore; the frontend calls the function via `httpsCallable` and never sees a key.
+See [DEPLOYMENT.md](./DEPLOYMENT.md#cloud-functions--ai-keys).
+
 ### Environment Variables
 ```bash
-# Dedicated API key for material import (recommended)
-VITE_GEMINI_MATERIAL_API_KEY=your_material_import_api_key
-
-# Fallback to general Gemini API key
-VITE_GEMINI_COURSE_API_KEY=your_general_gemini_api_key
-
 # Optional: Processing configuration
 VITE_ENABLE_AI_PROCESSING=true
 VITE_AI_MAX_RETRIES=3

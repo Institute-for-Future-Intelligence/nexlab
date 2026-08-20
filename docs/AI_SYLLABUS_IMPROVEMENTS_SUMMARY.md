@@ -13,6 +13,8 @@ This document summarizes the critical improvements made to the AI-enhanced sylla
 **Solution**:
 - ✅ Removed all `apiKey` parameters from store methods
 - ✅ Updated `GeminiService` to use only environment variables (`VITE_GEMINI_COURSE_API_KEY`)
+  > **2026-08-19:** superseded again — keys now live in Cloud Secret Manager and are only read
+  > server-side by Cloud Functions; no `VITE_GEMINI_*` variables exist. See [DEPLOYMENT.md](./DEPLOYMENT.md#cloud-functions--ai-keys).
 - ✅ Removed API key input UI components from `AISettingsPanel`
 - ✅ Secured all API calls to use environment-only configuration
 
@@ -154,8 +156,7 @@ interface ProcessingProgress {
 
 ### **Environment Setup**:
 ```bash
-# Add to your .env file
-VITE_GEMINI_COURSE_API_KEY=your_actual_gemini_api_key_here
+# (historical — since 2026-08-19 no Gemini key is needed in .env; keys are server-side)
 ```
 
 ### **Testing Large Documents**:

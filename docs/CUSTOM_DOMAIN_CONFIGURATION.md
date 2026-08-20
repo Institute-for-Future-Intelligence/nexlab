@@ -1,5 +1,9 @@
 # Custom Domain Configuration for nexlab.bio
 
+> ⚠️ **Partially superseded (2026-08-19):** the site now runs on **Firebase Hosting**, not
+> GitHub Pages — see [DEPLOYMENT.md](./DEPLOYMENT.md) for current hosting, DNS, and rollback.
+> The Firebase Auth / Storage-CORS sections below are still valid.
+
 This document outlines the steps taken to migrate from GitHub Pages subdirectory URL to the custom domain `nexlab.bio`.
 
 ## Code Changes Completed
@@ -87,8 +91,7 @@ Verify that your GitHub repository secrets include the correct Firebase configur
 - `VITE_GOOGLE_ANALYTICS_ID` - Google Analytics ID (if used)
 - `VITE_PUBLIC_COURSE_ID` - Public course ID
 - `VITE_CHATBOT_DEFAULT_ID` - Default chatbot ID
-- `VITE_GEMINI_COURSE_API_KEY` - Gemini API key
-- `VITE_GEMINI_MATERIAL_API_KEY` - Gemini Material API key
+- ~~`VITE_GEMINI_*_API_KEY`~~ - removed 2026-08-19; Gemini keys are server-side in Secret Manager ([DEPLOYMENT.md](./DEPLOYMENT.md#cloud-functions--ai-keys))
 
 **Note**: The `VITE_AUTH_DOMAIN` should remain as your Firebase project's auth domain (e.g., `your-project.firebaseapp.com`), NOT `nexlab.bio`. Firebase Auth uses this for OAuth redirects.
 
