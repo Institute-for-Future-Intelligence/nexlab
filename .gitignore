@@ -39,3 +39,10 @@ firebase.json
 # Documentation with sensitive information
 docs/FIREBASE_RULES_SETUP.md
 docs/STUDENT_PERMISSIONS_FIX.md
+
+# Local operational notes (keep private)
+/local/
+
+
+# Firebase CLI local cache
+.firebase/
