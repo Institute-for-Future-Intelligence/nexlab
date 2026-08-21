@@ -11,6 +11,7 @@
 | Primary URL | https://nexlab.bio (custom domain, status *Connected*, auto-renewing SSL) |
 | Secondary URL | https://nexlab-prod.web.app (always available; useful for testing and as a fallback entry point) |
 | Cloud Functions | Firebase Functions Gen2 / Node 24 (`functions/`), callable — not routed through Hosting (see below) |
+| Build toolchain | Node `^22.12.0 \|\| >=24.0.0` (`package.json` → `engines`); both CI workflows build on Node 24, matching the functions runtime. Node 20 was dropped on 2026-08-21 (EOL) |
 | Warm standby | GitHub Pages (`gh-pages` branch). No DNS points at it, but it can take over in minutes (see Rollback) |
 
 The migration from GitHub Pages to Firebase Hosting happened on **2026-08-19**.

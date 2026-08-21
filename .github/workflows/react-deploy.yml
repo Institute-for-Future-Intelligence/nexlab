@@ -15,7 +15,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Use Node.js 20.x as required by package.json
+          node-version: '24' # Node 20 is EOL; satisfies package.json engines
           cache: 'npm'
 
       - name: Install Dependencies
