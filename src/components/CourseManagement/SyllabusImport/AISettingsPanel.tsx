@@ -3,17 +3,14 @@ import {
   Box,
   Paper,
   Typography,
-  TextField,
   Switch,
   FormControlLabel,
   Alert,
-  Button,
   Accordion,
   AccordionSummary,
   AccordionDetails,
   Chip,
   Grid,
-  IconButton,
   Tooltip
 } from '@mui/material';
 import {
@@ -37,7 +34,7 @@ const AISettingsPanel: React.FC<AISettingsPanelProps> = ({
 }) => {
   const { useAIProcessing, setUseAIProcessing } = useSyllabusStore();
   
-  // API key is now handled entirely through environment variables
+  // Gemini keys live server-side in Secret Manager — nothing to configure here
   const [configStatus, setConfigStatus] = useState<{
     isValid: boolean;
     errors: string[];
@@ -48,11 +45,7 @@ const AISettingsPanel: React.FC<AISettingsPanelProps> = ({
     // Load initial configuration
     const { config, isValid, errors } = getAIConfig();
     setConfigStatus({ config, isValid, errors });
-    
-    // API key is handled by environment variables
   }, []);
-
-  // API key handling removed - using environment variables
 
   const handleToggleAI = (enabled: boolean) => {
     setUseAIProcessing(enabled);

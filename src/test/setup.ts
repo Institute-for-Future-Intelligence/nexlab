@@ -43,6 +43,12 @@ vi.mock('firebase/storage', () => ({
   getDownloadURL: vi.fn()
 }));
 
+// Gemini runs behind callable Cloud Functions, so the client only touches these
+vi.mock('firebase/functions', () => ({
+  getFunctions: vi.fn(),
+  httpsCallable: vi.fn(() => vi.fn())
+}));
+
 // Mock environment variables
 beforeAll(() => {
   vi.stubEnv('VITE_FIREBASE_API_KEY', 'test-api-key');
@@ -52,7 +58,6 @@ beforeAll(() => {
   vi.stubEnv('VITE_FIREBASE_MESSAGING_SENDER_ID', 'test-sender-id');
   vi.stubEnv('VITE_FIREBASE_APP_ID', 'test-app-id');
   vi.stubEnv('VITE_PUBLIC_COURSE_ID', 'test-public-course-id');
-  vi.stubEnv('VITE_GEMINI_COURSE_API_KEY', 'test-gemini-course-key');
 });
 
 // Mock console methods to reduce noise in tests

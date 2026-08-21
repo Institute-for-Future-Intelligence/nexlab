@@ -10,7 +10,6 @@ import {
   FormControlLabel,
   Divider,
   Alert,
-  AlertTitle,
   Accordion,
   AccordionSummary,
   AccordionDetails,
@@ -64,12 +63,6 @@ const AISettingsPanel: React.FC<AISettingsPanelProps> = ({
     setProcessingOptions({ [option]: value });
   };
 
-  const isAPIKeyConfigured = () => {
-    // API keys are now handled securely by Firebase Functions (server-side)
-    // No client-side API key check needed
-    return true;
-  };
-
   return (
     <Paper elevation={2} sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
@@ -79,8 +72,7 @@ const AISettingsPanel: React.FC<AISettingsPanelProps> = ({
         </Typography>
       </Box>
 
-      {/* API Key Status - No longer needed with Firebase Functions proxy */}
-      {/* API keys are now securely stored server-side */}
+      {/* No API key UI: keys are held server-side by the Cloud Functions proxy */}
 
       {/* Quick Settings */}
       <Box sx={{ mb: 2 }}>
@@ -196,7 +188,7 @@ const AISettingsPanel: React.FC<AISettingsPanelProps> = ({
           variant="contained"
           size="large"
           onClick={handleStartProcessing}
-          disabled={disabled || !isReadyForAI || !isAPIKeyConfigured()}
+          disabled={disabled || !isReadyForAI}
           startIcon={<MagicIcon />}
           sx={{ 
             px: 4, 

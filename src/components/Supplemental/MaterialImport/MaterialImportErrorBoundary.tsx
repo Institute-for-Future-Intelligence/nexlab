@@ -132,15 +132,15 @@ class MaterialImportErrorBoundary extends Component<
     
     // Check for leaked API key (most specific first)
     if (message.includes('leaked') || message.includes('reported as leaked')) {
-      return 'Your API key has been reported as leaked by Google. Generate a new key from Google AI Studio (https://ai.google.dev), update your environment variables, and restart your development server. See docs/API_KEY_SECURITY.md for long-term security solutions.';
+      return 'Google flagged the AI service key as leaked, so material import is disabled until it is replaced. Nothing needs to change on your machine — please ask a NexLAB administrator to rotate the GEMINI_MATERIAL_KEY secret in Firebase Secret Manager.';
     }
     
     if (message.includes('403') || message.includes('access denied')) {
-      return 'API access denied. Your API key may be invalid, expired, or restricted. Get a new key from https://ai.google.dev and update your VITE_GEMINI_MATERIAL_API_KEY or VITE_GEMINI_API_KEY environment variable.';
+      return 'Google denied the AI request — the server-side key may be invalid, expired, or restricted. Keys are managed in Firebase Secret Manager rather than in your browser, so please contact a NexLAB administrator.';
     }
     
     if (message.includes('api key') || message.includes('api_key_invalid')) {
-      return 'Invalid API key configuration. Please check that VITE_GEMINI_MATERIAL_API_KEY or VITE_GEMINI_API_KEY is correctly set in your .env file. Get a valid key from https://ai.google.dev';
+      return 'The AI service is not configured correctly on the server. Please contact a NexLAB administrator to check the Gemini secrets (GEMINI_MATERIAL_KEY / GEMINI_COURSE_KEY) in Firebase Secret Manager.';
     }
     
     if (message.includes('network') || message.includes('fetch')) {
@@ -148,7 +148,7 @@ class MaterialImportErrorBoundary extends Component<
     }
     
     if (message.includes('rate limit') || message.includes('quota')) {
-      return 'You have exceeded the API rate limit or quota. Please wait a few minutes before trying again, or consider using a separate API key for material imports.';
+      return 'The AI service has hit its rate limit or quota. Please wait a few minutes and try again; if it keeps happening, let a NexLAB administrator know.';
     }
     
     if (message.includes('file') || message.includes('upload')) {

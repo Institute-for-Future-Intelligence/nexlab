@@ -17,13 +17,11 @@ import { useSyllabusStore } from '../../../stores/syllabusStore';
 
 interface SyllabusUploadZoneProps {
   onUploadComplete?: (file: File) => void;
-  apiKey?: string; // From environment configuration
   educatorUid?: string; // For file storage
 }
 
 const SyllabusUploadZone: React.FC<SyllabusUploadZoneProps> = ({
   onUploadComplete,
-  apiKey,
   educatorUid
 }) => {
   const {
@@ -78,7 +76,7 @@ const SyllabusUploadZone: React.FC<SyllabusUploadZoneProps> = ({
     } catch (error) {
       console.error('Upload error:', error);
     }
-  }, [uploadSyllabus, onUploadComplete, setError, acceptedTypes, acceptedExtensions, apiKey, educatorUid]);
+  }, [uploadSyllabus, onUploadComplete, setError, acceptedTypes, acceptedExtensions, educatorUid]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();

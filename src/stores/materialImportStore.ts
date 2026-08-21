@@ -44,7 +44,7 @@ export interface MaterialImportState {
   // Actions
   setUploadedFile: (file: File | null) => void;
   extractTextFromFile: () => Promise<void>;
-  processWithAI: (courseId: string, authorId: string, apiKey?: string) => Promise<void>;
+  processWithAI: (courseId: string, authorId: string) => Promise<void>;
   uploadOriginalFile: (courseId: string, materialId?: string) => Promise<void>;
   replaceOriginalFile: (courseId: string, materialId: string, oldFileUrl?: string) => Promise<void>;
   resetImport: () => void;
@@ -188,7 +188,7 @@ export const useMaterialImportStore = create<MaterialImportState>()(
         }
       },
 
-      processWithAI: async (courseId: string, authorId: string, apiKey?: string) => {
+      processWithAI: async (courseId: string, authorId: string) => {
         const { uploadedFile, extractedText, extractionResult, processingOptions } = get();
         
         // Defensive: Validate required parameters
@@ -232,14 +232,14 @@ export const useMaterialImportStore = create<MaterialImportState>()(
           // Defensive: Get or initialize the material import service with error handling
           let materialImportService: MaterialImportService;
           try {
-            materialImportService = getMaterialImportService(apiKey);
+            materialImportService = getMaterialImportService();
           } catch (serviceError) {
             console.error('Service initialization error:', serviceError);
             let errorMessage = 'Material import service not available.';
             
             if (serviceError instanceof Error) {
               if (serviceError.message.includes('API key')) {
-                errorMessage = 'API key not configured. Please set VITE_GEMINI_MATERIAL_API_KEY or VITE_GEMINI_COURSE_API_KEY environment variable.';
+                errorMessage = 'AI service is not configured on the server. Please contact a NexLAB administrator to check the Gemini secrets in Firebase Secret Manager.';
               } else {
                 errorMessage = `Service error: ${serviceError.message}`;
               }
@@ -343,7 +343,7 @@ export const useMaterialImportStore = create<MaterialImportState>()(
             if (error.message.includes('timeout')) {
               errorMessage = 'AI processing timed out. Please try with a smaller file or simpler content.';
             } else if (error.message.includes('API key') || error.message.includes('API_KEY_INVALID')) {
-              errorMessage = 'Invalid API key. Please check your API key configuration.';
+              errorMessage = 'The AI service rejected the server-side API key. Please contact a NexLAB administrator to check the Gemini secrets in Firebase Secret Manager.';
             } else if (error.message.includes('RATE_LIMIT') || error.message.includes('rate limit')) {
               errorMessage = 'API rate limit exceeded. Please wait a few minutes before trying again.';
             } else if (error.message.includes('SAFETY') || error.message.includes('safety')) {

@@ -394,7 +394,7 @@ export const useSyllabusStore = create<SyllabusState>()(
                   }
                 });
                 
-                const geminiService = getGeminiService(); // API key from environment only
+                const geminiService = getGeminiService(); // key stays server-side in the Cloud Function
                 const aiResult = await geminiService.processSyllabusText(
                   extractedText,
                   uploadedFile?.name
@@ -610,7 +610,7 @@ export const useSyllabusStore = create<SyllabusState>()(
                   }
                 });
                 
-                const geminiService = getGeminiService(); // API key from environment only
+                const geminiService = getGeminiService(); // key stays server-side in the Cloud Function
                 
                 // ✅ Update progress while AI is working
                 set({
