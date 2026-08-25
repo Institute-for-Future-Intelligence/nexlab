@@ -53,6 +53,10 @@ The application is deployed on GitHub Pages with a custom domain and can be acce
 
 - **Andriy Kashyrskyy (Institute for Future Intelligence)** 
 
+## Acknowledgments
+
+The Institute for Future Intelligence (IFI) is funded in part by the National Science Foundation grant DUE 2300976.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
