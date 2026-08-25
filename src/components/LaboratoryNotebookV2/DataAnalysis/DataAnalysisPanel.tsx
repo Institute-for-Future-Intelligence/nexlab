@@ -314,7 +314,7 @@ const DataAnalysisPanel: React.FC<DataAnalysisPanelProps> = ({
           result = dataAnalysisService.performMLClassification(dataset, featureVariables, targetVariable, {
             splitRatio: trainTestSplit / 100,
             randomSeed,
-            mlAlgorithm: mlAlgorithm === 'logistic' ? 'logistic' : mlAlgorithm,
+            mlAlgorithm: mlAlgorithm === 'linear' ? 'logistic' : mlAlgorithm,
             maxDepth: 10,
             nEstimators: 50,
             kNeighbors: undefined,
