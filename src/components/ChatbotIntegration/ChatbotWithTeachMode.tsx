@@ -6,8 +6,8 @@ import { doc, setDoc, collection, query, where, getDocs, orderBy, limit } from '
 import { db } from '../../config/firestore';
 import ErrorBoundary from './ErrorBoundary';
 import { useUser } from '../../hooks/useUser';
-import { Box, Button, Collapse, Typography } from '@mui/material';
-import { Chat as ChatIcon, School as TeachIcon, ExpandLess, ExpandMore } from '@mui/icons-material';
+import { Box, Button, Typography } from '@mui/material';
+import { Chat as ChatIcon, School as TeachIcon, ExpandLess } from '@mui/icons-material';
 
 interface ChatbotWithTeachModeProps {
   chatbotId: string;
@@ -22,17 +22,43 @@ export interface ChatbotWithTeachModeRef {
   switchToTeach: () => void;
 }
 
+type PanelMode = 'chat' | 'teach';
+
+/**
+ * Dual-mode wrapper around chatbot-interface-ifi's ChatbotInterface (Chat) and
+ * TeachModeInterface (Learn).
+ *
+ * Integration contract of chatbot-interface-ifi >= 1.8 (mirrors the package
+ * author's own dual-mode embed):
+ * - Each interface owns its open/closed state and renders its panel as a
+ *   position:fixed overlay with its own header close (X) button. Do NOT wrap
+ *   it in a Collapse or gate it with a persistent `isActive` — `isActive`
+ *   makes the panel unconditionally visible, which is what broke closing.
+ * - `isActive` is meant as a one-tick pulse: set it to the target mode when
+ *   switching so that panel auto-opens, then reset it so the widget's own
+ *   controls take over again.
+ * - When closed, the widget renders `customToggleButton` (our branded button)
+ *   and toggles itself when that button is clicked.
+ */
 const ChatbotWithTeachMode = forwardRef<ChatbotWithTeachModeRef, ChatbotWithTeachModeProps>(
   ({ chatbotId, enableGuidedQuestions = false, showModeSwitch = true }, ref) => {
     const { userDetails } = useUser();
     const chatbotRef = useRef<{ endConversation: () => void } | null>(null);
     const teachRef = useRef<{ createNewSession: () => void } | null>(null);
-    
-    const [isOpen, setIsOpen] = useState(false);
-    const [mode, setMode] = useState<'chat' | 'teach'>('chat');
+
+    const [mode, setMode] = useState<PanelMode>('chat');
+    // One-tick activation pulse (see contract above). null = widgets self-manage.
+    const [activePulse, setActivePulse] = useState<PanelMode | null>(null);
     const [savedSessionIds, setSavedSessionIds] = useState<string[]>([]);
     const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
     const [isLoadingSessions, setIsLoadingSessions] = useState(false);
+
+    // Reset the activation pulse right after it has been applied
+    useEffect(() => {
+      if (!activePulse) return;
+      const timer = window.setTimeout(() => setActivePulse(null), 0);
+      return () => window.clearTimeout(timer);
+    }, [activePulse]);
 
     // Load user's previous teach sessions on mount
     useEffect(() => {
@@ -52,7 +78,7 @@ const ChatbotWithTeachMode = forwardRef<ChatbotWithTeachModeRef, ChatbotWithTeac
 
           const querySnapshot = await getDocs(q);
           const sessionIds = querySnapshot.docs.map((doc) => doc.data().sessionId as string);
-          
+
           console.log(`📚 Loaded ${sessionIds.length} teach sessions for user ${userDetails.uid}`);
           setSavedSessionIds(sessionIds);
         } catch (error) {
@@ -97,6 +123,7 @@ const ChatbotWithTeachMode = forwardRef<ChatbotWithTeachModeRef, ChatbotWithTeac
         console.log(`📚 Teach session started. Chatbot ID: ${chatbotId}, Session ID: ${newSessionId}`);
 
         // Update local state (avoid duplicates)
+        setSelectedSessionId((prev) => prev || newSessionId);
         setSavedSessionIds((prev) =>
           prev.includes(newSessionId) ? prev : [newSessionId, ...prev]
         );
@@ -120,15 +147,17 @@ const ChatbotWithTeachMode = forwardRef<ChatbotWithTeachModeRef, ChatbotWithTeac
       [userDetails?.uid, chatbotId]
     );
 
-    // Mode switching handlers
+    // Mode switching handlers: change the visible panel and pulse it open
     const handleSwitchToTeach = useCallback(() => {
       console.log('Switching to Teach mode');
       setMode('teach');
+      setActivePulse('teach');
     }, []);
 
     const handleSwitchToChat = useCallback(() => {
       console.log('Switching to Chat mode');
       setMode('chat');
+      setActivePulse('chat');
     }, []);
 
     // Expose methods via ref
@@ -150,9 +179,88 @@ const ChatbotWithTeachMode = forwardRef<ChatbotWithTeachModeRef, ChatbotWithTeac
     }));
 
     // Panel visibility style (no absolute positioning to avoid layout issues)
-    const panelStyle = (isActive: boolean) => ({
-      display: isActive ? 'block' : 'none',
+    const panelStyle = (visible: boolean) => ({
+      display: visible ? 'block' : 'none',
     });
+
+    // Branded launcher shown by the widget while its panel is closed.
+    // The widget wraps it in its own click handler, so no onClick here.
+    const toggleButton = (kind: PanelMode) => {
+      const color = kind === 'chat' ? '#0B53C0' : '#2E7D32';
+      const hover = kind === 'chat' ? '#064a9e' : '#1B5E20';
+      const shadow =
+        kind === 'chat' ? '0px 4px 12px rgba(11, 83, 192, 0.3)' : '0px 4px 12px rgba(46, 125, 50, 0.3)';
+      return (
+        <Button
+          variant="text"
+          component="div"
+          sx={{
+            background: `${color} !important`,
+            backgroundColor: `${color} !important`,
+            color: 'white !important',
+            px: 2.5,
+            py: 1.5,
+            borderRadius: '12px',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+            textTransform: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+            minWidth: 'auto',
+            justifyContent: 'flex-start',
+            '&:hover': {
+              background: `${hover} !important`,
+              backgroundColor: `${hover} !important`,
+              boxShadow: shadow,
+            },
+            transition: 'all 0.2s ease-in-out',
+          }}
+        >
+          {kind === 'chat' ? (
+            <ChatIcon sx={{ fontSize: '1.5rem', color: 'white !important' }} />
+          ) : (
+            <TeachIcon sx={{ fontSize: '1.5rem', color: 'white !important' }} />
+          )}
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              lineHeight: 1,
+              flex: 1,
+            }}
+          >
+            <Typography
+              variant="body1"
+              sx={{
+                fontFamily: 'Staatliches, sans-serif',
+                fontSize: '1rem',
+                fontWeight: 'bold',
+                mb: 0,
+                lineHeight: 1.1,
+                color: 'white !important',
+              }}
+            >
+              {kind === 'chat' ? 'Chat with PAT' : 'Learn with PAT'}
+            </Typography>
+            <Typography
+              variant="caption"
+              sx={{
+                fontFamily: 'Gabarito, sans-serif',
+                fontSize: '0.75rem',
+                opacity: 0.9,
+                lineHeight: 1,
+                mt: 0.2,
+                color: 'white !important',
+              }}
+            >
+              {kind === 'chat' ? 'AI Tutor' : 'Learn by Teaching'}
+            </Typography>
+          </Box>
+          <ExpandLess sx={{ fontSize: '1.2rem', color: 'white !important' }} />
+        </Button>
+      );
+    };
 
     return (
       <Box
@@ -163,197 +271,54 @@ const ChatbotWithTeachMode = forwardRef<ChatbotWithTeachModeRef, ChatbotWithTeac
           alignItems: 'flex-end',
         }}
       >
-        {/* Chat Container */}
-        <Box
-          sx={{
-            background: isOpen ? 'rgba(255, 255, 255, 0.95)' : mode === 'chat' ? '#0B53C0' : '#2E7D32',
-            borderRadius: 4,
-            boxShadow: isOpen
-              ? '0 8px 32px rgba(0, 0, 0, 0.12)'
-              : '0 2px 8px rgba(0, 0, 0, 0.15)',
-            overflow: 'hidden',
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            border: isOpen ? '1px solid #e0e0e0' : 'none',
-            minWidth: isOpen ? 400 : 'auto',
-            maxWidth: isOpen ? 450 : 'auto',
-          }}
-        >
-          {/* Header Button */}
-          <Button
-            variant="text"
-            onClick={() => setIsOpen(!isOpen)}
-            sx={{
-              background: isOpen
-                ? mode === 'chat'
-                  ? '#0B53C0 !important'
-                  : '#2E7D32 !important'
-                : 'transparent !important',
-              backgroundColor: isOpen
-                ? mode === 'chat'
-                  ? '#0B53C0 !important'
-                  : '#2E7D32 !important'
-                : 'transparent !important',
-              color: 'white !important',
-              px: 2.5,
-              py: 1.5,
-              borderRadius: isOpen ? '16px 16px 0 0' : '12px',
-              textTransform: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1.5,
-              minWidth: 'auto',
-              width: '100%',
-              justifyContent: 'flex-start',
-              '&:hover': {
-                background:
-                  mode === 'chat' ? '#064a9e !important' : '#1B5E20 !important',
-                backgroundColor:
-                  mode === 'chat' ? '#064a9e !important' : '#1B5E20 !important',
-                boxShadow: isOpen
-                  ? 'none'
-                  : mode === 'chat'
-                  ? '0px 4px 12px rgba(11, 83, 192, 0.3)'
-                  : '0px 4px 12px rgba(46, 125, 50, 0.3)',
-              },
-              '&:active': {
-                background:
-                  mode === 'chat' ? '#064a9e !important' : '#1B5E20 !important',
-                backgroundColor:
-                  mode === 'chat' ? '#064a9e !important' : '#1B5E20 !important',
-              },
-              '&:focus': {
-                background: isOpen 
-                  ? (mode === 'chat' ? '#0B53C0 !important' : '#2E7D32 !important')
-                  : (mode === 'chat' ? '#064a9e !important' : '#1B5E20 !important'),
-                backgroundColor: isOpen 
-                  ? (mode === 'chat' ? '#0B53C0 !important' : '#2E7D32 !important')
-                  : (mode === 'chat' ? '#064a9e !important' : '#1B5E20 !important'),
-              },
-              '&.Mui-focusVisible': {
-                background: isOpen 
-                  ? (mode === 'chat' ? '#0B53C0 !important' : '#2E7D32 !important')
-                  : (mode === 'chat' ? '#064a9e !important' : '#1B5E20 !important'),
-                backgroundColor: isOpen 
-                  ? (mode === 'chat' ? '#0B53C0 !important' : '#2E7D32 !important')
-                  : (mode === 'chat' ? '#064a9e !important' : '#1B5E20 !important'),
-              },
-              transition: 'all 0.2s ease-in-out',
-            }}
-          >
-            {/* Icon */}
-            {mode === 'chat' ? (
-              <ChatIcon sx={{ fontSize: '1.5rem', color: 'white !important' }} />
-            ) : (
-              <TeachIcon sx={{ fontSize: '1.5rem', color: 'white !important' }} />
-            )}
+        <ErrorBoundary>
+          {/* Chat Mode */}
+          <Box style={panelStyle(mode === 'chat')}>
+            <ChatbotInterface
+              ref={chatbotRef}
+              chatbotId={chatbotId}
+              onConversationStart={handleConversationStart}
+              enableGuidedQuestions={enableGuidedQuestions}
+              onSwitchToLearn={showModeSwitch ? handleSwitchToTeach : undefined}
+              isActive={activePulse === 'chat'}
+              customToggleButton={toggleButton('chat')}
+            />
+          </Box>
 
-            {/* Text Content */}
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'flex-start',
-                lineHeight: 1,
-                flex: 1,
-              }}
-            >
-              <Typography
-                variant="body1"
+          {/* Teach Mode */}
+          <Box style={panelStyle(mode === 'teach')}>
+            {isLoadingSessions ? (
+              <Box
                 sx={{
-                  fontFamily: 'Staatliches, sans-serif',
-                  fontSize: '1rem',
-                  fontWeight: 'bold',
-                  mb: 0,
-                  lineHeight: 1.1,
-                  color: 'white !important',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  px: 2.5,
+                  py: 1.5,
+                  borderRadius: '12px',
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
                 }}
               >
-                {mode === 'chat' ? 'Chat with PAT' : 'Teach PAT'}
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{
-                  fontFamily: 'Gabarito, sans-serif',
-                  fontSize: '0.75rem',
-                  opacity: 0.9,
-                  lineHeight: 1,
-                  mt: 0.2,
-                  color: 'white !important',
-                }}
-              >
-                {mode === 'chat' ? 'AI Tutor' : 'Learn by Teaching'}
-              </Typography>
-            </Box>
-
-            {/* Expand/Collapse Icon */}
-            {isOpen ? (
-              <ExpandLess sx={{ fontSize: '1.2rem', color: 'white !important' }} />
+                <Typography variant="body2" color="text.secondary">
+                  Loading your teach sessions...
+                </Typography>
+              </Box>
             ) : (
-              <ExpandMore sx={{ fontSize: '1.2rem', color: 'white !important' }} />
+              <TeachModeInterface
+                ref={teachRef}
+                chatbotId={chatbotId}
+                sessionIds={savedSessionIds}
+                initialSessionId={selectedSessionId || undefined}
+                onSessionStart={handleSessionStart}
+                onSwitchToChat={showModeSwitch ? handleSwitchToChat : undefined}
+                isActive={activePulse === 'teach'}
+                customToggleButton={toggleButton('teach')}
+                showRestartButton={true}
+              />
             )}
-          </Button>
-
-          {/* Chatbot Interfaces */}
-          <Collapse
-            in={isOpen}
-            timeout={300}
-            easing={{
-              enter: 'cubic-bezier(0.4, 0, 0.2, 1)',
-              exit: 'cubic-bezier(0.4, 0, 0.6, 1)',
-            }}
-          >
-            <Box
-              sx={{
-                background: 'white',
-                borderRadius: '0 0 16px 16px',
-                overflow: 'hidden',
-              }}
-            >
-              <ErrorBoundary>
-                {/* Chat Mode */}
-                <Box style={panelStyle(mode === 'chat')}>
-                  <ChatbotInterface
-                    ref={chatbotRef}
-                    chatbotId={chatbotId}
-                    onConversationStart={handleConversationStart}
-                    enableGuidedQuestions={enableGuidedQuestions}
-                    onSwitchToLearn={showModeSwitch ? handleSwitchToTeach : undefined}
-                    isActive={mode === 'chat'}
-                  />
-                </Box>
-
-                {/* Teach Mode */}
-                <Box style={panelStyle(mode === 'teach')}>
-                  {isLoadingSessions ? (
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        height: 400,
-                      }}
-                    >
-                      <Typography variant="body2" color="text.secondary">
-                        Loading your teach sessions...
-                      </Typography>
-                    </Box>
-                  ) : (
-                    <TeachModeInterface
-                      ref={teachRef}
-                      chatbotId={chatbotId}
-                      sessionIds={savedSessionIds}
-                      initialSessionId={selectedSessionId || undefined}
-                      onSessionStart={handleSessionStart}
-                      onSwitchToChat={showModeSwitch ? handleSwitchToChat : undefined}
-                      isActive={mode === 'teach'}
-                      showRestartButton={true}
-                    />
-                  )}
-                </Box>
-              </ErrorBoundary>
-            </Box>
-          </Collapse>
-        </Box>
+          </Box>
+        </ErrorBoundary>
       </Box>
     );
   }
