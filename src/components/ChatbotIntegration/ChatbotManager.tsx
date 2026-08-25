@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { Box } from '@mui/material';
-import ChatbotWrapper from './ChatbotWrapper';
+import ChatbotWithTeachMode, { ChatbotWithTeachModeRef } from './ChatbotWithTeachMode';
 import { useSearchParams } from 'react-router-dom';
 import { getFirestore, collection, getDocs, query, where } from 'firebase/firestore';
 
@@ -11,7 +11,7 @@ const DEFAULT_CHATBOT_ID = import.meta.env.VITE_CHATBOT_DEFAULT_ID;
 const ChatbotManager: React.FC = () => {
   const [selectedChatbotId, setSelectedChatbotId] = useState<string>(DEFAULT_CHATBOT_ID);
   const [searchParams] = useSearchParams();
-  const chatbotRef = useRef<{ endConversation: () => void } | null>(null);
+  const chatbotRef = useRef<ChatbotWithTeachModeRef | null>(null);
 
   useEffect(() => {
     const materialId = searchParams.get('material');
@@ -51,7 +51,12 @@ const ChatbotManager: React.FC = () => {
 
   return (
     <Box sx={{ position: 'fixed', bottom: 16, right: 16, zIndex: 1100 }}>
-      <ChatbotWrapper ref={chatbotRef} chatbotId={selectedChatbotId} />
+      <ChatbotWithTeachMode 
+        ref={chatbotRef} 
+        chatbotId={selectedChatbotId}
+        enableGuidedQuestions={true}
+        showModeSwitch={true}
+      />
     </Box>
   );
 };

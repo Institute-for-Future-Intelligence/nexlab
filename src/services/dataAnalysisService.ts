@@ -26,8 +26,15 @@ import {
   DataValidationError,
   MLClassificationResult,
   MLRegressionResult,
+  MLClusteringResult,
   AnalysisOptions,
 } from '../types/dataAnalysis';
+import {
+  runClassification,
+  runRegression,
+  runClustering,
+  extractFeatures,
+} from './mlAlgorithms';
 
 /**
  * Data Analysis Service
@@ -763,17 +770,37 @@ class DataAnalysisService {
     const trainData = extractFeaturesAndLabels(split.training);
     const testData = extractFeaturesAndLabels(split.testing);
 
-    // Get unique classes
-    const uniqueClasses = Array.from(new Set([...trainData.labels, ...testData.labels]));
+    // Get unique classes (sorted for consistent ordering)
+    const uniqueClasses = Array.from(new Set([...trainData.labels, ...testData.labels])).sort((a, b) =>
+      String(a).localeCompare(String(b))
+    );
     const classToIndex = new Map(uniqueClasses.map((c, i) => [String(c), i]));
     const indexToClass = new Map(uniqueClasses.map((c, i) => [i, String(c)]));
 
-    // Declare predictions variables
     let trainPredictions: string[];
     let testPredictions: string[];
 
-    // For binary classification, use simple logistic regression with gradient descent
-    if (uniqueClasses.length === 2) {
+    // Use ml.js algorithms for decision_tree, random_forest, knn (supports multi-class)
+    const useMlJs = ['decision_tree', 'random_forest', 'knn'].includes(mlAlgorithm);
+    if (useMlJs) {
+      const classLabels = uniqueClasses.map(String);
+      const mlResult = runClassification(
+        mlAlgorithm as 'decision_tree' | 'random_forest' | 'knn',
+        trainData.features,
+        trainData.labels,
+        testData.features,
+        classLabels,
+        {
+          maxDepth: options.maxDepth ?? 10,
+          nEstimators: options.nEstimators ?? 50,
+          seed: options.randomSeed ?? 42,
+          k: options.kNeighbors,
+        }
+      );
+      trainPredictions = mlResult.trainPredictions.map(String);
+      testPredictions = mlResult.testPredictions.map(String);
+    } else if (uniqueClasses.length === 2) {
+      // Logistic regression for binary classification only
       // Encode labels as 0 and 1
       const trainY = trainData.labels.map((label) => (classToIndex.get(String(label)) || 0));
       
@@ -919,11 +946,15 @@ class DataAnalysisService {
     // Calculate feature importance
     const featureImportance = this.calculateFeatureImportance(dataset, featureVariables, targetVariable);
 
+    const algorithmNames: Record<string, string> = {
+      logistic: uniqueClasses.length === 2 ? 'Logistic Regression (Gradient Descent)' : 'Logistic Regression (Baseline)',
+      decision_tree: 'Decision Tree (CART)',
+      random_forest: 'Random Forest',
+      knn: 'K-Nearest Neighbors',
+    };
     const result: MLClassificationResult = {
       type: 'ml_classification',
-      algorithm: uniqueClasses.length === 2 
-        ? 'Logistic Regression (Gradient Descent)'
-        : mlAlgorithm === 'logistic' ? 'Logistic Regression (Baseline)' : 'Decision Tree',
+      algorithm: algorithmNames[mlAlgorithm] ?? mlAlgorithm,
       trainingSize: trainData.labels.length,
       testSize: testData.labels.length,
       splitRatio,
@@ -982,7 +1013,7 @@ class DataAnalysisService {
     targetVariable: string,
     options: AnalysisOptions = {}
   ): MLRegressionResult {
-    const { splitRatio = 0.8, randomSeed, crossValidationFolds } = options;
+    const { splitRatio = 0.8, randomSeed, crossValidationFolds, mlAlgorithm = 'linear' } = options;
 
     // Split data
     const split = this.trainTestSplit(dataset, { splitRatio, randomSeed });
@@ -1035,9 +1066,29 @@ class DataAnalysisService {
     const trainData = extractFeaturesAndTarget(split.training);
     const testData = extractFeaturesAndTarget(split.testing);
 
-    // Multivariate Linear Regression using Normal Equation
-    // β = (X^T X)^(-1) X^T y
-    const trainMultivariateRegression = (X: number[][], y: number[]) => {
+    let trainPredicted: number[];
+    let testPredicted: number[];
+
+    const useMlJsRegression = ['decision_tree', 'random_forest', 'knn'].includes(mlAlgorithm);
+    if (useMlJsRegression) {
+      const mlResult = runRegression(
+        mlAlgorithm as 'decision_tree' | 'random_forest' | 'knn',
+        trainData.X,
+        trainData.y,
+        testData.X,
+        {
+          maxDepth: options.maxDepth ?? 10,
+          nEstimators: options.nEstimators ?? 50,
+          seed: options.randomSeed ?? 42,
+          k: options.kNeighbors,
+        }
+      );
+      trainPredicted = mlResult.trainPredictions;
+      testPredicted = mlResult.testPredictions;
+    } else {
+      // Multivariate Linear Regression using Normal Equation
+      // β = (X^T X)^(-1) X^T y
+      const trainMultivariateRegression = (X: number[][], y: number[]) => {
       const n = X.length;
       const m = X[0].length;
 
@@ -1087,34 +1138,32 @@ class DataAnalysisService {
       };
     };
 
-    // Train model
-    const model = trainMultivariateRegression(trainData.X, trainData.y);
+      const model = trainMultivariateRegression(trainData.X, trainData.y);
+      const predict = (X: number[][]) =>
+        X.map((features) => {
+          let prediction = model.intercept;
+          for (let i = 0; i < features.length; i++) {
+            prediction += model.weights[i] * features[i];
+          }
+          return prediction;
+        });
+      trainPredicted = predict(trainData.X);
+      testPredicted = predict(testData.X);
+    }
 
-    // Prediction function
-    const predict = (X: number[][]) => {
-      return X.map(features => {
-        let prediction = model.intercept;
-        for (let i = 0; i < features.length; i++) {
-          prediction += model.weights[i] * features[i];
-        }
-        return prediction;
-      });
-    };
-
-    // Evaluate on training set
-    const trainPredicted = predict(trainData.X);
     const trainMetrics = evaluateRegression(trainData.y, trainPredicted);
-
-    // Evaluate on test set
-    const testPredicted = predict(testData.X);
     const testMetrics = evaluateRegression(testData.y, testPredicted);
 
     // Calculate feature importance
     const featureImportance = this.calculateFeatureImportance(dataset, featureVariables, targetVariable);
 
-    // Perform cross-validation if requested (multivariate version)
+    // Cross-validation (linear regression only - ml.js algorithms use train/test)
     let crossValidation;
-    if (crossValidationFolds && crossValidationFolds > 1) {
+    if (
+      crossValidationFolds &&
+      crossValidationFolds > 1 &&
+      !useMlJsRegression
+    ) {
       crossValidation = this.performMultivariateCrossValidation(
         dataset.data,
         featureVariables,
@@ -1123,10 +1172,15 @@ class DataAnalysisService {
       );
     }
 
-    // Determine algorithm name based on number of features
-    const algorithmName = featureVariables.length === 1 
-      ? 'Linear Regression (Univariate)'
-      : `Multivariate Linear Regression (${featureVariables.length} features)`;
+    const regressionAlgorithmNames: Record<string, string> = {
+      linear: featureVariables.length === 1
+        ? 'Linear Regression (Univariate)'
+        : `Multivariate Linear Regression (${featureVariables.length} features)`,
+      decision_tree: 'Decision Tree (CART)',
+      random_forest: 'Random Forest',
+      knn: 'K-Nearest Neighbors',
+    };
+    const algorithmName = regressionAlgorithmNames[mlAlgorithm] ?? mlAlgorithm;
 
     const result: MLRegressionResult = {
       type: 'ml_regression',
@@ -1195,6 +1249,61 @@ class DataAnalysisService {
     };
 
     return result;
+  }
+
+  /**
+   * Perform K-Means clustering (unsupervised).
+   */
+  performMLClustering(
+    dataset: Dataset,
+    featureVariables: string[],
+    options: AnalysisOptions = {}
+  ): MLClusteringResult {
+    const { nClusters = 3, randomSeed } = options;
+
+    const X = extractFeatures(dataset.data, featureVariables);
+    if (X.length < nClusters) {
+      throw new Error(
+        `Not enough data points (${X.length}) for ${nClusters} clusters. Need at least ${nClusters} points.`
+      );
+    }
+
+    const result = runClustering(X, {
+      k: nClusters,
+      seed: randomSeed,
+      maxIterations: 100,
+    });
+
+    const clusterSizes = new Array(nClusters).fill(0);
+    for (const c of result.clusterIds) {
+      clusterSizes[c]++;
+    }
+
+    const summary = `K-Means clustering on ${X.length} samples with ${nClusters} clusters. ` +
+      `Converged in ${result.iterations} iterations. ` +
+      `Cluster sizes: ${clusterSizes.join(', ')}.`;
+
+    const recommendations: string[] = [
+      'Use cluster visualization to interpret groupings',
+      'Try different K values to find optimal number of clusters',
+      nClusters > 5
+        ? 'Consider fewer clusters for easier interpretation'
+        : 'Consider elbow method to choose optimal K',
+    ];
+
+    return {
+      type: 'ml_clustering',
+      algorithm: 'kmeans',
+      nClusters,
+      nSamples: X.length,
+      iterations: result.iterations,
+      clusterSizes,
+      centroids: result.centroids,
+      featureVariables,
+      clusterAssignments: result.clusterIds,
+      summary,
+      recommendations,
+    };
   }
 
   /**
