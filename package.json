@@ -42,7 +42,7 @@
     "@types/papaparse": "^5.5.2",
     "@types/pdf-parse": "^1.1.5",
     "browser-image-compression": "^2.0.2",
-    "chatbot-interface-ifi": "^1.4.0",
+    "chatbot-interface-ifi": "^1.8.1",
     "dagre": "^0.8.5",
     "date-fns": "^3.0.0",
     "domelementtype": "^2.3.0",
