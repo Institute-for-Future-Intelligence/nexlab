@@ -122,8 +122,9 @@ const ChatbotWithTeachMode = forwardRef<ChatbotWithTeachModeRef, ChatbotWithTeac
       async (newSessionId: string) => {
         console.log(`📚 Teach session started. Chatbot ID: ${chatbotId}, Session ID: ${newSessionId}`);
 
-        // Update local state (avoid duplicates)
-        setSelectedSessionId((prev) => prev || newSessionId);
+        // Update local state (avoid duplicates). Per the package docs, do NOT
+        // feed this id into initialSessionId — that prop is only for explicit
+        // user selection; the widget restores/starts sessions on its own.
         setSavedSessionIds((prev) =>
           prev.includes(newSessionId) ? prev : [newSessionId, ...prev]
         );
