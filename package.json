@@ -50,8 +50,6 @@
     "dompurify": "^3.1.0",
     "domutils": "^3.2.2",
     "firebase": "^9.23.0",
-    "firebase-admin": "^12.2.0",
-    "firebase-functions": "^5.0.1",
     "html2canvas": "^1.4.1",
     "html2pdf.js": "^0.10.3",
     "htmlparser2": "^10.0.0",
